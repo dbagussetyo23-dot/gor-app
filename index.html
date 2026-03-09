@@ -388,23 +388,29 @@
         // ============================================
         const API_URL = "https://script.google.com/macros/s/AKfycbwbn3QiYQSDWaxkQw1jQ2lB7wEbojU509cV4sMlUovRNDr6oRibcPcEEZ6WtRS_aNplpg/exec";
 
-async function run(method, data = {}) {
+async function run(action, ...params) {
 
-  if(method === "getData"){
+  try {
 
-    const res = await fetch(API_URL + "?action=getData");
-    return await res.json();
-
-  }
-
-  if(method === "saveData"){
-
-    const res = await fetch(API_URL,{
-      method:"POST",
-      body:JSON.stringify(data)
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: action,
+        params: params
+      })
     });
 
-    return await res.json();
+    const result = await res.json();
+    return result;
+
+  } catch (err) {
+
+    console.error("API Error:", err);
+    throw err;
+
   }
 
 }
@@ -1126,4 +1132,5 @@ async function run(method, data = {}) {
         });
     </script>
 </body>
+
 </html>
