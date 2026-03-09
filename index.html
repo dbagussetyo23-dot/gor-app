@@ -387,32 +387,20 @@
         // UTILITY FUNCTIONS
         // ============================================
         const API_URL = "https://script.google.com/macros/s/AKfycbwbn3QiYQSDWaxkQw1jQ2lB7wEbojU509cV4sMlUovRNDr6oRibcPcEEZ6WtRS_aNplpg/exec";
-
 async function run(action, ...params) {
 
-  try {
+  const form = new FormData();
+  form.append("data", JSON.stringify({
+    action: action,
+    params: params
+  }));
 
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: action,
-        params: params
-      })
-    });
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: form
+  });
 
-    const result = await res.json();
-    return result;
-
-  } catch (err) {
-
-    console.error("API Error:", err);
-    throw err;
-
-  }
-
+  return await res.json();
 }
 
         function toggleLoader(show, text = "Memproses...") {
@@ -1134,5 +1122,6 @@ async function run(action, ...params) {
 </body>
 
 </html>
+
 
 
