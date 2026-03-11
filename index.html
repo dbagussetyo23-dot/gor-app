@@ -1234,7 +1234,7 @@ if(btn) btn.classList.add('nav-active');
         return;
     }
 
-    toggleLoader(true, "Memuat jadwal...");
+    toggleLoader(true, "Memuat jadwal 1 bulan...");
     
     try {
         const res = await run('getDataWithHash');
@@ -1242,28 +1242,38 @@ if(btn) btn.classList.add('nav-active');
 
         const start = new Date(tanggalAwal);
         start.setHours(0, 0, 0, 0);
+        
+        // Hitung jumlah hari dalam bulan yang dipilih
+        const tahun = start.getFullYear();
+        const bulan = start.getMonth(); // 0-11
+        const daysInMonth = new Date(tahun, bulan + 1, 0).getDate(); // Jumlah hari dalam bulan
 
         // Jam operasional GOR: 08:00 - 22:00
         const JAM_MULAI = 8;
         const JAM_SELESAI = 22;
-        const TOTAL_JAM = JAM_SELESAI - JAM_MULAI + 1; // +1 untuk jam 22:00
+        const TOTAL_JAM = JAM_SELESAI - JAM_MULAI + 1;
 
         let html = `
-        <div class="min-w-[1200px]">
+        <div class="min-w-[1400px]">
             <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100">
-                <table class="w-full border-collapse">
-                    <thead>
-                        <tr>
-                            <th class="p-4 text-left font-black text-sm bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500 sticky left-0 z-20" style="min-width: 150px;">
-                                <i class="fas fa-calendar mr-2"></i>TANGGAL
-                            </th>`;
+                <div class="overflow-x-auto max-h-[600px] overflow-y-auto relative">
+                    <table class="w-full border-collapse">
+                        <thead class="sticky top-0 z-30">
+                            <tr>
+                                <th class="p-4 text-left font-black text-sm bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500 sticky left-0 z-40" style="min-width: 180px;">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-calendar mr-2"></i>
+                                        <span>TANGGAL</span>
+                                        <span class="ml-2 text-[10px] bg-white/20 px-2 py-1 rounded-full">${MONTHS[bulan]} ${tahun}</span>
+                                    </div>
+                                </th>`;
 
         // Header jam 08:00 - 22:00
         for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
             let jamDisplay = jam.toString().padStart(2, '0');
-            let isPeakHour = (jam >= 16 && jam <= 21); // Peak hour 16:00-21:00
+            let isPeakHour = (jam >= 16 && jam <= 21);
             
-            html += `<th class="p-3 font-black text-sm border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''}">
+            html += `<th class="p-3 font-black text-sm border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''} min-w-[60px]">
                         <div class="flex flex-col items-center">
                             <span class="text-xs opacity-75">${jamDisplay}:00</span>
                             <span class="text-[8px] opacity-50">${isPeakHour ? 'PEAK' : ''}</span>
@@ -1271,15 +1281,23 @@ if(btn) btn.classList.add('nav-active');
                     </th>`;
         }
 
+        html += `<th class="p-3 font-black text-sm bg-gradient-to-r from-indigo-600 to-indigo-700 text-white min-w-[80px]">
+                    <span>TOTAL</span>
+                </th>`;
         html += `</tr></thead><tbody>`;
 
         // Hitung total booking untuk summary
         let totalBookings = 0;
+        let totalSesiBulan = 0;
+        let totalPendapatanBulan = 0;
 
-        // Generate 7 hari ke depan
-        for (let d = 0; d < 7; d++) {
+        // Generate semua hari dalam bulan
+        for (let d = 0; d < daysInMonth; d++) {
             let tgl = new Date(start);
             tgl.setDate(start.getDate() + d);
+            
+            // Stop jika sudah melebihi bulan yang sama
+            if (tgl.getMonth() !== bulan) break;
             
             // Format tanggal untuk display
             const dayName = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'][tgl.getDay()];
@@ -1291,6 +1309,10 @@ if(btn) btn.classList.add('nav-active');
             
             // Cek apakah weekend
             const isWeekend = tgl.getDay() === 0 || tgl.getDay() === 6;
+            
+            // Hitung booking per hari
+            let dailyBookings = 0;
+            let dailyRevenue = 0;
             
             html += `<tr class="${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} hover:bg-indigo-50/20 transition-colors">`;
             html += `<td class="p-4 border-t border-gray-100 sticky left-0 ${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} z-10 ${isToday ? 'bg-indigo-50' : ''}">
@@ -1329,10 +1351,16 @@ if(btn) btn.classList.add('nav-active');
                 if (bookings.length > 0) {
                     rowHasBooking = true;
                     totalBookings++;
+                    dailyBookings++;
+                    
+                    // Tambah pendapatan
+                    bookings.forEach(b => {
+                        dailyRevenue += Number(b.NOMINAL);
+                        totalPendapatanBulan += Number(b.NOMINAL);
+                    });
                     
                     // Ada booking
                     const booking = bookings[0];
-                    const isMultiHour = bookings.length > 1;
                     const isFirstHour = jam === parseInt(bookings[0].JAM_AWAL.split(':')[0]);
                     
                     let cellClass = "border border-gray-100 p-0 relative group cursor-pointer transition-all";
@@ -1349,7 +1377,6 @@ if(btn) btn.classList.add('nav-active');
                                         <span class="text-[6px] text-white/50 font-black mt-0.5 opacity-0 group-hover:opacity-100">
                                             ${booking.LAPANGAN}
                                         </span>
-                                        ${jam === JAM_MULAI ? '<div class="absolute inset-y-0 left-0 w-1 bg-white/30"></div>' : ''}
                                     </div>
                                 </td>`;
                     } else {
@@ -1370,67 +1397,70 @@ if(btn) btn.classList.add('nav-active');
                 }
             }
             
-            // Tambah badge total booking per hari jika ada
-            if (rowHasBooking) {
-                html += `<td class="border-t border-gray-100 bg-indigo-50/50">
-                            <div class="p-2 text-center">
-                                <span class="text-[8px] font-black text-indigo-400">BOOKED</span>
-                            </div>
-                        </td>`;
-            } else {
-                html += `<td class="border-t border-gray-100"></td>`;
-            }
+            // Kolom TOTAL per hari
+            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-2 text-center">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-black text-indigo-600">${dailyBookings} Sesi</span>
+                            <span class="text-[8px] font-bold text-emerald-600">Rp ${dailyRevenue.toLocaleString('id-ID')}</span>
+                        </div>
+                    </td>`;
             
             html += `</tr>`;
+            
+            totalSesiBulan += dailyBookings;
         }
 
-        html += `</tbody></table></div></div>`;
+        html += `</tbody></table></div></div></div>`;
         
-        // Summary stats
-        const uniqueBookings = new Set(data.map(x => x.ID)).size;
+        // Summary stats untuk 1 bulan
+        const totalSlots = daysInMonth * (JAM_SELESAI - JAM_MULAI + 1);
+        const occupancyRate = Math.round((totalBookings / totalSlots) * 100);
+        
+        // Tambah filter bulan
+        const bulanNama = MONTHS[bulan];
+        const nextMonth = new Date(tahun, bulan + 1, 1);
+        const prevMonth = new Date(tahun, bulan - 1, 1);
         
         html += `
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl">
-                <div class="text-[9px] font-black text-indigo-400 uppercase tracking-wider">Total Sesi</div>
-                <div class="text-xl font-black text-indigo-700">${totalBookings}</div>
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl col-span-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-[9px] font-black text-indigo-400 uppercase tracking-wider">BULAN</div>
+                        <div class="text-xl font-black text-indigo-700">${bulanNama} ${tahun}</div>
+                        <div class="text-[10px] text-gray-500 mt-1">${daysInMonth} hari operasional</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="ubahBulan('prev')" class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
+                            <i class="fas fa-chevron-left text-indigo-600 text-xs"></i>
+                        </button>
+                        <button onclick="ubahBulan('next')" class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
+                            <i class="fas fa-chevron-right text-indigo-600 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
+            
             <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 rounded-xl">
-                <div class="text-[9px] font-black text-emerald-400 uppercase tracking-wider">Hari Ini</div>
-                <div class="text-xl font-black text-emerald-700" id="todayBookings">0</div>
+                <div class="text-[9px] font-black text-emerald-400 uppercase tracking-wider">TOTAL SESI</div>
+                <div class="text-xl font-black text-emerald-700">${totalSesiBulan}</div>
+                <div class="text-[8px] text-emerald-600 mt-1">${(totalSesiBulan/daysInMonth).toFixed(1)} sesi/hari</div>
             </div>
+            
             <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-4 rounded-xl">
-                <div class="text-[9px] font-black text-amber-400 uppercase tracking-wider">Peak Hours</div>
-                <div class="text-xl font-black text-amber-700" id="peakBookings">0</div>
+                <div class="text-[9px] font-black text-amber-400 uppercase tracking-wider">PENDAPATAN</div>
+                <div class="text-xl font-black text-amber-700">Rp ${totalPendapatanBulan.toLocaleString('id-ID')}</div>
+                <div class="text-[8px] text-amber-600 mt-1">Rp ${Math.round(totalPendapatanBulan/daysInMonth).toLocaleString('id-ID')}/hari</div>
             </div>
+            
             <div class="bg-gradient-to-br from-rose-50 to-rose-100 p-4 rounded-xl">
-                <div class="text-[9px] font-black text-rose-400 uppercase tracking-wider">Okupansi</div>
-                <div class="text-xl font-black text-rose-700" id="occupancyRate">0%</div>
+                <div class="text-[9px] font-black text-rose-400 uppercase tracking-wider">OKUPANSI</div>
+                <div class="text-xl font-black text-rose-700">${occupancyRate}%</div>
+                <div class="text-[8px] text-rose-600 mt-1">${totalBookings} dari ${totalSlots} slot</div>
             </div>
         </div>`;
 
         document.getElementById("jadwalContainer").innerHTML = html;
-        
-        // Hitung statistik tambahan
-        const today = new Date().toISOString().split('T')[0];
-        const todayBookings = data.filter(x => {
-            const bulanIndex = MONTHS.indexOf(x.BULAN);
-            const tglSheet = new Date(x.TAHUN, bulanIndex, parseInt(x.TANGGAL));
-            return tglSheet.toISOString().split('T')[0] === today;
-        }).length;
-        
-        document.getElementById('todayBookings').textContent = todayBookings;
-        
-        const peakBookings = data.filter(x => {
-            const jam = parseInt(x.JAM_AWAL.split(':')[0]);
-            return jam >= 16 && jam <= 21;
-        }).length;
-        
-        document.getElementById('peakBookings').textContent = peakBookings;
-        
-        const totalSlots = 7 * (JAM_SELESAI - JAM_MULAI + 1); // 7 hari x total jam
-        const occupancyRate = Math.round((totalBookings / totalSlots) * 100);
-        document.getElementById('occupancyRate').textContent = occupancyRate + '%';
         
     } catch (error) {
         console.error("Error loading jadwal:", error);
@@ -1438,6 +1468,26 @@ if(btn) btn.classList.add('nav-active');
     } finally {
         toggleLoader(false);
     }
+}
+
+// Fungsi untuk navigasi bulan
+function ubahBulan(arah) {
+    const inputTanggal = document.getElementById("tanggalAwal");
+    const currentDate = new Date(inputTanggal.value);
+    
+    if (arah === 'prev') {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+    } else {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+    
+    // Format YYYY-MM-DD
+    const tahun = currentDate.getFullYear();
+    const bulan = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const hari = '01'; // Set ke tanggal 1
+    
+    inputTanggal.value = `${tahun}-${bulan}-${hari}`;
+    cekJadwal(); // Panggil ulang dengan bulan baru
 }
 
 // Fungsi tambahan untuk detail booking
