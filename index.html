@@ -123,6 +123,22 @@
                 </button>
             </nav>
 
+		<nav class="space-y-2 flex-grow">
+    <button onclick="showPage('dashboard')" id="btn-dashboard" class="nav-item w-full flex items-center p-4 rounded-xl font-bold nav-active">
+        <i class="fas fa-th-large w-5"></i> <span class="nav-text ml-4 text-sm">Dashboard</span>
+    </button>
+    <button onclick="showPage('input')" id="btn-input" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
+        <i class="fas fa-plus-circle w-5"></i> <span class="nav-text ml-4 text-sm">Input Data</span>
+    </button>
+    <button onclick="showPage('history')" id="btn-history" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
+        <i class="fas fa-history w-5"></i> <span class="nav-text ml-4 text-sm">Riwayat</span>
+    </button>
+    <!-- MENU JADWAL BARU -->
+    <button onclick="showPage('jadwal')" id="btn-jadwal" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
+        <i class="fas fa-calendar-alt w-5"></i> <span class="nav-text ml-4 text-sm">Jadwal</span>
+    </button>
+</nav>
+
             <div class="mt-auto pt-4 border-t border-white/10">
                 <p id="displayUser" class="text-[10px] font-black text-indigo-200 mb-4 px-4 uppercase tracking-tighter opacity-70"></p>
                 
@@ -293,6 +309,82 @@
             </section>
         </main>
     </div>
+	
+	<!-- JADWAL PAGE -->
+<section id="page-jadwal" class="hidden space-y-4">
+    <!-- Header dengan judul dan filter -->
+    <div class="flex flex-wrap justify-between items-center gap-4">
+        <h2 class="text-2xl font-black">Jadwal Pemakaian GOR</h2>
+        <div class="flex flex-wrap gap-2">
+            <!-- FILTER GOR - HANYA UNTUK ADMIN -->
+            <div id="jadwalFilterGorContainer" class="admin-only">
+                <select id="jadwalFilterGor" onchange="renderJadwal()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none min-w-[150px]">
+                    <option value="">SEMUA UNIT</option>
+                </select>
+            </div>
+            <!-- FILTER BULAN -->
+            <select id="jadwalBulan" onchange="renderJadwal()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none">
+                <option value="">BULAN INI</option>
+            </select>
+            <!-- FILTER TAHUN -->
+            <select id="jadwalTahun" onchange="renderJadwal()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none">
+            </select>
+        </div>
+    </div>
+
+    <!-- LEGENDA/WARNA KETERANGAN -->
+    <div class="flex items-center gap-4 text-[10px] font-bold">
+        <div class="flex items-center gap-2">
+            <span class="w-3 h-3 bg-indigo-100 border border-indigo-300 rounded"></span>
+            <span>TERSEDIA</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="w-3 h-3 bg-amber-100 border border-amber-300 rounded"></span>
+            <span>TERBOOKING</span>
+        </div>
+    </div>
+
+    <!-- HEADER HARI (SENIN-MINGGU) -->
+    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-50 p-4">
+        <div class="grid grid-cols-7 gap-1 mb-2">
+            <div class="text-center text-[10px] font-black text-gray-400 p-2">SENIN</div>
+            <div class="text-center text-[10px] font-black text-gray-400 p-2">SELASA</div>
+            <div class="text-center text-[10px] font-black text-gray-400 p-2">RABU</div>
+            <div class="text-center text-[10px] font-black text-gray-400 p-2">KAMIS</div>
+            <div class="text-center text-[10px] font-black text-gray-400 p-2">JUMAT</div>
+            <div class="text-center text-[10px] font-black text-gray-400 p-2">SABTU</div>
+            <div class="text-center text-[10px] font-black text-gray-400 p-2">MINGGU</div>
+        </div>
+
+        <!-- GRID JADWAL AKAN DIISI JAVASCRIPT -->
+        <div id="jadwalGrid" class="space-y-1">
+            <!-- Akan diisi oleh JavaScript -->
+        </div>
+    </div>
+
+    <!-- TABEL DETAIL JADWAL -->
+    <div class="mt-4">
+        <h3 class="text-sm font-black mb-2">Detail Jadwal per Jam</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-[11px] bg-white rounded-2xl overflow-hidden">
+                <thead class="bg-gray-50 font-black uppercase text-gray-400">
+                    <tr>
+                        <th class="p-3">HARI</th>
+                        <th class="p-3">TANGGAL</th>
+                        <th class="p-3">JAM</th>
+                        <th class="p-3">GOR</th>
+                        <th class="p-3">LAPANGAN</th>
+                        <th class="p-3">PEMAKAI</th>
+                        <th class="p-3">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody id="jadwalDetailTable" class="divide-y divide-gray-50 font-medium">
+                    <!-- Akan diisi JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 
     <!-- EDIT MODAL -->
     <div id="editModal">
@@ -354,6 +446,7 @@
             </div>
         </div>
     </div>
+
 
     <script>
         // ============================================
@@ -731,73 +824,120 @@ async function run(action, ...params) {
         // UI SETUP
         // ============================================
         function setupSelectors() {
-            const fill = (id, items) => {
-                const el = document.getElementById(id); 
-                if (!el) return;
-                el.innerHTML = '';
-                items.forEach(i => el.add(new Option(i, i)));
-            };
-            
-            fill('fTanggal', Array.from({length:31}, (_,i)=>i+1));
-            fill('fBulan', MONTHS);
-            fill('fGor', GORS);
-            
-            const ls = document.getElementById('fLapangan'); 
-            if (ls) {
-                ls.innerHTML = ''; 
-                SPORTS.forEach(s => ls.add(new Option(s, s))); 
-                ls.add(new Option("LAINYA", "LAINYA"));
-            }
-            
-            fill('eTanggal', Array.from({length:31}, (_,i)=>i+1));
-            fill('eBulan', MONTHS);
-            fill('eGor', GORS);
-            
-            const els = document.getElementById('eLapangan'); 
-            if (els) {
-                els.innerHTML = ''; 
-                SPORTS.forEach(s => els.add(new Option(s, s))); 
-                els.add(new Option("LAINYA", "LAINYA"));
-            }
-            
-            const hbs = document.getElementById('histBulan'); 
-            if (hbs) {
-                hbs.innerHTML = '<option value="">SEMUA BULAN</option>'; 
-                MONTHS.forEach(m => hbs.add(new Option(m, m)));
-            }
-            
-            const hgs = document.getElementById('histGor'); 
-            if (hgs) {
-                hgs.innerHTML = '<option value="">SEMUA UNIT</option>'; 
-                GORS.forEach(g => hgs.add(new Option(g, g)));
-            }
-            
-            if (!isUserAdmin) {
-                dashSelectedGor = [currentUser];
-                const contGorDash = document.getElementById('contGorDash');
-                if (contGorDash) contGorDash.classList.add('hidden');
-                
-                const fGor = document.getElementById('fGor');
-                if (fGor) {
-                    fGor.value = currentUser;
-                    fGor.disabled = true;
-                }
-                
-                const eGor = document.getElementById('eGor');
-                if (eGor) {
-                    eGor.value = currentUser;
-                    eGor.disabled = true;
-                }
-                
-                if (hgs) {
-                    hgs.value = currentUser;
-                    hgs.disabled = true;
-                }
-            }
-            
-            initExcelFilters();
-            showPage('dashboard');
+    const fill = (id, items) => {
+        const el = document.getElementById(id); 
+        if (!el) return;
+        el.innerHTML = '';
+        items.forEach(i => el.add(new Option(i, i)));
+    };
+    
+    fill('fTanggal', Array.from({length:31}, (_,i)=>i+1));
+    fill('fBulan', MONTHS);
+    fill('fGor', GORS);
+    
+    const ls = document.getElementById('fLapangan'); 
+    if (ls) {
+        ls.innerHTML = ''; 
+        SPORTS.forEach(s => ls.add(new Option(s, s))); 
+        ls.add(new Option("LAINYA", "LAINYA"));
+    }
+    
+    fill('eTanggal', Array.from({length:31}, (_,i)=>i+1));
+    fill('eBulan', MONTHS);
+    fill('eGor', GORS);
+    
+    const els = document.getElementById('eLapangan'); 
+    if (els) {
+        els.innerHTML = ''; 
+        SPORTS.forEach(s => els.add(new Option(s, s))); 
+        els.add(new Option("LAINYA", "LAINYA"));
+    }
+    
+    const hbs = document.getElementById('histBulan'); 
+    if (hbs) {
+        hbs.innerHTML = '<option value="">SEMUA BULAN</option>'; 
+        MONTHS.forEach(m => hbs.add(new Option(m, m)));
+    }
+    
+    const hgs = document.getElementById('histGor'); 
+    if (hgs) {
+        hgs.innerHTML = '<option value="">SEMUA UNIT</option>'; 
+        GORS.forEach(g => hgs.add(new Option(g, g)));
+    }
+    
+    // ========== TAMBAHKAN KODE FILTER JADWAL DISINI ==========
+    
+    // ISI FILTER JADWAL
+    const jadwalFilterGor = document.getElementById('jadwalFilterGor');
+    if (jadwalFilterGor) {
+        jadwalFilterGor.innerHTML = '<option value="">SEMUA UNIT</option>';
+        GORS.forEach(g => {
+            const option = document.createElement('option');
+            option.value = g;
+            option.textContent = g;
+            jadwalFilterGor.appendChild(option);
+        });
+    }
+
+    // Isi filter bulan
+    const jadwalBulan = document.getElementById('jadwalBulan');
+    if (jadwalBulan) {
+        jadwalBulan.innerHTML = '<option value="">BULAN INI</option>';
+        MONTHS.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m;
+            option.textContent = m;
+            jadwalBulan.appendChild(option);
+        });
+    }
+
+    // Isi filter tahun
+    const jadwalTahun = document.getElementById('jadwalTahun');
+    if (jadwalTahun) {
+        jadwalTahun.innerHTML = '';
+        YEARS.forEach(y => {
+            const option = document.createElement('option');
+            option.value = y;
+            option.textContent = y;
+            jadwalTahun.appendChild(option);
+        });
+    }
+
+    // Set default value (bulan dan tahun saat ini)
+    const currentMonth = MONTHS[new Date().getMonth()];
+    const currentYear = new Date().getFullYear().toString();
+
+    if (jadwalBulan) jadwalBulan.value = currentMonth;
+    if (jadwalTahun) jadwalTahun.value = currentYear;
+    
+    // ========== AKHIR DARI KODE TAMBAHAN ==========
+    
+    if (!isUserAdmin) {
+        dashSelectedGor = [currentUser];
+        const contGorDash = document.getElementById('contGorDash');
+        if (contGorDash) contGorDash.classList.add('hidden');
+        
+        const fGor = document.getElementById('fGor');
+        if (fGor) {
+            fGor.value = currentUser;
+            fGor.disabled = true;
         }
+        
+        const eGor = document.getElementById('eGor');
+        if (eGor) {
+            eGor.value = currentUser;
+            eGor.disabled = true;
+        }
+        
+        if (hgs) {
+            hgs.value = currentUser;
+            hgs.disabled = true;
+        }
+    }
+    
+    initExcelFilters();
+    showPage('dashboard');
+}
 
         function initExcelFilters() {
             const build = (id, items, state, type) => {
@@ -1119,12 +1259,242 @@ async function run(action, ...params) {
                 showGentleNotification('Koneksi terputus', 'warning');
             }
         });
+		// ============================================
+// FUNGSI JADWAL
+// ============================================
+
+// Fungsi untuk mendapatkan nama hari dari tanggal
+function getDayName(dateStr) {
+    if (!dateStr) return '';
+    
+    // Buat objek Date dari string tanggal
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    
+    // Array nama hari
+    const days = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
+    return days[date.getDay()]; // getDay() mengembalikan 0-6 (Minggu-Sabtu)
+}
+
+// Fungsi untuk mengelompokkan data jadwal berdasarkan filter
+function getJadwalData() {
+    // Ambil nilai filter
+    const selectedBulan = document.getElementById('jadwalBulan')?.value || '';
+    const selectedTahun = document.getElementById('jadwalTahun')?.value || new Date().getFullYear().toString();
+    
+    // Filter GOR: jika admin bisa pilih semua, jika user biasa hanya GOR-nya
+    let selectedGor;
+    if (isUserAdmin) {
+        selectedGor = document.getElementById('jadwalFilterGor')?.value || '';
+    } else {
+        selectedGor = currentUser; // User biasa hanya lihat GOR sendiri
+    }
+    
+    // Filter data berdasarkan kriteria
+    let filteredData = userData.filter(d => {
+        const matchGor = selectedGor ? d.GOR === selectedGor : true;
+        const matchBulan = selectedBulan ? d.BULAN === selectedBulan : true;
+        const matchTahun = d.TAHUN.toString() === selectedTahun;
+        return matchGor && matchBulan && matchTahun;
+    });
+    
+    // Urutkan berdasarkan tanggal dan jam
+    filteredData.sort((a, b) => {
+        // Buat objek Date untuk perbandingan
+        const monthA = MONTHS.indexOf(a.BULAN) + 1;
+        const monthB = MONTHS.indexOf(b.BULAN) + 1;
+        
+        const dateA = new Date(`${a.TAHUN}-${monthA}-${a.TANGGAL}`);
+        const dateB = new Date(`${b.TAHUN}-${monthB}-${b.TANGGAL}`);
+        
+        // Urut berdasarkan tanggal
+        if (dateA - dateB !== 0) return dateA - dateB;
+        
+        // Jika tanggal sama, urut berdasarkan jam
+        return (a.JAM_AWAL || '').localeCompare(b.JAM_AWAL || '');
+    });
+    
+    return filteredData;
+}
+
+// Render grid jadwal (tampilan matriks jam x hari)
+function renderJadwal() {
+    const jadwalData = getJadwalData();
+    const selectedBulan = document.getElementById('jadwalBulan')?.value || '';
+    const selectedTahun = document.getElementById('jadwalTahun')?.value || new Date().getFullYear().toString();
+    
+    // Jika tidak ada bulan dipilih, gunakan bulan saat ini
+    let month = selectedBulan ? MONTHS.indexOf(selectedBulan) : new Date().getMonth();
+    let year = parseInt(selectedTahun);
+    
+    // Dapatkan jumlah hari dalam bulan yang dipilih
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Buat array tanggal lengkap dengan hari
+    const dates = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, month, d);
+        dates.push({
+            tanggal: d,
+            dayName: getDayName(date),
+            fullDate: `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+        });
+    }
+    
+    // Urutan hari dalam seminggu
+    const daysOfWeek = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'];
+    
+    // Buat grid jadwal
+    let gridHtml = '';
+    
+    // Jam operasional dari jam 6 pagi sampai 10 malam
+    const jamOperasional = [];
+    for (let h = 6; h <= 22; h++) {
+        jamOperasional.push(`${String(h).padStart(2,'0')}:00`);
+    }
+    
+    // Loop setiap jam
+    jamOperasional.forEach(jam => {
+        gridHtml += '<div class="grid grid-cols-7 gap-1">';
+        
+        // Loop setiap hari
+        daysOfWeek.forEach(day => {
+            // Cari jadwal untuk hari dan jam ini
+            const jadwalForSlot = jadwalData.filter(d => {
+                const date = new Date(`${d.TAHUN}-${MONTHS.indexOf(d.BULAN)+1}-${d.TANGGAL}`);
+                const dayName = getDayName(date);
+                const jamMulai = d.JAM_AWAL || '';
+                const jamSelesai = d.JAM_SELESAI || '';
+                
+                // Cek apakah jam saat ini berada dalam range booking
+                return dayName === day && jam >= jamMulai && jam < jamSelesai;
+            });
+            
+            const isBooked = jadwalForSlot.length > 0;
+            const bgColor = isBooked ? 'bg-amber-100 border-amber-300' : 'bg-indigo-50 border-indigo-100';
+            
+            // Buat tooltip yang menampilkan siapa yang booking
+            const tooltip = isBooked ? 
+                jadwalForSlot.map(j => `${j.NAMA} - ${j.LAPANGAN}`).join('\n') : 
+                'Tersedia';
+            
+            gridHtml += `
+                <div class="${bgColor} border rounded p-1 text-[8px] font-bold text-center cursor-help relative group" 
+                     title="${tooltip}">
+                    ${jam}
+                    ${isBooked ? '<span class="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full"></span>' : ''}
+                </div>
+            `;
+        });
+        
+        gridHtml += '</div>';
+    });
+    
+    document.getElementById('jadwalGrid').innerHTML = gridHtml;
+    
+    // Render tabel detail
+    renderJadwalDetail(jadwalData);
+}
+
+// Render detail jadwal dalam bentuk tabel
+function renderJadwalDetail(data) {
+    if (data.length === 0) {
+        document.getElementById('jadwalDetailTable').innerHTML = `
+            <tr>
+                <td colspan="7" class="p-8 text-center text-gray-400 font-bold">
+                    <i class="fas fa-calendar-times text-2xl mb-2 opacity-30"></i><br>
+                    Tidak ada jadwal untuk periode ini
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    const detailHtml = data.map(d => {
+        const date = new Date(`${d.TAHUN}-${MONTHS.indexOf(d.BULAN)+1}-${d.TANGGAL}`);
+        const dayName = getDayName(date);
+        const formattedDate = `${d.TANGGAL} ${d.BULAN.substring(0,3)} ${d.TAHUN}`;
+        
+        return `
+            <tr class="hover:bg-gray-50">
+                <td class="p-3 font-black text-gray-700">${dayName}</td>
+                <td class="p-3 text-gray-600">${formattedDate}</td>
+                <td class="p-3 font-bold text-indigo-600">
+                    ${formatTimeDirect(d.JAM_AWAL)} - ${formatTimeDirect(d.JAM_SELESAI)}
+                </td>
+                <td class="p-3 font-bold">${d.GOR}</td>
+                <td class="p-3">
+                    <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-[9px] font-black uppercase">
+                        ${d.LAPANGAN}
+                    </span>
+                </td>
+                <td class="p-3 font-black uppercase">${d.NAMA}</td>
+                <td class="p-3">
+                    <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-[9px] font-black">
+                        TERBOOKING
+                    </span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    document.getElementById('jadwalDetailTable').innerHTML = detailHtml;
+}
+
+// Update fungsi showPage untuk handle menu jadwal
+function showPage(id) {
+    // Sembunyikan semua halaman
+    ['dashboard', 'input', 'history', 'jadwal'].forEach(p => {
+        const page = document.getElementById(`page-${p}`);
+        const btn = document.getElementById(`btn-${p}`);
+        if (page) page.classList.add('hidden');
+        if (btn) btn.classList.remove('nav-active');
+    });
+    
+    // Tampilkan halaman yang dipilih
+    const page = document.getElementById(`page-${id}`);
+    const btn = document.getElementById(`btn-${id}`);
+    if (page) page.classList.remove('hidden');
+    if (btn) btn.classList.add('nav-active');
+    
+    // Jika membuka halaman jadwal, render jadwal
+    if (id === 'jadwal') {
+        renderJadwal();
+    }
+}
+
+// Fungsi untuk menampilkan/menyembunyikan elemen khusus admin
+function toggleAdminElements() {
+    const adminElements = document.querySelectorAll('.admin-only');
+    adminElements.forEach(el => {
+        if (isUserAdmin) {
+            el.style.display = 'block'; // Tampil untuk admin
+        } else {
+            el.style.display = 'none'; // Sembunyi untuk user biasa
+        }
+    });
+    
+    // Handle khusus untuk filter GOR di halaman jadwal
+    const jadwalFilterGorContainer = document.getElementById('jadwalFilterGorContainer');
+    if (jadwalFilterGorContainer) {
+        if (isUserAdmin) {
+            jadwalFilterGorContainer.style.display = 'block';
+            document.getElementById('jadwalFilterGor').disabled = false;
+        } else {
+            jadwalFilterGorContainer.style.display = 'none';
+            // Untuk user biasa, set filter GOR ke GOR mereka
+            const jadwalFilterGor = document.getElementById('jadwalFilterGor');
+            if (jadwalFilterGor) {
+                jadwalFilterGor.value = currentUser;
+                jadwalFilterGor.disabled = true;
+            }
+        }
+    }
+}
+		
     </script>
 </body>
 
 </html>
-
-
-
 
 
