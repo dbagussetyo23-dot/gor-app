@@ -121,9 +121,10 @@
                 <button onclick="showPage('history')" id="btn-history" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
                     <i class="fas fa-history w-5"></i> <span class="nav-text ml-4 text-sm">Riwayat</span>
                 </button>
-				<button onclick="showPage('jadwal')" id="btn-jadwal" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
-					<i class="fas fa-calendar-check w-5"></i> <span class="nav-text ml-4 text-sm">Cek Jadwal</span>
-				</button>
+				<button onclick="showPage('jadwal')" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
+    <i class="fas fa-calendar-alt w-5"></i>
+    <span class="nav-text ml-4 text-sm">Cek Jadwal</span>
+</button>
             </nav>
 
             <div class="mt-auto pt-4 border-t border-white/10">
@@ -294,32 +295,29 @@
                     </div>
                 </div>
             </section>
-			<section id="page-jadwal" class="hidden space-y-6">
-    <div class="glass-card p-6 rounded-3xl max-w-4xl mx-auto">
-        <h2 class="text-2xl font-black text-gray-800 mb-6 flex items-center gap-3">
-            <i class="fas fa-search text-indigo-600"></i> Cek Ketersediaan Lapangan
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <select id="jGor" class="px-4 py-3 rounded-xl bg-gray-50 border-none font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500"></select>
-            <select id="jLapangan" class="px-4 py-3 rounded-xl bg-gray-50 border-none font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500"></select>
-            <input type="date" id="jTanggal" class="px-4 py-3 rounded-xl bg-gray-50 border-none font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-            <button onclick="prosesCekJadwal()" class="bg-indigo-600 text-white font-black py-3 rounded-xl hover:bg-indigo-700 transition-all uppercase text-xs">Cek Jadwal</button>
-        </div>
+			
+			<!-- CEK JADWAL PAGE -->
+<section id="page-jadwal" class="hidden space-y-4">
 
-        <div id="hasilJadwal" class="hidden animate-fade-in-up">
-            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3" id="gridWaktu">
-                </div>
-            <div class="mt-8 p-4 bg-indigo-50 rounded-2xl flex gap-6 justify-center">
-                <div class="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500">
-                    <span class="w-3 h-3 bg-white border border-gray-200 rounded-full"></span> Tersedia
-                </div>
-                <div class="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500">
-                    <span class="w-3 h-3 bg-rose-500 rounded-full"></span> Terbooking
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="glass-card p-6">
+<h2 class="text-2xl font-black mb-4">Cek Jadwal GOR</h2>
+
+<div class="flex gap-3 mb-4">
+<input type="date" id="tanggalAwal"
+class="border px-4 py-2 rounded-lg">
+
+<button onclick="cekJadwal()"
+class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold">
+Tampilkan
+</button>
+</div>
+
+<div id="jadwalContainer"></div>
+
+</div>
+
 </section>
+			
         </main>
     </div>
 
@@ -1149,83 +1147,71 @@ async function run(action, ...params) {
             }
         });
 		
-		// Fungsi untuk memproses pengecekan jadwal
-async function prosesCekJadwal() {
-    const gor = document.getElementById('jGor').value;
-    const lap = document.getElementById('jLapangan').value;
-    const tglInput = document.getElementById('jTanggal').value;
+		async function cekJadwal(){
 
-    if (!gor || !lap || !tglInput) {
-        showToast("Lengkapi filter GOR, Lapangan, dan Tanggal", "error");
-        return;
-    }
+const tanggalAwal = document.getElementById("tanggalAwal").value
+if(!tanggalAwal) return alert("Pilih tanggal dulu")
 
-    const dateObj = new Date(tglInput);
-    const tanggal = dateObj.getDate();
-    const bulan = dateObj.toLocaleString('id-ID', { month: 'long' }).toUpperCase();
-    const tahun = dateObj.getFullYear();
+const res = await fetch(API_URL + "?action=getData")
+const json = await res.json()
+const data = json.data || []
 
-    // Filter data yang sudah ada di memori (allData dari server)
-    const bookedSlots = allData.filter(d => 
-        d.GOR === gor && 
-        d.LAPANGAN === lap && 
-        parseInt(d.TANGGAL) === tanggal && 
-        d.BULAN === bulan && 
-        parseInt(d.TAHUN) === tahun
-    );
+const start = new Date(tanggalAwal)
 
-    renderSlotWaktu(bookedSlots);
+let html = `<table class="table-auto w-full border text-center">
+<thead>
+<tr class="bg-gray-100">
+<th class="border p-2">Tanggal</th>
+<th class="border p-2">07</th>
+<th class="border p-2">08</th>
+<th class="border p-2">09</th>
+<th class="border p-2">10</th>
+<th class="border p-2">11</th>
+<th class="border p-2">12</th>
+<th class="border p-2">13</th>
+<th class="border p-2">14</th>
+<th class="border p-2">15</th>
+<th class="border p-2">16</th>
+<th class="border p-2">17</th>
+<th class="border p-2">18</th>
+<th class="border p-2">19</th>
+<th class="border p-2">20</th>
+</tr>
+</thead>
+<tbody>`
+
+for(let d=0; d<7; d++){
+
+let tgl = new Date(start)
+tgl.setDate(start.getDate()+d)
+
+let tanggal = tgl.toISOString().split("T")[0]
+
+html += `<tr>`
+html += `<td class="border font-bold">${tanggal}</td>`
+
+for(let jam=7; jam<=20; jam++){
+
+let jamStr = jam.toString().padStart(2,"0")+":00"
+
+let booked = data.find(x =>
+x.TANGGAL==tanggal && x.JAM_AWAL==jamStr
+)
+
+if(booked){
+html += `<td class="border bg-red-400"></td>`
+}else{
+html += `<td class="border bg-green-400"></td>`
 }
 
-function renderSlotWaktu(bookedSlots) {
-    const container = document.getElementById('gridWaktu');
-    const boxHasil = document.getElementById('hasilJadwal');
-    container.innerHTML = '';
-    boxHasil.classList.remove('hidden');
-
-    // Definisi jam operasional (contoh 07:00 - 22:00)
-    for (let h = 7; h <= 22; h++) {
-        const jamStr = h.toString().padStart(2, '0') + ':00';
-        
-        // Cek apakah jam ini bentrok dengan data booking
-        const isBooked = bookedSlots.some(slot => {
-            const awal = parseInt(slot.JAM_AWAL.split(':')[0]);
-            const akhir = parseInt(slot.JAM_SELESAI.split(':')[0]);
-            return h >= awal && h < akhir;
-        });
-
-        const slotDiv = document.createElement('div');
-        slotDiv.className = `p-4 rounded-2xl text-center transition-all ${
-            isBooked 
-            ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' 
-            : 'bg-white border border-gray-100 text-gray-600 hover:border-indigo-300'
-        }`;
-        
-        slotDiv.innerHTML = `
-            <div class="text-[10px] font-black opacity-60 mb-1">${isBooked ? 'TERISI' : 'FREE'}</div>
-            <div class="text-sm font-black">${jamStr}</div>
-        `;
-        container.appendChild(slotDiv);
-    }
 }
 
-// Tambahkan inisialisasi select di fungsi showPage('jadwal')
-const originalShowPage = showPage;
-showPage = function(pageId) {
-    originalShowPage(pageId);
-    if(pageId === 'jadwal') {
-        initSelectJadwal();
-    }
+html += `</tr>`
 }
 
-function initSelectJadwal() {
-    // Sinkronisasi data select GOR dan Lapangan dari data yang sudah ada
-    const jGor = document.getElementById('jGor');
-    const jLap = document.getElementById('jLapangan');
-    
-    // Copy options dari form input utama
-    jGor.innerHTML = document.getElementById('fGor').innerHTML;
-    jLap.innerHTML = document.getElementById('fLapangan').innerHTML;
+html += `</tbody></table>`
+
+document.getElementById("jadwalContainer").innerHTML = html
 }
     </script>
 </body>
