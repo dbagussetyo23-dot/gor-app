@@ -112,16 +112,22 @@
             </div>
             
             <nav class="space-y-2 flex-grow">
-                <button onclick="showPage('dashboard')" id="btn-dashboard" class="nav-item w-full flex items-center p-4 rounded-xl font-bold nav-active">
-                    <i class="fas fa-th-large w-5"></i> <span class="nav-text ml-4 text-sm">Dashboard</span>
-                </button>
-                <button onclick="showPage('input')" id="btn-input" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
-                    <i class="fas fa-plus-circle w-5"></i> <span class="nav-text ml-4 text-sm">Input Data</span>
-                </button>
-                <button onclick="showPage('history')" id="btn-history" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
-                    <i class="fas fa-history w-5"></i> <span class="nav-text ml-4 text-sm">Riwayat</span>
-                </button>
-            </nav>
+    <button onclick="showPage('dashboard')" id="btn-dashboard" class="nav-item w-full flex items-center p-4 rounded-xl font-bold nav-active">
+        <i class="fas fa-th-large w-5"></i> <span class="nav-text ml-4 text-sm">Dashboard</span>
+    </button>
+    <button onclick="showPage('input')" id="btn-input" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
+        <i class="fas fa-plus-circle w-5"></i> <span class="nav-text ml-4 text-sm">Input Data</span>
+    </button>
+    <button onclick="showPage('history')" id="btn-history" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
+        <i class="fas fa-history w-5"></i> <span class="nav-text ml-4 text-sm">Riwayat</span>
+    </button>
+    <!-- MENU JADWAL BARU -->
+    <button onclick="showPage('jadwal')" id="btn-jadwal" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
+        <i class="fas fa-calendar-alt w-5"></i> <span class="nav-text ml-4 text-sm">Jadwal</span>
+    </button>
+</nav>
+
+
  <!-- MENU JADWAL BARU -->
     <button onclick="showPage('jadwal')" id="btn-jadwal" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
         <i class="fas fa-calendar-alt w-5"></i> <span class="nav-text ml-4 text-sm">Jadwal</span>
@@ -295,85 +301,87 @@
                     </div>
                 </div>
             </section>
-			<!-- JADWAL PAGE -->
-<section id="page-jadwal" class="hidden space-y-4">
-    <!-- Header dengan judul dan filter -->
-    <div class="flex flex-wrap justify-between items-center gap-4">
-        <h2 class="text-2xl font-black">Jadwal Pemakaian GOR</h2>
-        <div class="flex flex-wrap gap-2">
-            <!-- FILTER GOR - HANYA UNTUK ADMIN -->
-            <div id="jadwalFilterGorContainer" class="admin-only">
-                <select id="jadwalFilterGor" onchange="renderJadwal()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none min-w-[150px]">
-                    <option value="">SEMUA UNIT</option>
-                </select>
-            </div>
-            <!-- FILTER BULAN -->
-            <select id="jadwalBulan" onchange="renderJadwal()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none">
-                <option value="">BULAN INI</option>
-            </select>
-            <!-- FILTER TAHUN -->
-            <select id="jadwalTahun" onchange="renderJadwal()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none">
-            </select>
-        </div>
-    </div>
+			
+			            <!-- JADWAL PAGE -->
+            <section id="page-jadwal" class="hidden space-y-4">
+                <!-- Header dengan judul dan filter -->
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <h2 class="text-2xl font-black">Jadwal Pemakaian GOR</h2>
+                    <div class="flex flex-wrap gap-2">
+                        <!-- FILTER GOR - HANYA UNTUK ADMIN -->
+                        <div id="jadwalFilterGorContainer" class="admin-only">
+                            <select id="jadwalFilterGor" onchange="renderJadwal()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none min-w-[150px]">
+                                <option value="">SEMUA UNIT</option>
+                            </select>
+                        </div>
+                        <!-- FILTER BULAN -->
+                        <select id="jadwalBulan" onchange="renderJadwal()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none">
+                            <option value="">BULAN INI</option>
+                        </select>
+                        <!-- FILTER TAHUN -->
+                        <select id="jadwalTahun" onchange="renderJadwal()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none">
+                        </select>
+                    </div>
+                </div>
+
+                <!-- LEGENDA/WARNA KETERANGAN -->
+                <div class="flex items-center gap-4 text-[10px] font-bold">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 bg-indigo-100 border border-indigo-300 rounded"></span>
+                        <span>TERSEDIA</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 bg-amber-100 border border-amber-300 rounded"></span>
+                        <span>TERBOOKING</span>
+                    </div>
+                </div>
+
+                <!-- HEADER HARI (SENIN-MINGGU) -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-50 p-4">
+                    <div class="grid grid-cols-7 gap-1 mb-2">
+                        <div class="text-center text-[10px] font-black text-gray-400 p-2">SENIN</div>
+                        <div class="text-center text-[10px] font-black text-gray-400 p-2">SELASA</div>
+                        <div class="text-center text-[10px] font-black text-gray-400 p-2">RABU</div>
+                        <div class="text-center text-[10px] font-black text-gray-400 p-2">KAMIS</div>
+                        <div class="text-center text-[10px] font-black text-gray-400 p-2">JUMAT</div>
+                        <div class="text-center text-[10px] font-black text-gray-400 p-2">SABTU</div>
+                        <div class="text-center text-[10px] font-black text-gray-400 p-2">MINGGU</div>
+                    </div>
+
+                    <!-- GRID JADWAL AKAN DIISI JAVASCRIPT -->
+                    <div id="jadwalGrid" class="space-y-1">
+                        <!-- Akan diisi oleh JavaScript -->
+                    </div>
+                </div>
+
+                <!-- TABEL DETAIL JADWAL -->
+                <div class="mt-4">
+                    <h3 class="text-sm font-black mb-2">Detail Jadwal per Jam</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[11px] bg-white rounded-2xl overflow-hidden">
+                            <thead class="bg-gray-50 font-black uppercase text-gray-400">
+                                <tr>
+                                    <th class="p-3">HARI</th>
+                                    <th class="p-3">TANGGAL</th>
+                                    <th class="p-3">JAM</th>
+                                    <th class="p-3">GOR</th>
+                                    <th class="p-3">LAPANGAN</th>
+                                    <th class="p-3">PEMAKAI</th>
+                                    <th class="p-3">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jadwalDetailTable" class="divide-y divide-gray-50 font-medium">
+                                <!-- Akan diisi JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
+
+
 	
-	
-
-    <!-- LEGENDA/WARNA KETERANGAN -->
-    <div class="flex items-center gap-4 text-[10px] font-bold">
-        <div class="flex items-center gap-2">
-            <span class="w-3 h-3 bg-indigo-100 border border-indigo-300 rounded"></span>
-            <span>TERSEDIA</span>
-        </div>
-        <div class="flex items-center gap-2">
-            <span class="w-3 h-3 bg-amber-100 border border-amber-300 rounded"></span>
-            <span>TERBOOKING</span>
-        </div>
-    </div>
-
-    <!-- HEADER HARI (SENIN-MINGGU) -->
-    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-50 p-4">
-        <div class="grid grid-cols-7 gap-1 mb-2">
-            <div class="text-center text-[10px] font-black text-gray-400 p-2">SENIN</div>
-            <div class="text-center text-[10px] font-black text-gray-400 p-2">SELASA</div>
-            <div class="text-center text-[10px] font-black text-gray-400 p-2">RABU</div>
-            <div class="text-center text-[10px] font-black text-gray-400 p-2">KAMIS</div>
-            <div class="text-center text-[10px] font-black text-gray-400 p-2">JUMAT</div>
-            <div class="text-center text-[10px] font-black text-gray-400 p-2">SABTU</div>
-            <div class="text-center text-[10px] font-black text-gray-400 p-2">MINGGU</div>
-        </div>
-
-        <!-- GRID JADWAL AKAN DIISI JAVASCRIPT -->
-        <div id="jadwalGrid" class="space-y-1">
-            <!-- Akan diisi oleh JavaScript -->
-        </div>
-    </div>
-
-    <!-- TABEL DETAIL JADWAL -->
-    <div class="mt-4">
-        <h3 class="text-sm font-black mb-2">Detail Jadwal per Jam</h3>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-[11px] bg-white rounded-2xl overflow-hidden">
-                <thead class="bg-gray-50 font-black uppercase text-gray-400">
-                    <tr>
-                        <th class="p-3">HARI</th>
-                        <th class="p-3">TANGGAL</th>
-                        <th class="p-3">JAM</th>
-                        <th class="p-3">GOR</th>
-                        <th class="p-3">LAPANGAN</th>
-                        <th class="p-3">PEMAKAI</th>
-                        <th class="p-3">STATUS</th>
-                    </tr>
-                </thead>
-                <tbody id="jadwalDetailTable" class="divide-y divide-gray-50 font-medium">
-                    <!-- Akan diisi JavaScript -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section>
 
     <!-- EDIT MODAL -->
     <div id="editModal">
