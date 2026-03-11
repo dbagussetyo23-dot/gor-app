@@ -317,9 +317,23 @@ Tampilkan
 </div>
 
 </section>
-			
         </main>
     </div>
+
+<!-- LEGEND WARNA -->
+<div class="flex gap-4 mb-3 text-sm font-bold">
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 bg-green-400 rounded"></div>
+<span>Kosong</span>
+</div>
+
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 bg-red-400 rounded"></div>
+<span>Sudah Booking</span>
+</div>
+</div>
+
+<div id="jadwalContainer"></div>
 
     <!-- EDIT MODAL -->
     <div id="editModal">
@@ -848,18 +862,24 @@ async function run(action, ...params) {
         // PAGE NAVIGATION
         // ============================================
         function showPage(id) {
-            ['dashboard', 'input', 'history'].forEach(p => {
-                const page = document.getElementById(`page-${p}`);
-                const btn = document.getElementById(`btn-${p}`);
-                if (page) page.classList.add('hidden');
-                if (btn) btn.classList.remove('nav-active');
-            });
-            
-            const page = document.getElementById(`page-${id}`);
-            const btn = document.getElementById(`btn-${id}`);
-            if (page) page.classList.remove('hidden');
-            if (btn) btn.classList.add('nav-active');
-        }
+
+['dashboard', 'input', 'history','jadwal'].forEach(p => {
+
+const page = document.getElementById(`page-${p}`);
+const btn = document.getElementById(`btn-${p}`);
+
+if(page) page.classList.add('hidden');
+if(btn) btn.classList.remove('nav-active');
+
+});
+
+const page = document.getElementById(`page-${id}`);
+const btn = document.getElementById(`btn-${id}`);
+
+if(page) page.classList.remove('hidden');
+if(btn) btn.classList.add('nav-active');
+
+}
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
@@ -1194,9 +1214,19 @@ for(let jam=7; jam<=20; jam++){
 
 let jamStr = jam.toString().padStart(2,"0")+":00"
 
-let booked = data.find(x =>
-x.TANGGAL==tanggal && x.JAM_AWAL==jamStr
-)
+let booked = data.find(x => {
+
+const bulanIndex = MONTHS.indexOf(x.BULAN)
+
+let tglSheet = new Date(x.TAHUN, bulanIndex, x.TANGGAL)
+let tglFix = tglSheet.toISOString().split("T")[0]
+
+let start = parseInt(x.JAM_AWAL.split(":")[0])
+let end = parseInt(x.JAM_SELESAI.split(":")[0])
+
+return tglFix === tanggal && jam >= start && jam < end
+
+})
 
 if(booked){
 html += `<td class="border bg-red-400"></td>`
