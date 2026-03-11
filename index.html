@@ -1280,11 +1280,10 @@ function toggleAdminElements() {
 // ============================================
 
 // Fungsi untuk mendapatkan nama hari dari tanggal
-function getDayName(dateStr) {
-    if (!dateStr) return '';
-    
-    // Buat objek Date dari string tanggal
-    const date = new Date(dateStr);
+// Fungsi untuk mendapatkan nama hari dari tanggal
+function getDayName(date) {
+    if (!date) return '';
+    if (!(date instanceof Date)) return '';
     if (isNaN(date.getTime())) return '';
     
     // Array nama hari
@@ -1306,28 +1305,80 @@ function getJadwalData() {
         selectedGor = currentUser; // User biasa hanya lihat GOR sendiri
     }
     
+    console.log("Filter yang dipilih:", { selectedGor, selectedBulan, selectedTahun });
+    
     // Filter data berdasarkan kriteria
     let filteredData = userData.filter(d => {
+        // Filter GOR
         const matchGor = selectedGor ? d.GOR === selectedGor : true;
-        const matchBulan = selectedBulan ? d.BULAN === selectedBulan : true;
-        const matchTahun = d.TAHUN.toString() === selectedTahun;
+        
+        // Filter Bulan dan Tahun
+        let matchBulan = true;
+        let matchTahun = true;
+        
+        // Cek format tanggal (bisa "9 MARET")
+        if (d.TANGGAL && typeof d.TANGGAL === 'string' && d.TANGGAL.includes(' ')) {
+            const parts = d.TANGGAL.split(' ');
+            const tgl = parts[0];
+            const bln = parts[1];
+            const thn = d.TAHUN || '';
+            
+            if (selectedBulan) {
+                matchBulan = bln === selectedBulan;
+            }
+            if (selectedTahun) {
+                matchTahun = thn === selectedTahun;
+            }
+        } else {
+            // Format normal
+            if (selectedBulan) {
+                matchBulan = d.BULAN === selectedBulan;
+            }
+            if (selectedTahun) {
+                matchTahun = d.TAHUN.toString() === selectedTahun;
+            }
+        }
+        
         return matchGor && matchBulan && matchTahun;
     });
     
+    console.log("Data setelah filter:", filteredData);
+    
     // Urutkan berdasarkan tanggal dan jam
     filteredData.sort((a, b) => {
-        // Buat objek Date untuk perbandingan
-        const monthA = MONTHS.indexOf(a.BULAN) + 1;
-        const monthB = MONTHS.indexOf(b.BULAN) + 1;
+        // Parse tanggal a
+        let dateA, hourA = a.JAM_AWAL || '00:00';
+        if (a.TANGGAL && typeof a.TANGGAL === 'string' && a.TANGGAL.includes(' ')) {
+            const parts = a.TANGGAL.split(' ');
+            const tgl = parseInt(parts[0]);
+            const bln = parts[1];
+            const thn = a.TAHUN || selectedTahun;
+            const monthIndex = MONTHS.indexOf(bln);
+            dateA = new Date(thn, monthIndex, tgl);
+        } else {
+            const monthIndex = MONTHS.indexOf(a.BULAN);
+            dateA = new Date(a.TAHUN, monthIndex, a.TANGGAL);
+        }
         
-        const dateA = new Date(`${a.TAHUN}-${monthA}-${a.TANGGAL}`);
-        const dateB = new Date(`${b.TAHUN}-${monthB}-${b.TANGGAL}`);
+        // Parse tanggal b
+        let dateB, hourB = b.JAM_AWAL || '00:00';
+        if (b.TANGGAL && typeof b.TANGGAL === 'string' && b.TANGGAL.includes(' ')) {
+            const parts = b.TANGGAL.split(' ');
+            const tgl = parseInt(parts[0]);
+            const bln = parts[1];
+            const thn = b.TAHUN || selectedTahun;
+            const monthIndex = MONTHS.indexOf(bln);
+            dateB = new Date(thn, monthIndex, tgl);
+        } else {
+            const monthIndex = MONTHS.indexOf(b.BULAN);
+            dateB = new Date(b.TAHUN, monthIndex, b.TANGGAL);
+        }
         
         // Urut berdasarkan tanggal
         if (dateA - dateB !== 0) return dateA - dateB;
         
         // Jika tanggal sama, urut berdasarkan jam
-        return (a.JAM_AWAL || '').localeCompare(b.JAM_AWAL || '');
+        return hourA.localeCompare(hourB);
     });
     
     return filteredData;
@@ -1335,7 +1386,11 @@ function getJadwalData() {
 
 // Render grid jadwal (tampilan matriks jam x hari)
 function renderJadwal() {
+    console.log("Data userData:", userData); // Untuk debugging
+    
     const jadwalData = getJadwalData();
+    console.log("Data jadwal setelah filter:", jadwalData); // Untuk debugging
+    
     const selectedBulan = document.getElementById('jadwalBulan')?.value || '';
     const selectedTahun = document.getElementById('jadwalTahun')?.value || new Date().getFullYear().toString();
     
@@ -1343,27 +1398,13 @@ function renderJadwal() {
     let month = selectedBulan ? MONTHS.indexOf(selectedBulan) : new Date().getMonth();
     let year = parseInt(selectedTahun);
     
-    // Dapatkan jumlah hari dalam bulan yang dipilih
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    // Buat array tanggal lengkap dengan hari
-    const dates = [];
-    for (let d = 1; d <= daysInMonth; d++) {
-        const date = new Date(year, month, d);
-        dates.push({
-            tanggal: d,
-            dayName: getDayName(date),
-            fullDate: `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
-        });
-    }
-    
     // Urutan hari dalam seminggu
     const daysOfWeek = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'];
     
     // Buat grid jadwal
     let gridHtml = '';
     
-    // Jam operasional dari jam 6 pagi sampai 10 malam
+    // Jam operasional dari jam 6 pagi sampai 10 malam (per jam)
     const jamOperasional = [];
     for (let h = 6; h <= 22; h++) {
         jamOperasional.push(`${String(h).padStart(2,'0')}:00`);
@@ -1377,22 +1418,61 @@ function renderJadwal() {
         daysOfWeek.forEach(day => {
             // Cari jadwal untuk hari dan jam ini
             const jadwalForSlot = jadwalData.filter(d => {
-                const date = new Date(`${d.TAHUN}-${MONTHS.indexOf(d.BULAN)+1}-${d.TANGGAL}`);
-                const dayName = getDayName(date);
-                const jamMulai = d.JAM_AWAL || '';
-                const jamSelesai = d.JAM_SELESAI || '';
+                // Parse tanggal untuk mendapatkan nama hari
+                let dayName = '';
+                let jamMulai = d.JAM_AWAL || '';
+                let jamSelesai = d.JAM_SELESAI || '';
                 
-                // Cek apakah jam saat ini berada dalam range booking
-                return dayName === day && jam >= jamMulai && jam < jamSelesai;
+                // Cek format tanggal (bisa "9 MARET" atau format normal)
+                if (d.TANGGAL && typeof d.TANGGAL === 'string' && d.TANGGAL.includes(' ')) {
+                    // Format: "9 MARET"
+                    const parts = d.TANGGAL.split(' ');
+                    const tgl = parseInt(parts[0]);
+                    const bln = parts[1];
+                    const thn = d.TAHUN || selectedTahun;
+                    
+                    // Konversi nama bulan ke index
+                    const monthIndex = MONTHS.indexOf(bln);
+                    if (monthIndex !== -1) {
+                        const date = new Date(thn, monthIndex, tgl);
+                        dayName = getDayName(date);
+                    }
+                } else {
+                    // Format normal
+                    const monthIndex = MONTHS.indexOf(d.BULAN);
+                    if (monthIndex !== -1) {
+                        const date = new Date(d.TAHUN, monthIndex, d.TANGGAL);
+                        dayName = getDayName(date);
+                    }
+                }
+                
+                // Cek apakah jam saat ini berada DALAM range booking
+                // Misal: booking 10:00-11:00, maka:
+                // - jam 10:00 => TERBOOKING (karena 10:00 >= 10:00 DAN 10:00 < 11:00)
+                // - jam 11:00 => TERSEDIA (karena 11:00 >= 11:00? tidak, karena 11:00 tidak < 11:00)
+                const isInRange = dayName === day && 
+                                  jam >= jamMulai && 
+                                  jam < jamSelesai;
+                
+                return isInRange;
             });
             
             const isBooked = jadwalForSlot.length > 0;
             const bgColor = isBooked ? 'bg-amber-100 border-amber-300' : 'bg-indigo-50 border-indigo-100';
             
             // Buat tooltip yang menampilkan siapa yang booking
-            const tooltip = isBooked ? 
-                jadwalForSlot.map(j => `${j.NAMA} - ${j.LAPANGAN}`).join('\n') : 
-                'Tersedia';
+            let tooltip = 'Tersedia';
+            if (isBooked) {
+                tooltip = jadwalForSlot.map(j => {
+                    let tglInfo = '';
+                    if (j.TANGGAL && typeof j.TANGGAL === 'string' && j.TANGGAL.includes(' ')) {
+                        tglInfo = j.TANGGAL;
+                    } else {
+                        tglInfo = `${j.TANGGAL} ${j.BULAN} ${j.TAHUN}`;
+                    }
+                    return `${j.NAMA} - ${j.LAPANGAN} (${tglInfo} ${j.JAM_AWAL}-${j.JAM_SELESAI})`;
+                }).join('\n');
+            }
             
             gridHtml += `
                 <div class="${bgColor} border rounded p-1 text-[8px] font-bold text-center cursor-help relative group" 
@@ -1406,7 +1486,10 @@ function renderJadwal() {
         gridHtml += '</div>';
     });
     
-    document.getElementById('jadwalGrid').innerHTML = gridHtml;
+    const jadwalGrid = document.getElementById('jadwalGrid');
+    if (jadwalGrid) {
+        jadwalGrid.innerHTML = gridHtml;
+    }
     
     // Render tabel detail
     renderJadwalDetail(jadwalData);
