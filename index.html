@@ -122,23 +122,11 @@
                     <i class="fas fa-history w-5"></i> <span class="nav-text ml-4 text-sm">Riwayat</span>
                 </button>
             </nav>
-
-		<nav class="space-y-2 flex-grow">
-    <button onclick="showPage('dashboard')" id="btn-dashboard" class="nav-item w-full flex items-center p-4 rounded-xl font-bold nav-active">
-        <i class="fas fa-th-large w-5"></i> <span class="nav-text ml-4 text-sm">Dashboard</span>
-    </button>
-    <button onclick="showPage('input')" id="btn-input" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
-        <i class="fas fa-plus-circle w-5"></i> <span class="nav-text ml-4 text-sm">Input Data</span>
-    </button>
-    <button onclick="showPage('history')" id="btn-history" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
-        <i class="fas fa-history w-5"></i> <span class="nav-text ml-4 text-sm">Riwayat</span>
-    </button>
-    <!-- MENU JADWAL BARU -->
+ <!-- MENU JADWAL BARU -->
     <button onclick="showPage('jadwal')" id="btn-jadwal" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
         <i class="fas fa-calendar-alt w-5"></i> <span class="nav-text ml-4 text-sm">Jadwal</span>
     </button>
 </nav>
-
             <div class="mt-auto pt-4 border-t border-white/10">
                 <p id="displayUser" class="text-[10px] font-black text-indigo-200 mb-4 px-4 uppercase tracking-tighter opacity-70"></p>
                 
@@ -307,10 +295,7 @@
                     </div>
                 </div>
             </section>
-        </main>
-    </div>
-	
-	<!-- JADWAL PAGE -->
+			<!-- JADWAL PAGE -->
 <section id="page-jadwal" class="hidden space-y-4">
     <!-- Header dengan judul dan filter -->
     <div class="flex flex-wrap justify-between items-center gap-4">
@@ -331,6 +316,10 @@
             </select>
         </div>
     </div>
+        </main>
+    </div>
+	
+	
 
     <!-- LEGENDA/WARNA KETERANGAN -->
     <div class="flex items-center gap-4 text-[10px] font-bold">
@@ -625,16 +614,36 @@ async function run(action, ...params) {
         }
 
         // Fungsi untuk menampilkan/menyembunyikan elemen khusus admin
-        function toggleAdminElements() {
-            const adminElements = document.querySelectorAll('.admin-only');
-            adminElements.forEach(el => {
-                if (isUserAdmin) {
-                    el.style.display = 'block'; // atau 'flex' tergantung kebutuhan
-                } else {
-                    el.style.display = 'none';
-                }
-            });
+function toggleAdminElements() {
+    const adminElements = document.querySelectorAll('.admin-only');
+    adminElements.forEach(el => {
+        if (isUserAdmin) {
+            el.style.display = 'block'; // Tampil untuk admin
+        } else {
+            el.style.display = 'none'; // Sembunyi untuk user biasa
         }
+    });
+    
+    // Handle khusus untuk filter GOR di halaman jadwal
+    const jadwalFilterGorContainer = document.getElementById('jadwalFilterGorContainer');
+    if (jadwalFilterGorContainer) {
+        if (isUserAdmin) {
+            jadwalFilterGorContainer.style.display = 'block';
+            const jadwalFilterGor = document.getElementById('jadwalFilterGor');
+            if (jadwalFilterGor) {
+                jadwalFilterGor.disabled = false;
+            }
+        } else {
+            jadwalFilterGorContainer.style.display = 'none';
+            // Untuk user biasa, set filter GOR ke GOR mereka
+            const jadwalFilterGor = document.getElementById('jadwalFilterGor');
+            if (jadwalFilterGor) {
+                jadwalFilterGor.value = currentUser;
+                jadwalFilterGor.disabled = true;
+            }
+        }
+    }
+}
 
         async function confirmLogout() {
             if (heartbeatInterval) clearInterval(heartbeatInterval);
@@ -961,18 +970,25 @@ async function run(action, ...params) {
         // PAGE NAVIGATION
         // ============================================
         function showPage(id) {
-            ['dashboard', 'input', 'history'].forEach(p => {
-                const page = document.getElementById(`page-${p}`);
-                const btn = document.getElementById(`btn-${p}`);
-                if (page) page.classList.add('hidden');
-                if (btn) btn.classList.remove('nav-active');
-            });
-            
-            const page = document.getElementById(`page-${id}`);
-            const btn = document.getElementById(`btn-${id}`);
-            if (page) page.classList.remove('hidden');
-            if (btn) btn.classList.add('nav-active');
-        }
+    // Sembunyikan semua halaman
+    ['dashboard', 'input', 'history', 'jadwal'].forEach(p => {
+        const page = document.getElementById(`page-${p}`);
+        const btn = document.getElementById(`btn-${p}`);
+        if (page) page.classList.add('hidden');
+        if (btn) btn.classList.remove('nav-active');
+    });
+    
+    // Tampilkan halaman yang dipilih
+    const page = document.getElementById(`page-${id}`);
+    const btn = document.getElementById(`btn-${id}`);
+    if (page) page.classList.remove('hidden');
+    if (btn) btn.classList.add('nav-active');
+    
+    // Jika membuka halaman jadwal, render jadwal
+    if (id === 'jadwal') {
+        renderJadwal();
+    }
+}
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
@@ -1441,60 +1457,12 @@ function renderJadwalDetail(data) {
     document.getElementById('jadwalDetailTable').innerHTML = detailHtml;
 }
 
-// Update fungsi showPage untuk handle menu jadwal
-function showPage(id) {
-    // Sembunyikan semua halaman
-    ['dashboard', 'input', 'history', 'jadwal'].forEach(p => {
-        const page = document.getElementById(`page-${p}`);
-        const btn = document.getElementById(`btn-${p}`);
-        if (page) page.classList.add('hidden');
-        if (btn) btn.classList.remove('nav-active');
-    });
-    
-    // Tampilkan halaman yang dipilih
-    const page = document.getElementById(`page-${id}`);
-    const btn = document.getElementById(`btn-${id}`);
-    if (page) page.classList.remove('hidden');
-    if (btn) btn.classList.add('nav-active');
-    
-    // Jika membuka halaman jadwal, render jadwal
-    if (id === 'jadwal') {
-        renderJadwal();
-    }
-}
-
-// Fungsi untuk menampilkan/menyembunyikan elemen khusus admin
-function toggleAdminElements() {
-    const adminElements = document.querySelectorAll('.admin-only');
-    adminElements.forEach(el => {
-        if (isUserAdmin) {
-            el.style.display = 'block'; // Tampil untuk admin
-        } else {
-            el.style.display = 'none'; // Sembunyi untuk user biasa
-        }
-    });
-    
-    // Handle khusus untuk filter GOR di halaman jadwal
-    const jadwalFilterGorContainer = document.getElementById('jadwalFilterGorContainer');
-    if (jadwalFilterGorContainer) {
-        if (isUserAdmin) {
-            jadwalFilterGorContainer.style.display = 'block';
-            document.getElementById('jadwalFilterGor').disabled = false;
-        } else {
-            jadwalFilterGorContainer.style.display = 'none';
-            // Untuk user biasa, set filter GOR ke GOR mereka
-            const jadwalFilterGor = document.getElementById('jadwalFilterGor');
-            if (jadwalFilterGor) {
-                jadwalFilterGor.value = currentUser;
-                jadwalFilterGor.disabled = true;
-            }
-        }
-    }
-}
 		
     </script>
 </body>
 
 </html>
+
+
 
 
