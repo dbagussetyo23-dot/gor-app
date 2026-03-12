@@ -88,65 +88,7 @@
 
 <style>
     
-       /* PERBAIKAN: CSS untuk Freeze Pane dengan teks yang terlihat */
-    .freeze-pane-container {
-        position: relative;
-        max-height: 600px;
-        overflow: auto;
-        border-radius: 1rem;
-        background: white;
-        border: 1px solid #e5e7eb;
-    }
-    
-    .freeze-pane-table {
-        border-collapse: separate;
-        border-spacing: 0;
-        min-width: 100%;
-    }
-    
-    .freeze-pane-table th {
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        background: linear-gradient(180deg, #4f46e5 0%, #3730a3 100%);
-        color: white !important;
-        font-weight: 900;
-        border-bottom: 1px solid #6366f1;
-    }
-    
-    .freeze-pane-table th:first-child {
-        position: sticky;
-        left: 0;
-        top: 0;
-        z-index: 30;
-        background: linear-gradient(180deg, #4f46e5 0%, #3730a3 100%);
-        color: white !important;
-    }
-    
-    .freeze-pane-table td {
-        background-color: white;
-        color: #1f2937 !important; /* Teks abu-abu gelap */
-        border-bottom: 1px solid #f3f4f6;
-        border-right: 1px solid #f3f4f6;
-    }
-    
-    .freeze-pane-table td:first-child {
-        position: sticky;
-        left: 0;
-        z-index: 10;
-        background-color: white;
-        color: #1f2937 !important;
-        font-weight: 700;
-        border-right: 1px solid #e5e7eb;
-    }
-    
-    .freeze-pane-table tr:nth-child(even) td {
-        background-color: #f9fafb;
-    }
-    
-    .freeze-pane-table tr:nth-child(even) td:first-child {
-        background-color: #f9fafb;
-    }
+ 
     
     /* Warna untuk teks di sel yang dibooking */
     .freeze-pane-table td .text-white {
@@ -161,11 +103,95 @@
     .freeze-pane-table td span.text-indigo-400 {
         color: #818cf8 !important;
     }
+	
+	/* Container scroll untuk halaman utama */
+.main-content {
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1.5rem;
+}
+
+/* Container scroll untuk tabel jadwal */
+.jadwal-scroll-container {
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: auto;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    background: white;
+    position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Sticky header untuk tabel di dalam container scroll */
+.jadwal-scroll-container .freeze-pane-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 100%;
+}
+
+.jadwal-scroll-container .freeze-pane-table th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: linear-gradient(180deg, #4f46e5 0%, #3730a3 100%);
+    color: white;
+    font-weight: 900;
+    border-bottom: 1px solid #6366f1;
+}
+
+.jadwal-scroll-container .freeze-pane-table th:first-child {
+    position: sticky;
+    left: 0;
+    top: 0;
+    z-index: 30;
+    background: linear-gradient(180deg, #4f46e5 0%, #3730a3 100%);
+}
+
+.jadwal-scroll-container .freeze-pane-table td {
+    background-color: white;
+    color: #1f2937;
+    border-bottom: 1px solid #f3f4f6;
+    border-right: 1px solid #f3f4f6;
+}
+
+.jadwal-scroll-container .freeze-pane-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background-color: white;
+    font-weight: 700;
+    border-right: 1px solid #e5e7eb;
+}
+
+.jadwal-scroll-container .freeze-pane-table tr:nth-child(even) td {
+    background-color: #f9fafb;
+}
+
+.jadwal-scroll-container .freeze-pane-table tr:nth-child(even) td:first-child {
+    background-color: #f9fafb;
+}
+
+/* Warna untuk teks di sel yang dibooking */
+.jadwal-scroll-container .freeze-pane-table td .text-white {
+    color: white !important;
+}
+
+/* Warna untuk teks di kolom TOTAL */
+.jadwal-scroll-container .freeze-pane-table td span.text-indigo-600 {
+    color: #4f46e5 !important;
+}
+
+.jadwal-scroll-container .freeze-pane-table td span.text-indigo-400 {
+    color: #818cf8 !important;
+}
+
 </style>
         
     </style>
 </head>
-<body class="text-gray-800" onclick="closeAllDropdowns(event)">
+<body class="text-gray-800" onclick="closeAllDropdowns(event)">	
 
     <!-- LOADER -->
     <div id="loader">
@@ -251,7 +277,7 @@
             </div>
         </aside>
 
-        <main class="flex-grow p-6 md:p-8 overflow-y-auto h-full">
+        <main class="flex-grow main-content">
             <!-- DASHBOARD PAGE -->
             <section id="page-dashboard" class="space-y-6">
                 <div>
@@ -1346,16 +1372,16 @@
         }
 
         let html = filterInfo + `
-        <div class="freeze-pane-container">
-            <table class="freeze-pane-table w-full">
-                <thead>
-                    <tr>
-                        <th class="p-2 text-left" style="min-width: 70px;">
-                            <div class="flex items-center gap-1">
-                                <i class="fas fa-calendar text-[10px] text-white"></i>
-                                <span class="text-[11px] text-white">TGL</span>
-                            </div>
-                        </th>`;
+<div class="jadwal-scroll-container">
+    <table class="freeze-pane-table w-full">
+        <thead>
+            <tr>
+                <th class="p-2 text-left" style="min-width: 70px;">
+                    <div class="flex items-center gap-1">
+                        <i class="fas fa-calendar text-[10px] text-white"></i>
+                        <span class="text-[11px] text-white">TGL</span>
+                    </div>
+                </th>`;
 
         // Header jam
         for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
