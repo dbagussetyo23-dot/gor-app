@@ -1331,11 +1331,14 @@ async function checkForUpdates() {
         // ============================================
         // FORM HANDLING
         // ============================================
-        function toggleLainya(v, type) { 
-            const id = type === 'modal' ? 'eboxLainya' : 'boxLainya';
-            const el = document.getElementById(id);
-            if (el) el.classList.toggle('hidden', v !== 'LAINYA'); 
-        }
+       // ============================================
+// FORM HANDLING
+// ============================================
+function toggleLainya(v, type) { 
+    const id = type === 'modal' ? 'eboxLainya' : 'boxLainya';
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('hidden', v !== 'LAINYA'); 
+}
 
 async function submitForm(e, type) {
     e.preventDefault();
@@ -1380,7 +1383,8 @@ async function submitForm(e, type) {
         window.isSubmitting = false;
     }
 }
-        
+
+
 	e.preventDefault();
     
     if (window.isSubmitting) return;
@@ -1428,7 +1432,8 @@ async function submitForm(e, type) {
         // ============================================
         // DELETE HANDLING
         // ============================================
-        function openDeleteConfirm(id) {
+  
+function openDeleteConfirm(id) {
     deleteTargetId = id;
     document.getElementById('confirmDeleteModal').classList.remove('hidden');
 }
@@ -1588,7 +1593,7 @@ function closeEditModal() {
     try {
         await run('deleteData', deleteTargetId);
         showToast("Data berhasil dihapus", "success");
-        await refreshDataAndJadwal(); // <-- SUDAH BENAR
+        await refreshDataAndJadwal();
         
     } catch (e) {
         console.error("Error delete:", e);
@@ -1841,3 +1846,8 @@ async function cekJadwal() {
     </script>
 </body>
 </html>
+
+
+
+
+
