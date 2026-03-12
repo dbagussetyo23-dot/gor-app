@@ -621,6 +621,15 @@
             toast.classList.remove('hidden');
             setTimeout(() => toast.classList.add('hidden'), 3000);
         }
+		
+		async function refreshDataAndJadwal() {
+    await fetchData(); // Update userData
+    
+    // Refresh jadwal jika halaman jadwal sedang aktif
+    if (!document.getElementById('page-jadwal').classList.contains('hidden')) {
+        await cekJadwal();
+    }
+}
 
         function formatTimeDirect(val) {
             if (!val) return "-";
@@ -858,35 +867,43 @@
             pollInterval = setInterval(checkForUpdates, 7000);
         }
 
-        async function checkForUpdates() {
-            if (!isUserAdmin) return; // Hanya admin
-            if (document.getElementById('page-dashboard').classList.contains('hidden')) {
-                return;
-            }
-            if (!sessionId) return;
+        // SESUDAHNYA
+async function checkForUpdates() {
+    if (!isUserAdmin) return; // Hanya admin
+    if (!sessionId) return;
+    
+    try {
+        const result = await run('checkForUpdates', currentHash, lastUpdate);
+        
+        if (result.hasUpdate) {
+            userData = result.data;
+            currentHash = result.newHash;
+            lastUpdate = result.lastUpdate;
             
-            try {
-                const result = await run('checkForUpdates', currentHash, lastUpdate);
-                
-                if (result.hasUpdate) {
-                    userData = result.data;
-                    currentHash = result.newHash;
-                    lastUpdate = result.lastUpdate;
-                    
-                    updateDashboard();
-                    
-                    // Notifikasi hanya untuk admin
-                    showGentleNotification('Data telah diperbarui');
-                    
-                    if (!document.getElementById('page-history').classList.contains('hidden')) {
-                        renderHistory();
-                    }
-                }
-            } catch (e) {
-                console.log("Polling check failed:", e);
+            // Update dashboard jika sedang aktif
+            if (!document.getElementById('page-dashboard').classList.contains('hidden')) {
+                updateDashboard();
             }
+            
+            // Update jadwal jika sedang aktif
+            if (!document.getElementById('page-jadwal').classList.contains('hidden')) {
+                await cekJadwal();
+            }
+            
+            // Update history jika sedang aktif
+            if (!document.getElementById('page-history').classList.contains('hidden')) {
+                renderHistory();
+            }
+            
+            // Notifikasi hanya untuk admin
+            showGentleNotification('Data telah diperbarui');
         }
-
+    } catch (e) {
+        console.log("Polling check failed:", e);
+    }
+}
+		
+		
         function showGentleNotification(message) {
             if (!isUserAdmin) return; // Hanya admin
             
@@ -1098,46 +1115,48 @@
         }
 
         async function submitForm(e, type) {
-            e.preventDefault();
-            
-            if (window.isSubmitting) return;
-            window.isSubmitting = true;
-            
-            const prefix = type === 'modal' ? 'e' : 'f';
-            const data = {
-                id: type === 'modal' ? document.getElementById('eId').value : "",
-                nama: document.getElementById(prefix + 'Nama').value.toUpperCase(),
-                tanggal: document.getElementById(prefix + 'Tanggal').value,
-                bulan: document.getElementById(prefix + 'Bulan').value,
-                tahun: document.getElementById(prefix + 'Tahun').value,
-                gor: document.getElementById(prefix + 'Gor').value,
-                lapangan: document.getElementById(prefix + 'Lapangan').value,
-                lapanganLainnya: document.getElementById(prefix + 'LapanganLainya')?.value || '',
-                jamAwal: document.getElementById(prefix + 'JamAwal').value,
-                jamSelesai: document.getElementById(prefix + 'JamSelesai').value,
-                jamDurasi: document.getElementById(prefix + 'Jam').value,
-                nominal: document.getElementById(prefix + 'Nominal').value,
-                currentUser: currentUser
-            };
-            
-            toggleLoader(true, "Menyimpan...");
-            
-            try {
-                await run('saveData', data);
-                
-                if (type === 'modal') closeEditModal();
-                document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
-                
-                await fetchData();
-                showToast("Data berhasil disimpan", "success");
-            } catch (e) {
-                showToast("Gagal menyimpan data", "error");
-            } finally {
-                toggleLoader(false);
-                window.isSubmitting = false;
-            }
-        }
-
+    e.preventDefault();
+    
+    if (window.isSubmitting) return;
+    window.isSubmitting = true;
+    
+    const prefix = type === 'modal' ? 'e' : 'f';
+    const data = {
+        id: type === 'modal' ? document.getElementById('eId').value : "",
+        nama: document.getElementById(prefix + 'Nama').value.toUpperCase(),
+        tanggal: document.getElementById(prefix + 'Tanggal').value,
+        bulan: document.getElementById(prefix + 'Bulan').value,
+        tahun: document.getElementById(prefix + 'Tahun').value,
+        gor: document.getElementById(prefix + 'Gor').value,
+        lapangan: document.getElementById(prefix + 'Lapangan').value,
+        lapanganLainnya: document.getElementById(prefix + 'LapanganLainya')?.value || '',
+        jamAwal: document.getElementById(prefix + 'JamAwal').value,
+        jamSelesai: document.getElementById(prefix + 'JamSelesai').value,
+        jamDurasi: document.getElementById(prefix + 'Jam').value,
+        nominal: document.getElementById(prefix + 'Nominal').value,
+        currentUser: currentUser
+    };
+    
+    toggleLoader(true, "Menyimpan...");
+    
+    try {
+    await run('saveData', data);
+    
+    if (type === 'modal') closeEditModal();
+    document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
+    
+    await refreshDataAndJadwal(); // <-- INI YANG DIUBAH
+    
+    showToast("Data berhasil disimpan", "success");
+} catch (e) {
+    showToast("Gagal menyimpan data", "error");
+} finally {
+    toggleLoader(false);
+    window.isSubmitting = false;
+}
+}
+		
+		
         // ============================================
         // DELETE HANDLING
         // ============================================
@@ -1293,21 +1312,7 @@
         // ============================================
         // EVENT LISTENERS
         // ============================================
-        document.getElementById('btnConfirmDelete').onclick = async () => {
-            if (!deleteTargetId) return;
-
-            toggleLoader(true, "Menghapus data...");
-            try {
-                await run('deleteData', deleteTargetId);
-                showToast("Data berhasil dihapus", "success");
-                await fetchData();
-            } catch (e) {
-                showToast("Gagal menghapus data", "error");
-            } finally {
-                toggleLoader(false);
-                closeDeleteConfirm();
-            }
-        };
+        document.getElementById('btnConfirmDelete').onclick = async
 
         window.addEventListener('load', function() {
             if (!checkStoredSession()) {
@@ -1736,6 +1741,7 @@
     </script>
 </body>
 </html>
+
 
 
 
