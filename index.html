@@ -640,21 +640,29 @@ async function refreshJadwalFromLocalData() {
     toggleLoader(true, "Memperbarui jadwal...");
     
     try {
-        // Gunakan userData yang sudah ada
+        // Gunakan userData yang sudah ada dari fetchData()
         let data = [...userData];
+        
+        console.log("Refresh jadwal dengan data:", data.length); // Untuk debug
         
         // Filter berdasarkan GOR
         if (selectedGor) {
             data = data.filter(x => x.GOR === selectedGor);
+            console.log(`Setelah filter ${selectedGor}:`, data.length);
         } else if (!isUserAdmin) {
             data = data.filter(x => x.GOR === currentUser);
+            console.log(`Setelah filter ${currentUser}:`, data.length);
         }
         
         // Render ulang jadwal dengan data yang sudah difilter
         await renderJadwal(data, tanggalAwal, selectedGor);
         
+        // Tampilkan notifikasi sukses
+        showToast("Jadwal diperbarui", "success");
+        
     } catch (error) {
         console.error("Error refresh jadwal:", error);
+        showToast("Gagal memperbarui jadwal", "error");
     } finally {
         toggleLoader(false);
     }
@@ -1145,21 +1153,23 @@ async function checkForUpdates() {
         // DATA FETCHING
         // ============================================
         async function fetchData() {
-            toggleLoader(true, "Sinkronisasi...");
-            try { 
-                const result = await run('getDataWithHash');
-                userData = result.data;
-                currentHash = result.hash;
-                lastUpdate = result.lastUpdate;
-                
-                updateDashboard(); 
-                renderHistory(); 
-                toggleLoader(false); 
-            } catch (e) { 
-                console.error("Fetch data error:", e);
-                toggleLoader(false); 
-            }
-        }
+    toggleLoader(true, "Sinkronisasi...");
+    try { 
+        const result = await run('getDataWithHash');
+        userData = result.data;
+        currentHash = result.hash;
+        lastUpdate = result.lastUpdate;
+        
+        console.log("fetchData - userData:", userData.length); // Tambahkan ini
+        
+        updateDashboard(); 
+        renderHistory(); 
+        toggleLoader(false); 
+    } catch (e) { 
+        console.error("Fetch data error:", e);
+        toggleLoader(false); 
+    }
+}
 
         // ============================================
         // UI SETUP
@@ -1365,10 +1375,24 @@ async function checkForUpdates() {
 } catch (e) {
     console.error("Error save:", e); // Untuk debug
     showToast("Gagal menyimpan data", "error");
-} finally {
-    toggleLoader(false);
-    window.isSubmitting = false;
-}
+} // Di delete
+document.getElementById('btnConfirmDelete').onclick = async () => {
+    if (!deleteTargetId) return;
+
+    toggleLoader(true, "Menghapus data...");
+    try {
+        await run('deleteData', deleteTargetId);
+        showToast("Data berhasil dihapus", "success");
+        await refreshDataAndJadwal(); // <-- INI SUDAH BENAR
+        
+    } catch (e) {
+        console.error("Error delete:", e);
+        showToast("Gagal menghapus data", "error");
+    } finally {
+        toggleLoader(false);
+        closeDeleteConfirm();
+    }
+};
 }
 		
 		
