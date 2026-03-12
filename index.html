@@ -1234,7 +1234,7 @@ if(btn) btn.classList.add('nav-active');
 		
 		async function cekJadwal() {
     const tanggalAwal = document.getElementById("tanggalAwal").value;
-    const selectedGor = document.getElementById("filterGorJadwal").value; // TAMBAHKAN INI
+    const selectedGor = document.getElementById("filterGorJadwal").value;
     
     if (!tanggalAwal) {
         showToast("Pilih tanggal terlebih dahulu", "error");
@@ -1251,17 +1251,16 @@ if(btn) btn.classList.add('nav-active');
         if (selectedGor) {
             data = data.filter(x => x.GOR === selectedGor);
         } else if (!isUserAdmin) {
-            // Jika bukan admin, hanya tampilkan GOR miliknya
             data = data.filter(x => x.GOR === currentUser);
         }
 
-        const start = new Date(tanggalAwal);
+        // Parse tanggal awal
+        const [tahun, bulan, tanggal] = tanggalAwal.split('-').map(Number);
+        const start = new Date(tahun, bulan - 1, 1); // Gunakan constructor lokal, bukan UTC
         start.setHours(0, 0, 0, 0);
         
-        // Hitung jumlah hari dalam bulan yang dipilih
-        const tahun = start.getFullYear();
-        const bulan = start.getMonth();
-        const daysInMonth = new Date(tahun, bulan + 1, 0).getDate();
+        // Hitung jumlah hari dalam bulan
+        const daysInMonth = new Date(tahun, bulan, 0).getDate();
 
         // Jam operasional GOR: 08:00 - 22:00
         const JAM_MULAI = 8;
@@ -1290,7 +1289,7 @@ if(btn) btn.classList.add('nav-active');
                                     </div>
                                 </th>`;
 
-        // Header jam 08:00 - 22:00
+        // Header jam
         for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
             let jamDisplay = jam.toString().padStart(2, '0');
             let isPeakHour = (jam >= 16 && jam <= 21);
@@ -1309,23 +1308,25 @@ if(btn) btn.classList.add('nav-active');
                 </th>`;
         html += `</tr></thead><tbody>`;
 
-        // Hitung total booking untuk summary
+        // Hitung total booking
         let totalBookings = 0;
         let totalSesiBulan = 0;
         let totalPendapatanBulan = 0;
 
         // Generate semua hari dalam bulan
-        for (let d = 0; d < daysInMonth; d++) {
-            let tgl = new Date(start);
-            tgl.setDate(start.getDate() + d);
-            
-            if (tgl.getMonth() !== bulan) break;
+        for (let d = 1; d <= daysInMonth; d++) {
+            const tgl = new Date(tahun, bulan - 1, d);
+            tgl.setHours(0, 0, 0, 0);
             
             const dayName = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'][tgl.getDay()];
-            const tanggalStr = tgl.toISOString().split('T')[0];
-            const [year, month, day] = tanggalStr.split('-');
             
-            const isToday = tanggalStr === new Date().toISOString().split('T')[0];
+            // Format tanggal untuk display
+            const tanggalStr = `${tahun}-${bulan.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+            
+            // Cek apakah hari ini
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const isToday = tgl.getTime() === today.getTime();
             
             let dailyBookings = 0;
             let dailyRevenue = 0;
@@ -1339,7 +1340,7 @@ if(btn) btn.classList.add('nav-active');
                                 <span class="text-[12px] font-black ${tgl.getDay() === 0 || tgl.getDay() === 6 ? 'text-rose-500' : 'text-indigo-600'}">${dayName}</span>
                                 ${isToday ? '<span class="text-[8px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-black">INI</span>' : ''}
                             </div>
-                            <span class="text-[14px] font-black text-gray-800">${day}/${month}</span>
+                            <span class="text-[14px] font-black text-gray-800">${d}/${bulan}</span>
                         </div>
                     </td>`;
 
@@ -1347,12 +1348,12 @@ if(btn) btn.classList.add('nav-active');
             for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
                 // Cari booking di jam ini
                 const bookings = data.filter(x => {
-                    const bulanIndex = MONTHS.indexOf(x.BULAN);
-                    const tglSheet = new Date(x.TAHUN, bulanIndex, parseInt(x.TANGGAL));
-                    tglSheet.setHours(0, 0, 0, 0);
+                    // Parse tanggal dari database
+                    const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
+                    tglDb.setHours(0, 0, 0, 0);
                     
-                    const tglFix = tglSheet.toISOString().split('T')[0];
-                    if (tglFix !== tanggalStr) return false;
+                    // Bandingkan dengan tanggal yang sedang diproses
+                    if (tglDb.getTime() !== tgl.getTime()) return false;
                     
                     const jamMulai = parseInt(x.JAM_AWAL.split(':')[0]);
                     const jamSelesai = parseInt(x.JAM_SELESAI.split(':')[0]) || jamMulai + 1;
@@ -1416,9 +1417,8 @@ if(btn) btn.classList.add('nav-active');
         // Summary stats
         const totalSlots = daysInMonth * (JAM_SELESAI - JAM_MULAI + 1);
         const occupancyRate = totalSlots > 0 ? Math.round((totalBookings / totalSlots) * 100) : 0;
-        const bulanNama = MONTHS[bulan];
+        const bulanNama = MONTHS[bulan - 1];
         
-        // Tambah info filter di summary
         const gorDisplay = selectedGor ? selectedGor : (isUserAdmin ? 'SEMUA GOR' : currentUser);
         
         html += `
@@ -1470,7 +1470,8 @@ if(btn) btn.classList.add('nav-active');
         toggleLoader(false);
     }
 }
-
+		
+		
 // Update fungsi showAvailableSlot untuk menerima parameter GOR
 function showAvailableSlot(tanggal, jam, gor = '') {
     // Arahkan ke halaman input dengan data terisi
