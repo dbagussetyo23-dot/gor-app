@@ -1337,8 +1337,51 @@ async function checkForUpdates() {
             if (el) el.classList.toggle('hidden', v !== 'LAINYA'); 
         }
 
-        async function submitForm(e, type) {
+async function submitForm(e, type) {
     e.preventDefault();
+    
+    if (window.isSubmitting) return;
+    window.isSubmitting = true;
+    
+    const prefix = type === 'modal' ? 'e' : 'f';
+    const data = {
+        id: type === 'modal' ? document.getElementById('eId').value : "",
+        nama: document.getElementById(prefix + 'Nama').value.toUpperCase(),
+        tanggal: document.getElementById(prefix + 'Tanggal').value,
+        bulan: document.getElementById(prefix + 'Bulan').value,
+        tahun: document.getElementById(prefix + 'Tahun').value,
+        gor: document.getElementById(prefix + 'Gor').value,
+        lapangan: document.getElementById(prefix + 'Lapangan').value,
+        lapanganLainnya: document.getElementById(prefix + 'LapanganLainya')?.value || '',
+        jamAwal: document.getElementById(prefix + 'JamAwal').value,
+        jamSelesai: document.getElementById(prefix + 'JamSelesai').value,
+        jamDurasi: document.getElementById(prefix + 'Jam').value,
+        nominal: document.getElementById(prefix + 'Nominal').value,
+        currentUser: currentUser
+    };
+    
+    toggleLoader(true, "Menyimpan...");
+    
+    try {
+        await run('saveData', data);
+        
+        if (type === 'modal') closeEditModal();
+        document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
+        
+        console.log("Data tersimpan, refresh...");
+        await refreshDataAndJadwal();
+        
+        showToast("Data berhasil disimpan", "success");
+    } catch (e) {
+        console.error("Error save:", e);
+        showToast("Gagal menyimpan data", "error");
+    } finally {
+        toggleLoader(false);
+        window.isSubmitting = false;
+    }
+}
+        
+	e.preventDefault();
     
     if (window.isSubmitting) return;
     window.isSubmitting = true;
@@ -1375,24 +1418,10 @@ async function checkForUpdates() {
 } catch (e) {
     console.error("Error save:", e); // Untuk debug
     showToast("Gagal menyimpan data", "error");
-} // Di delete
-document.getElementById('btnConfirmDelete').onclick = async () => {
-    if (!deleteTargetId) return;
-
-    toggleLoader(true, "Menghapus data...");
-    try {
-        await run('deleteData', deleteTargetId);
-        showToast("Data berhasil dihapus", "success");
-        await refreshDataAndJadwal(); // <-- INI SUDAH BENAR
-        
-    } catch (e) {
-        console.error("Error delete:", e);
-        showToast("Gagal menghapus data", "error");
-    } finally {
+}  finally {
         toggleLoader(false);
-        closeDeleteConfirm();
+        window.isSubmitting = false;
     }
-};
 }
 		
 		
@@ -1400,48 +1429,49 @@ document.getElementById('btnConfirmDelete').onclick = async () => {
         // DELETE HANDLING
         // ============================================
         function openDeleteConfirm(id) {
-            deleteTargetId = id;
-            document.getElementById('confirmDeleteModal').classList.remove('hidden');
-        }
+    deleteTargetId = id;
+    document.getElementById('confirmDeleteModal').classList.remove('hidden');
+}
 
-        function closeDeleteConfirm() {
-            deleteTargetId = null;
-            document.getElementById('confirmDeleteModal').classList.add('hidden');
-        }
+function closeDeleteConfirm() {
+    deleteTargetId = null;
+    document.getElementById('confirmDeleteModal').classList.add('hidden');
+}
 
         // ============================================
         // EDIT MODAL
         // ============================================
-        function openEditModal(id) {
-            const d = userData.find(i => i.ID === id);
-            if (!d) return;
-            
-            document.getElementById('eId').value = d.ID;
-            document.getElementById('eNama').value = d.NAMA;
-            document.getElementById('eTanggal').value = d.TANGGAL;
-            document.getElementById('eBulan').value = d.BULAN;
-            document.getElementById('eTahun').value = d.TAHUN;
-            document.getElementById('eGor').value = d.GOR;
-            
-            if (SPORTS.includes(d.LAPANGAN)) { 
-                document.getElementById('eLapangan').value = d.LAPANGAN; 
-                toggleLainya('', 'modal'); 
-            } else { 
-                document.getElementById('eLapangan').value = 'LAINYA'; 
-                toggleLainya('LAINYA', 'modal'); 
-                document.getElementById('eLapanganLainya').value = d.LAPANGAN; 
-            }
-            
-            document.getElementById('eJamAwal').value = formatTimeDirect(d.JAM_AWAL);
-            document.getElementById('eJamSelesai').value = formatTimeDirect(d.JAM_SELESAI);
-            document.getElementById('eJam').value = d.JAM_DURASI;
-            document.getElementById('eNominal').value = d.NOMINAL;
-            document.getElementById('editModal').style.display = 'flex';
-        }
+       function openEditModal(id) {
+    const d = userData.find(i => i.ID === id);
+    if (!d) return;
+    
+    document.getElementById('eId').value = d.ID;
+    document.getElementById('eNama').value = d.NAMA;
+    document.getElementById('eTanggal').value = d.TANGGAL;
+    document.getElementById('eBulan').value = d.BULAN;
+    document.getElementById('eTahun').value = d.TAHUN;
+    document.getElementById('eGor').value = d.GOR;
+    
+    if (SPORTS.includes(d.LAPANGAN)) { 
+        document.getElementById('eLapangan').value = d.LAPANGAN; 
+        toggleLainya('', 'modal'); 
+    } else { 
+        document.getElementById('eLapangan').value = 'LAINYA'; 
+        toggleLainya('LAINYA', 'modal'); 
+        document.getElementById('eLapanganLainya').value = d.LAPANGAN; 
+    }
+    
+    document.getElementById('eJamAwal').value = formatTimeDirect(d.JAM_AWAL);
+    document.getElementById('eJamSelesai').value = formatTimeDirect(d.JAM_SELESAI);
+    document.getElementById('eJam').value = d.JAM_DURASI;
+    document.getElementById('eNominal').value = d.NOMINAL;
+    document.getElementById('editModal').style.display = 'flex';
+}
 
-        function closeEditModal() { 
-            document.getElementById('editModal').style.display = 'none'; 
-        }
+function closeEditModal() { 
+    document.getElementById('editModal').style.display = 'none'; 
+}
+	   
 
         // ============================================
         // RENDER FUNCTIONS
@@ -1561,7 +1591,7 @@ document.getElementById('btnConfirmDelete').onclick = async () => {
         await refreshDataAndJadwal(); // <-- SUDAH BENAR
         
     } catch (e) {
-        console.error("Error delete:", e); // Untuk debug
+        console.error("Error delete:", e);
         showToast("Gagal menghapus data", "error");
     } finally {
         toggleLoader(false);
@@ -1811,8 +1841,4 @@ async function cekJadwal() {
     </script>
 </body>
 </html>
-
-
-
-
 
