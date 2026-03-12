@@ -380,20 +380,6 @@
         </main>
     </div>
 
-<!-- LEGEND WARNA -->
-<div class="flex gap-4 mb-3 text-sm font-bold">
-<div class="flex items-center gap-2">
-<div class="w-4 h-4 bg-green-400 rounded"></div>
-<span>Kosong</span>
-</div>
-
-<div class="flex items-center gap-2">
-<div class="w-4 h-4 bg-red-400 rounded"></div>
-<span>Sudah Booking</span>
-</div>
-</div>
-
-<div id="jadwalContainer"></div>
 
     <!-- EDIT MODAL -->
     <div id="editModal">
@@ -1257,30 +1243,32 @@ if(btn) btn.classList.add('nav-active');
         <div class="w-full">
             <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100">
                 <div class="overflow-x-auto">
-                    <table class="w-full border-collapse text-[10px]">
+                    <table class="w-full border-collapse">
                         <thead>
                             <tr>
-                                <th class="p-2 text-left font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500 sticky left-0 z-20" style="min-width: 100px; max-width: 100px;">
+                                <th class="p-2 text-left font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500 sticky left-0 z-20" style="min-width: 70px; max-width: 70px;">
                                     <div class="flex items-center gap-1">
-                                        <i class="fas fa-calendar text-[8px]"></i>
-                                        <span>TANGGAL</span>
+                                        <i class="fas fa-calendar text-[10px]"></i>
+                                        <span class="text-[11px]">TGL</span>
                                     </div>
                                 </th>`;
 
-        // Header jam 08:00 - 22:00 - DIPERKECIL UKURANNYA
+        // Header jam 08:00 - 22:00
         for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
             let jamDisplay = jam.toString().padStart(2, '0');
             let isPeakHour = (jam >= 16 && jam <= 21);
             
-            html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''}" style="min-width: 35px; max-width: 35px;">
+            html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''}" style="min-width: 32px; max-width: 32px;">
                         <div class="flex flex-col items-center">
-                            <span class="text-[9px]">${jamDisplay}</span>
+                            <span class="text-[10px]">${jamDisplay}</span>
+                            <span class="text-[6px] opacity-50">${isPeakHour ? 'PK' : ''}</span>
                         </div>
                     </th>`;
         }
 
-        html += `<th class="p-1 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width: 50px; max-width: 50px;">
-                    <span class="text-[8px]">TOTAL</span>
+        // Kolom TOTAL - DIPERLEBAR dan DIPERBESAR TULISANNYA
+        html += `<th class="p-2 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width: 90px; max-width: 90px;">
+                    <span class="text-[12px] font-black">TOTAL</span>
                 </th>`;
         html += `</tr></thead><tbody>`;
 
@@ -1298,15 +1286,12 @@ if(btn) btn.classList.add('nav-active');
             if (tgl.getMonth() !== bulan) break;
             
             // Format tanggal untuk display
-            const dayName = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'][tgl.getDay()];
+            const dayName = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'][tgl.getDay()];
             const tanggalStr = tgl.toISOString().split('T')[0];
             const [year, month, day] = tanggalStr.split('-');
             
             // Cek apakah hari ini
             const isToday = tanggalStr === new Date().toISOString().split('T')[0];
-            
-            // Cek apakah weekend
-            const isWeekend = tgl.getDay() === 0 || tgl.getDay() === 6;
             
             // Hitung booking per hari
             let dailyBookings = 0;
@@ -1314,14 +1299,14 @@ if(btn) btn.classList.add('nav-active');
             
             html += `<tr class="${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} hover:bg-indigo-50/20 transition-colors">`;
             
-            // Kolom Tanggal - DIPERKECIL
-            html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} z-10 ${isToday ? 'bg-indigo-50' : ''}" style="min-width: 100px; max-width: 100px;">
-                        <div class="flex flex-col leading-tight">
-                            <div class="flex items-center gap-1">
-                                <span class="text-[8px] font-black ${isWeekend ? 'text-rose-500' : 'text-indigo-600'}">${dayName.substring(0,3)}</span>
-                                ${isToday ? '<span class="text-[5px] bg-indigo-100 text-indigo-600 px-1 rounded-full font-black">INI</span>' : ''}
+            // Kolom Tanggal - DIPERPADAT dan DIPERBESAR TULISAN
+            html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} z-10 ${isToday ? 'bg-indigo-50' : ''}" style="min-width: 70px; max-width: 70px;">
+                        <div class="flex flex-col items-center leading-tight">
+                            <div class="flex items-center gap-1 w-full justify-between px-1">
+                                <span class="text-[12px] font-black ${tgl.getDay() === 0 || tgl.getDay() === 6 ? 'text-rose-500' : 'text-indigo-600'}">${dayName}</span>
+                                ${isToday ? '<span class="text-[8px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-black">INI</span>' : ''}
                             </div>
-                            <span class="text-[10px] font-black">${day}/${month}</span>
+                            <span class="text-[14px] font-black text-gray-800">${day}/${month}</span>
                         </div>
                     </td>`;
 
@@ -1366,39 +1351,39 @@ if(btn) btn.classList.add('nav-active');
                     let bgColor = "bg-gradient-to-br from-rose-400 to-rose-500";
                     
                     if (isFirstHour) {
-                        // Jam pertama dari booking (dengan detail) - DIPERKECIL
-                        html += `<td class="${cellClass} ${bgColor} hover:from-rose-500 hover:to-rose-600" style="min-width: 35px; max-width: 35px; height: 35px;"
+                        // Jam pertama dari booking - TULISAN DIPERBESAR
+                        html += `<td class="${cellClass} ${bgColor} hover:from-rose-500 hover:to-rose-600" style="min-width: 32px; max-width: 32px; height: 38px;"
                                     onclick="showBookingDetail('${booking.ID}')">
                                     <div class="w-full h-full flex items-center justify-center">
-                                        <span class="text-[6px] text-white font-black opacity-0 group-hover:opacity-100 transition-opacity text-center p-0.5">
-                                            ${booking.NAMA.substring(0,3)}.
+                                        <span class="text-[8px] text-white font-black opacity-0 group-hover:opacity-100 transition-opacity text-center p-0.5">
+                                            ${booking.NAMA.substring(0,2)}
                                         </span>
                                     </div>
                                 </td>`;
                     } else {
-                        // Jam lanjutan (tanpa detail)
-                        html += `<td class="border border-gray-100 ${bgColor} bg-opacity-75" style="min-width: 35px; max-width: 35px; height: 35px;"></td>`;
+                        // Jam lanjutan
+                        html += `<td class="border border-gray-100 ${bgColor} bg-opacity-75" style="min-width: 32px; max-width: 32px; height: 38px;"></td>`;
                     }
                 } else {
-                    // Tersedia - DIPERKECIL
+                    // Tersedia
                     let isPeakHour = (jam >= 16 && jam <= 21);
                     let bgColor = isPeakHour ? 'from-emerald-300 to-emerald-400' : 'from-emerald-400 to-emerald-500';
                     
                     html += `<td class="border border-gray-100 bg-gradient-to-br ${bgColor} hover:from-emerald-500 hover:to-emerald-600 transition-all cursor-pointer group" 
-                                style="min-width: 35px; max-width: 35px; height: 35px;"
+                                style="min-width: 32px; max-width: 32px; height: 38px;"
                                 onclick="showAvailableSlot('${tanggalStr}', ${jam})">
                                 <div class="w-full h-full flex items-center justify-center">
-                                    <i class="fas fa-plus text-white text-opacity-0 group-hover:text-opacity-50 text-[8px]"></i>
+                                    <i class="fas fa-plus text-white text-opacity-0 group-hover:text-opacity-50 text-[9px]"></i>
                                 </div>
                             </td>`;
                 }
             }
             
-            // Kolom TOTAL per hari - DIPERKECIL
-            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-1 text-center" style="min-width: 50px; max-width: 50px;">
-                        <div class="flex flex-col leading-tight">
-                            <span class="text-[7px] font-black text-indigo-600">${dailyBookings}</span>
-                            <span class="text-[5px] font-bold text-emerald-600">${(dailyRevenue/1000).toFixed(0)}K</span>
+            // Kolom TOTAL per hari - DIPERLEBAR dan DIPERBESAR TULISANNYA
+            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-2 text-center" style="min-width: 90px; max-width: 90px;">
+                        <div class="flex flex-col items-center">
+                            <span class="text-[15px] font-black text-indigo-600">${dailyBookings}</span>
+                            <span class="text-[11px] font-bold text-emerald-600">Rp ${(dailyRevenue/1000).toFixed(0)}K</span>
                         </div>
                     </td>`;
             
@@ -1409,48 +1394,48 @@ if(btn) btn.classList.add('nav-active');
 
         html += `</tbody></table></div></div></div>`;
         
-        // Summary stats untuk 1 bulan - DIPERKECIL
+        // Summary stats untuk 1 bulan
         const totalSlots = daysInMonth * (JAM_SELESAI - JAM_MULAI + 1);
         const occupancyRate = Math.round((totalBookings / totalSlots) * 100);
         
         const bulanNama = MONTHS[bulan];
         
         html += `
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-5 gap-2 text-[10px]">
-            <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-2 rounded-xl col-span-2">
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-5 gap-2">
+            <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-3 rounded-xl col-span-2">
                 <div class="flex items-center justify-between">
                     <div>
-                        <div class="text-[7px] font-black text-indigo-400 uppercase">BULAN</div>
-                        <div class="text-sm font-black text-indigo-700">${bulanNama} ${tahun}</div>
-                        <div class="text-[6px] text-gray-500">${daysInMonth} hari</div>
+                        <div class="text-[9px] font-black text-indigo-400 uppercase">BULAN</div>
+                        <div class="text-lg font-black text-indigo-700">${bulanNama} ${tahun}</div>
+                        <div class="text-[8px] text-gray-500">${daysInMonth} hari operasional</div>
                     </div>
                     <div class="flex gap-1">
-                        <button onclick="ubahBulan('prev')" class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
-                            <i class="fas fa-chevron-left text-indigo-600 text-[8px]"></i>
+                        <button onclick="ubahBulan('prev')" class="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
+                            <i class="fas fa-chevron-left text-indigo-600 text-xs"></i>
                         </button>
-                        <button onclick="ubahBulan('next')" class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
-                            <i class="fas fa-chevron-right text-indigo-600 text-[8px]"></i>
+                        <button onclick="ubahBulan('next')" class="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
+                            <i class="fas fa-chevron-right text-indigo-600 text-xs"></i>
                         </button>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-2 rounded-xl">
-                <div class="text-[7px] font-black text-emerald-400 uppercase">SESI</div>
-                <div class="text-sm font-black text-emerald-700">${totalSesiBulan}</div>
-                <div class="text-[5px] text-emerald-600">${(totalSesiBulan/daysInMonth).toFixed(1)}/hari</div>
+            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 rounded-xl">
+                <div class="text-[9px] font-black text-emerald-400 uppercase">SESI</div>
+                <div class="text-lg font-black text-emerald-700">${totalSesiBulan}</div>
+                <div class="text-[8px] text-emerald-600">${(totalSesiBulan/daysInMonth).toFixed(1)}/hari</div>
             </div>
             
-            <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-2 rounded-xl">
-                <div class="text-[7px] font-black text-amber-400 uppercase">PENDAPATAN</div>
-                <div class="text-sm font-black text-amber-700">${(totalPendapatanBulan/1000000).toFixed(1)}Jt</div>
-                <div class="text-[5px] text-amber-600">${Math.round(totalPendapatanBulan/daysInMonth/1000)}K/hari</div>
+            <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-3 rounded-xl">
+                <div class="text-[9px] font-black text-amber-400 uppercase">PENDAPATAN</div>
+                <div class="text-lg font-black text-amber-700">${(totalPendapatanBulan/1000000).toFixed(1)}Jt</div>
+                <div class="text-[8px] text-amber-600">${Math.round(totalPendapatanBulan/daysInMonth/1000)}K/hari</div>
             </div>
             
-            <div class="bg-gradient-to-br from-rose-50 to-rose-100 p-2 rounded-xl">
-                <div class="text-[7px] font-black text-rose-400 uppercase">OKUPANSI</div>
-                <div class="text-sm font-black text-rose-700">${occupancyRate}%</div>
-                <div class="text-[5px] text-rose-600">${totalBookings}/${totalSlots}</div>
+            <div class="bg-gradient-to-br from-rose-50 to-rose-100 p-3 rounded-xl">
+                <div class="text-[9px] font-black text-rose-400 uppercase">OKUPANSI</div>
+                <div class="text-lg font-black text-rose-700">${occupancyRate}%</div>
+                <div class="text-[8px] text-rose-600">${totalBookings}/${totalSlots}</div>
             </div>
         </div>`;
 
@@ -1463,7 +1448,8 @@ if(btn) btn.classList.add('nav-active');
         toggleLoader(false);
     }
 }
-
+		
+		
 // Fungsi untuk navigasi bulan (tetap sama)
 function ubahBulan(arah) {
     const inputTanggal = document.getElementById("tanggalAwal");
@@ -1640,7 +1626,6 @@ function showAvailableSlot(tanggal, jam) {
 </body>
 
 </html>
-
 
 
 
