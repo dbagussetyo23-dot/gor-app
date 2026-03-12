@@ -1303,9 +1303,9 @@ if(btn) btn.classList.add('nav-active');
         }
 
         // Kolom TOTAL
-        html += `<th class="p-2 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width: 90px; max-width: 90px;">
-                    <span class="text-[12px] font-black">TOTAL</span>
-                </th>`;
+        html += `<th class="p-2 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width: 70px; max-width: 70px;">
+            <span class="text-[12px] font-black">JAM</span>
+        </th>`;
         html += `</tr></thead><tbody>`;
 
         // Hitung total booking
@@ -1401,12 +1401,12 @@ if(btn) btn.classList.add('nav-active');
             }
             
             // Kolom TOTAL
-            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-2 text-center" style="min-width: 90px; max-width: 90px;">
-                        <div class="flex flex-col items-center">
-                            <span class="text-[15px] font-black text-indigo-600">${dailyBookings}</span>
-                            <span class="text-[11px] font-bold text-emerald-600">Rp ${(dailyRevenue/1000).toFixed(0)}K</span>
-                        </div>
-                    </td>`;
+            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-2 text-center" style="min-width: 70px; max-width: 70px;">
+            <div class="flex flex-col items-center">
+                <span class="text-[18px] font-black text-indigo-600">${dailyBookings}</span>
+                <span class="text-[9px] font-bold text-indigo-400 uppercase">SESI</span>
+            </div>
+        </td>`;
             
             html += `</tr>`;
             totalSesiBulan += dailyBookings;
@@ -1447,13 +1447,6 @@ if(btn) btn.classList.add('nav-active');
                 <div class="text-lg font-black text-emerald-700">${totalSesiBulan}</div>
                 <div class="text-[8px] text-emerald-600">${(totalSesiBulan/daysInMonth).toFixed(1)}/hari</div>
             </div>
-            
-            <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-3 rounded-xl">
-                <div class="text-[9px] font-black text-amber-400 uppercase">PENDAPATAN</div>
-                <div class="text-lg font-black text-amber-700">${(totalPendapatanBulan/1000000).toFixed(1)}Jt</div>
-                <div class="text-[8px] text-amber-600">${Math.round(totalPendapatanBulan/daysInMonth/1000)}K/hari</div>
-            </div>
-            
             <div class="bg-gradient-to-br from-rose-50 to-rose-100 p-3 rounded-xl">
                 <div class="text-[9px] font-black text-rose-400 uppercase">OKUPANSI</div>
                 <div class="text-lg font-black text-rose-700">${occupancyRate}%</div>
@@ -1661,7 +1654,6 @@ function populateGorFilter() {
 </body>
 
 </html>
-
 
 
 
