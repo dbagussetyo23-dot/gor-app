@@ -885,10 +885,6 @@ async function checkForUpdates() {
                 updateDashboard();
             }
             
-            // Update jadwal jika sedang aktif
-            if (!document.getElementById('page-jadwal').classList.contains('hidden')) {
-                await cekJadwal();
-            }
             
             // Update history jika sedang aktif
             if (!document.getElementById('page-history').classList.contains('hidden')) {
@@ -1312,7 +1308,22 @@ async function checkForUpdates() {
         // ============================================
         // EVENT LISTENERS
         // ============================================
-        document.getElementById('btnConfirmDelete').onclick = async
+        document.getElementById('btnConfirmDelete').onclick = async () => {
+    if (!deleteTargetId) return;
+
+    toggleLoader(true, "Menghapus data...");
+    try {
+        await run('deleteData', deleteTargetId);
+        showToast("Data berhasil dihapus", "success");
+        await refreshDataAndJadwal(); // <-- PAKAI FUNGSI INI
+        
+    } catch (e) {
+        showToast("Gagal menghapus data", "error");
+    } finally {
+        toggleLoader(false);
+        closeDeleteConfirm();
+    }
+};
 
         window.addEventListener('load', function() {
             if (!checkStoredSession()) {
