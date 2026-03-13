@@ -323,7 +323,7 @@
 				</section>
 				
 				
-	<!-- CEK JADWAL PAGE -->
+
 <!-- CEK JADWAL PAGE -->
 <section id="page-jadwal" class="hidden space-y-6">
     <div class="glass-card p-8 rounded-3xl">
@@ -385,8 +385,9 @@
             </div>
         </div>
 
-        <!-- JADWAL CONTAINER - AWALNYA KOSONG / PLACEHOLDER -->
-        <div id="jadwalContainer" class="overflow-x-auto pb-4">
+        <!-- FREEZE PANE CONTAINER -->
+        <div id="jadwalContainer" class="relative overflow-hidden pb-4">
+            <!-- Placeholder akan diganti dengan tabel oleh JavaScript -->
             <div class="bg-gray-50 rounded-2xl p-8 text-center">
                 <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
                 <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
@@ -1283,6 +1284,7 @@ async function confirmLogout() {
         // Jam operasional GOR: 08:00 - 22:00
         const JAM_MULAI = 8;
         const JAM_SELESAI = 22;
+        const totalJam = JAM_SELESAI - JAM_MULAI + 1;
 
         // TITLE UNTUK MENAMPILKAN FILTER AKTIF
         const filterInfo = `<div class="mb-4 p-3 bg-indigo-50 rounded-xl flex items-center gap-2">
@@ -1290,26 +1292,31 @@ async function confirmLogout() {
             <span class="text-xs font-bold text-indigo-700">Menampilkan jadwal: <span class="bg-indigo-200 px-2 py-1 rounded">${selectedGor}</span> - Bulan: ${MONTHS[bulan-1]} ${tahun}</span>
         </div>`;
 
+        // FREEZE PANE - Buat struktur dengan dua tabel terpisah
         let html = filterInfo + `
-        <div class="w-full">
-            <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100">
-                <div class="overflow-x-auto">
-                    <table class="w-full border-collapse">
+        <div class="freeze-pane-container relative w-full" style="height: 550px; overflow: auto;" id="freezePaneContainer">
+            <div class="relative" style="min-width: max-content;">
+                <!-- Header Section -->
+                <div class="sticky top-0 z-30 bg-white" style="min-width: max-content;">
+                    <table class="w-full border-collapse" style="table-layout: fixed;">
                         <thead>
                             <tr>
-                                <th class="p-2 text-left font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500 sticky left-0 z-20" style="min-width: 70px; max-width: 70px;">
+                                <!-- Kolom Tanggal (Freeze) -->
+                                <th class="p-2 text-left font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500 sticky left-0 z-40" 
+                                    style="min-width: 80px; width: 80px; max-width: 80px; top: 0;">
                                     <div class="flex items-center gap-1">
                                         <i class="fas fa-calendar text-[10px]"></i>
-                                        <span class="text-[11px]">TGL</span>
+                                        <span class="text-[11px]">TANGGAL</span>
                                     </div>
                                 </th>`;
 
-        // Header jam
+        // Header jam (bisa di-scroll horizontal)
         for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
             let jamDisplay = jam.toString().padStart(2, '0');
             let isPeakHour = (jam >= 16 && jam <= 21);
             
-            html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''}" style="min-width: 32px; max-width: 32px;">
+            html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''}" 
+                        style="min-width: 45px; width: 45px; max-width: 45px;">
                         <div class="flex flex-col items-center">
                             <span class="text-[10px]">${jamDisplay}</span>
                             <span class="text-[6px] opacity-50">${isPeakHour ? 'PK' : ''}</span>
@@ -1318,10 +1325,14 @@ async function confirmLogout() {
         }
 
         // Kolom TOTAL
-        html += `<th class="p-2 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width: 70px; max-width: 70px;">
-            <span class="text-[12px] font-black">TOTAL</span>
-        </th>`;
-        html += `</tr></thead><tbody>`;
+        html += `<th class="p-2 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" 
+                    style="min-width: 80px; width: 80px; max-width: 80px;">
+                    <span class="text-[12px] font-black">TOTAL</span>
+                </th>`;
+        html += `</tr></thead>`;
+
+        // Body Section
+        html += `<tbody>`;
 
         // Hitung total booking
         let totalBookings = 0;
@@ -1346,14 +1357,15 @@ async function confirmLogout() {
             
             html += `<tr class="${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} hover:bg-indigo-50/20 transition-colors">`;
             
-            // Kolom Tanggal
-            html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} z-10 ${isToday ? 'bg-indigo-50' : ''}" style="min-width: 70px; max-width: 70px;">
+            // Kolom Tanggal (Freeze)
+            html += `<td class="p-2 border-t border-gray-100 sticky left-0 ${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} z-20 ${isToday ? 'bg-indigo-50' : ''}" 
+                        style="min-width: 80px; width: 80px; max-width: 80px;">
                         <div class="flex flex-col items-center leading-tight">
                             <div class="flex items-center gap-1 w-full justify-between px-1">
                                 <span class="text-[12px] font-black ${tgl.getDay() === 0 || tgl.getDay() === 6 ? 'text-rose-500' : 'text-indigo-600'}">${dayName}</span>
                                 ${isToday ? '<span class="text-[8px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-black">INI</span>' : ''}
                             </div>
-                            <span class="text-[14px] font-black text-gray-800">${d}/${bulan}</span>
+                            <span class="text-[14px] font-black text-gray-800">${d} ${MONTHS[bulan-1].substring(0,3)}</span>
                         </div>
                     </td>`;
 
@@ -1381,23 +1393,27 @@ async function confirmLogout() {
                     
                     if (isFirstHour) {
                         html += `<td class="border border-gray-100 p-0 relative group cursor-pointer transition-all bg-gradient-to-br from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600" 
-                                    style="min-width: 32px; max-width: 32px; height: 38px;"
+                                    style="min-width: 45px; width: 45px; max-width: 45px; height: 42px;"
                                     onclick="showBookingDetail('${booking.ID}')">
                                     <div class="w-full h-full flex items-center justify-center">
                                         <span class="text-[8px] text-white font-black opacity-0 group-hover:opacity-100 transition-opacity">
                                             ${booking.NAMA.substring(0,2)}
                                         </span>
+                                        <span class="absolute bottom-0 right-0 text-[6px] text-white/50 p-0.5">✓</span>
                                     </div>
                                 </td>`;
                     } else {
-                        html += `<td class="border border-gray-100 bg-gradient-to-br from-rose-400 to-rose-500 bg-opacity-75" style="min-width: 32px; max-width: 32px; height: 38px;"></td>`;
+                        html += `<td class="border border-gray-100 bg-gradient-to-br from-rose-400 to-rose-500 bg-opacity-75" 
+                                    style="min-width: 45px; width: 45px; max-width: 45px; height: 42px;">
+                                    <div class="w-full h-full"></div>
+                                </td>`;
                     }
                 } else {
                     let isPeakHour = (jam >= 16 && jam <= 21);
                     let bgColor = isPeakHour ? 'from-emerald-300 to-emerald-400' : 'from-emerald-400 to-emerald-500';
                     
                     html += `<td class="border border-gray-100 bg-gradient-to-br ${bgColor} hover:from-emerald-500 hover:to-emerald-600 transition-all cursor-pointer group" 
-                                style="min-width: 32px; max-width: 32px; height: 38px;"
+                                style="min-width: 45px; width: 45px; max-width: 45px; height: 42px;"
                                 onclick="showAvailableSlot('${tanggalStr}', ${jam}, '${selectedGor}')">
                                 <div class="w-full h-full flex items-center justify-center">
                                     <i class="fas fa-plus text-white text-opacity-0 group-hover:text-opacity-50 text-[9px]"></i>
@@ -1407,21 +1423,22 @@ async function confirmLogout() {
             }
             
             // Kolom TOTAL
-            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-2 text-center" style="min-width: 70px; max-width: 70px;">
-                <div class="flex flex-col items-center">
-                    <span class="text-[18px] font-black text-indigo-600">${dailyBookings}</span>
-                    <span class="text-[9px] font-bold text-indigo-400 uppercase">JAM</span>
-                </div>
-            </td>`;
+            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-2 text-center" 
+                        style="min-width: 80px; width: 80px; max-width: 80px;">
+                        <div class="flex flex-col items-center">
+                            <span class="text-[18px] font-black text-indigo-600">${dailyBookings}</span>
+                            <span class="text-[9px] font-bold text-indigo-400 uppercase">JAM</span>
+                        </div>
+                    </td>`;
             
             html += `</tr>`;
             totalSesiBulan += dailyBookings;
         }
 
-        html += `</tbody></table></div></div></div>`;
+        html += `</tbody></table></div></div>`;
         
         // Summary stats
-        const totalSlots = daysInMonth * (JAM_SELESAI - JAM_MULAI + 1);
+        const totalSlots = daysInMonth * totalJam;
         const occupancyRate = totalSlots > 0 ? Math.round((totalBookings / totalSlots) * 100) : 0;
         const bulanNama = MONTHS[bulan - 1];
         
@@ -1447,18 +1464,47 @@ async function confirmLogout() {
             </div>
             
             <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 rounded-xl">
-                <div class="text-[9px] font-black text-emerald-400 uppercase">JAM</div>
+                <div class="text-[9px] font-black text-emerald-400 uppercase">JAM TERPAKAI</div>
                 <div class="text-lg font-black text-emerald-700">${totalSesiBulan}</div>
                 <div class="text-[8px] text-emerald-600">${(totalSesiBulan/daysInMonth).toFixed(1)}/hari</div>
             </div>
-            <div class="bg-gradient-to-br from-rose-50 to-rose-100 p-3 rounded-xl">
-                <div class="text-[9px] font-black text-rose-400 uppercase">OKUPANSI</div>
-                <div class="text-lg font-black text-rose-700">${occupancyRate}%</div>
-                <div class="text-[8px] text-rose-600">${totalBookings}/${totalSlots}</div>
+            <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-3 rounded-xl">
+                <div class="text-[9px] font-black text-amber-400 uppercase">OKUPANSI</div>
+                <div class="text-lg font-black text-amber-700">${occupancyRate}%</div>
+                <div class="text-[8px] text-amber-600">${totalBookings}/${totalSlots} slot</div>
+            </div>
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-3 rounded-xl">
+                <div class="text-[9px] font-black text-purple-400 uppercase">TOTAL</div>
+                <div class="text-lg font-black text-purple-700">Rp ${data.reduce((sum, item) => sum + Number(item.NOMINAL), 0).toLocaleString('id-ID')}</div>
+                <div class="text-[8px] text-purple-600">Pendapatan</div>
             </div>
         </div>`;
 
         document.getElementById("jadwalContainer").innerHTML = html;
+        
+        // Tambahkan CSS untuk freeze pane setelah tabel dirender
+        const style = document.createElement('style');
+        style.innerHTML = `
+            #freezePaneContainer::-webkit-scrollbar {
+                height: 8px;
+                width: 8px;
+            }
+            #freezePaneContainer::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+            #freezePaneContainer::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 10px;
+            }
+            #freezePaneContainer::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+            .sticky.left-0 {
+                box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+            }
+        `;
+        document.head.appendChild(style);
         
     } catch (error) {
         console.error("Error loading jadwal:", error);
@@ -1467,6 +1513,7 @@ async function confirmLogout() {
         toggleLoader(false);
     }
 }
+		
 		
 		
 	// Update fungsi showAvailableSlot untuk menerima parameter GOR
@@ -1801,7 +1848,6 @@ function handleGorChange() {
 	</body>
 
 	</html>
-
 
 
 
