@@ -286,9 +286,9 @@
                         </div>
                         
                         <!-- Input untuk olahraga lainya -->
-                        <div id="boxOlahragaLainya" class="hidden">
-                            <input type="text" id="fOlahragaLainya" placeholder="NAMA OLAHRAGA LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
-                        </div>
+<div id="boxOlahragaLainya" class="hidden">
+    <input type="text" id="fOlahragaLainya" placeholder="NAMA OLAHRAGA LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
+</div>
                         
                         <!-- Input untuk lapangan lainya -->
                         <div id="boxLainya" class="hidden">
@@ -670,27 +670,36 @@
     }
 }
 
-    function toggleOlahragaLainya(val, prefix) {
+   function toggleOlahragaLainya(val, prefix) {
+    console.log('toggleOlahragaLainya called with val:', val, 'prefix:', prefix);
+    
     const box = document.getElementById(prefix + 'boxOlahragaLainya');
     const inputLainya = document.getElementById(prefix + 'OlahragaLainya');
     
+    console.log('box element:', box);
+    console.log('input element:', inputLainya);
+    
     if (box) {
         if (val === 'LAINYA') {
+            console.log('Showing LAINYA box');
             box.classList.remove('hidden');
             if (inputLainya) {
                 inputLainya.focus();
-                inputLainya.required = true; // Jadikan required
+                inputLainya.required = true;
             }
         } else {
+            console.log('Hiding LAINYA box');
             box.classList.add('hidden');
             if (inputLainya) {
                 inputLainya.value = '';
                 inputLainya.required = false;
             }
         }
+    } else {
+        console.log('Box not found!');
     }
 }
-
+   
     function toggleLainya(v, type) { 
         const id = type === 'modal' ? 'eboxLainya' : 'boxLainya';
         const el = document.getElementById(id);
@@ -1061,27 +1070,34 @@
         
         // Isi dropdown olahraga AWAL (default berdasarkan GOR pertama)
         const fOlahraga = document.getElementById('fOlahraga');
-        const eOlahraga = document.getElementById('eOlahraga');
-        
-        if (fOlahraga) {
-            fill('fOlahraga', OLAHRAGA_UMUM);
-            fOlahraga.addEventListener('change', function() {
-                const gor = document.getElementById('fGor').value;
-                const olahraga = this.value;
-                populateLapangan(olahraga, gor, 'f');
-                toggleOlahragaLainya(olahraga, 'f');
-            });
-        }
-        
-        if (eOlahraga) {
-            fill('eOlahraga', OLAHRAGA_UMUM);
-            eOlahraga.addEventListener('change', function() {
-                const gor = document.getElementById('eGor').value;
-                const olahraga = this.value;
-                populateLapangan(olahraga, gor, 'e');
-                toggleOlahragaLainya(olahraga, 'e');
-            });
-        }
+const eOlahraga = document.getElementById('eOlahraga');
+const initialGor = document.getElementById('fGor').value;
+
+if (fOlahraga) {
+    // Isi berdasarkan GOR yang dipilih saat ini
+    const olahragaList = (initialGor === 'STADION') ? OLAHRAGA_STADION : OLAHRAGA_UMUM;
+    fill('fOlahraga', olahragaList);
+    
+    fOlahraga.addEventListener('change', function() {
+        const gor = document.getElementById('fGor').value;
+        const olahraga = this.value;
+        populateLapangan(olahraga, gor, 'f');
+        toggleOlahragaLainya(olahraga, 'f');
+    });
+}
+
+if (eOlahraga) {
+    const initialGorModal = document.getElementById('eGor').value;
+    const olahragaListModal = (initialGorModal === 'STADION') ? OLAHRAGA_STADION : OLAHRAGA_UMUM;
+    fill('eOlahraga', olahragaListModal);
+    
+    eOlahraga.addEventListener('change', function() {
+        const gor = document.getElementById('eGor').value;
+        const olahraga = this.value;
+        populateLapangan(olahraga, gor, 'e');
+        toggleOlahragaLainya(olahraga, 'e');
+    });
+}
         
         // Event listener untuk GOR (mempengaruhi pilihan olahraga)
         document.getElementById('fGor').addEventListener('change', function() {
