@@ -11,6 +11,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
     
+	#boxOlahragaLainya, #eboxOlahragaLainya {
+    transition: all 0.3s ease;
+}
+
+#boxOlahragaLainya:not(.hidden), #eboxOlahragaLainya:not(.hidden) {
+    display: block !important;
+}
+	
     /* Animasi untuk modal */
 @keyframes fadeInUp {
     from {
@@ -1069,7 +1077,9 @@
         fill('eGor', GORS);
         
         // Isi dropdown olahraga AWAL (default berdasarkan GOR pertama)
-        const fOlahraga = document.getElementById('fOlahraga');
+        
+		// Isi dropdown olahraga AWAL (default berdasarkan GOR pertama)
+const fOlahraga = document.getElementById('fOlahraga');
 const eOlahraga = document.getElementById('eOlahraga');
 const initialGor = document.getElementById('fGor').value;
 
@@ -1077,6 +1087,14 @@ if (fOlahraga) {
     // Isi berdasarkan GOR yang dipilih saat ini
     const olahragaList = (initialGor === 'STADION') ? OLAHRAGA_STADION : OLAHRAGA_UMUM;
     fill('fOlahraga', olahragaList);
+    
+    // PANGGIL FUNGSI UNTUK PERTAMA KALI (inisialisasi)
+    setTimeout(() => {
+        const gor = document.getElementById('fGor').value;
+        const olahraga = fOlahraga.value;
+        populateLapangan(olahraga, gor, 'f');
+        toggleOlahragaLainya(olahraga, 'f');
+    }, 100);
     
     fOlahraga.addEventListener('change', function() {
         const gor = document.getElementById('fGor').value;
@@ -1090,6 +1108,14 @@ if (eOlahraga) {
     const initialGorModal = document.getElementById('eGor').value;
     const olahragaListModal = (initialGorModal === 'STADION') ? OLAHRAGA_STADION : OLAHRAGA_UMUM;
     fill('eOlahraga', olahragaListModal);
+    
+    // PANGGIL FUNGSI UNTUK PERTAMA KALI (inisialisasi)
+    setTimeout(() => {
+        const gor = document.getElementById('eGor').value;
+        const olahraga = eOlahraga.value;
+        populateLapangan(olahraga, gor, 'e');
+        toggleOlahragaLainya(olahraga, 'e');
+    }, 100);
     
     eOlahraga.addEventListener('change', function() {
         const gor = document.getElementById('eGor').value;
