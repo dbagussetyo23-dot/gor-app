@@ -361,7 +361,7 @@
             </div>
         </div>
 
-        <!-- LEGEND & INFO -->
+        <!-- LEGEND & INFO - TETAP DI LUAR SCROLL -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-gray-50 p-4 rounded-xl">
             <div class="flex items-center gap-6">
                 <div class="flex items-center gap-2">
@@ -385,14 +385,22 @@
             </div>
         </div>
 
-        <!-- FREEZE PANE CONTAINER -->
-        <div id="jadwalContainer" class="relative overflow-hidden pb-4">
+        <!-- FILTER INFO - AKAN DIISI JAVASCRIPT, TETAP DI LUAR SCROLL -->
+        <div id="filterInfoContainer" class="mb-4"></div>
+
+        <!-- CONTAINER KHUSUS UNTUK TABEL (SCROLL VERTICAL SAJA) -->
+        <div id="jadwalTableContainer" class="relative border border-gray-200 rounded-xl overflow-y-auto" style="max-height: 450px;">
             <!-- Placeholder akan diganti dengan tabel oleh JavaScript -->
             <div class="bg-gray-50 rounded-2xl p-8 text-center">
                 <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
                 <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
                 <p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
             </div>
+        </div>
+
+        <!-- KPI SUMMARY - TETAP DI LUAR SCROLL -->
+        <div id="kpiSummaryContainer" class="mt-4 grid grid-cols-1 md:grid-cols-5 gap-2">
+            <!-- Akan diisi oleh JavaScript -->
         </div>
     </div>
 </section>
@@ -1286,64 +1294,59 @@ async function confirmLogout() {
         const JAM_SELESAI = 22;
         const totalJam = JAM_SELESAI - JAM_MULAI + 1;
 
-        // TITLE UNTUK MENAMPILKAN FILTER AKTIF
+        // FILTER INFO
         const filterInfo = `<div class="mb-4 p-3 bg-indigo-50 rounded-xl flex items-center gap-2">
             <i class="fas fa-filter text-indigo-600"></i>
             <span class="text-xs font-bold text-indigo-700">Menampilkan jadwal: <span class="bg-indigo-200 px-2 py-1 rounded">${selectedGor}</span> - Bulan: ${MONTHS[bulan-1]} ${tahun}</span>
         </div>`;
+        document.getElementById("filterInfoContainer").innerHTML = filterInfo;
 
-        // FREEZE PANE - Buat struktur dengan dua tabel terpisah
-        let html = filterInfo + `
-        <div class="freeze-pane-container relative w-full" style="height: 550px; overflow: auto;" id="freezePaneContainer">
-            <div class="relative" style="min-width: max-content;">
-                <!-- Header Section -->
-                <div class="sticky top-0 z-30 bg-white" style="min-width: max-content;">
-                    <table class="w-full border-collapse" style="table-layout: fixed;">
-                        <thead>
-                            <tr>
-                                <!-- Kolom Tanggal (Freeze) -->
-                                <th class="p-2 text-left font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500 sticky left-0 z-40" 
-                                    style="min-width: 80px; width: 80px; max-width: 80px; top: 0;">
-                                    <div class="flex items-center gap-1">
-                                        <i class="fas fa-calendar text-[10px]"></i>
-                                        <span class="text-[11px]">TANGGAL</span>
-                                    </div>
-                                </th>`;
+        // TABLE JADWAL - HANYA SCROLL VERTICAL
+        let tableHtml = `
+        <div class="min-w-full inline-block align-middle">
+            <table class="min-w-full border-collapse">
+                <thead class="sticky top-0 z-10">
+                    <tr>
+                        <th class="p-3 text-left font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500" 
+                            style="min-width: 100px;">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-calendar text-xs"></i>
+                                <span class="text-sm">TANGGAL</span>
+                            </div>
+                        </th>`;
 
-        // Header jam (bisa di-scroll horizontal)
+        // Header jam
         for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
             let jamDisplay = jam.toString().padStart(2, '0');
             let isPeakHour = (jam >= 16 && jam <= 21);
             
-            html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''}" 
-                        style="min-width: 45px; width: 45px; max-width: 45px;">
-                        <div class="flex flex-col items-center">
-                            <span class="text-[10px]">${jamDisplay}</span>
-                            <span class="text-[6px] opacity-50">${isPeakHour ? 'PK' : ''}</span>
-                        </div>
-                    </th>`;
+            tableHtml += `<th class="p-2 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''}" 
+                            style="min-width: 60px;">
+                            <div class="flex flex-col items-center">
+                                <span class="text-xs">${jamDisplay}</span>
+                                <span class="text-[8px] opacity-50">${isPeakHour ? 'PEAK' : ''}</span>
+                            </div>
+                        </th>`;
         }
 
         // Kolom TOTAL
-        html += `<th class="p-2 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" 
-                    style="min-width: 80px; width: 80px; max-width: 80px;">
-                    <span class="text-[12px] font-black">TOTAL</span>
-                </th>`;
-        html += `</tr></thead>`;
-
-        // Body Section
-        html += `<tbody>`;
+        tableHtml += `<th class="p-3 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width: 80px;">
+                        <span class="text-sm">TOTAL</span>
+                    </th>`;
+        tableHtml += `</tr></thead><tbody>`;
 
         // Hitung total booking
         let totalBookings = 0;
         let totalSesiBulan = 0;
+        let totalPendapatan = 0;
 
         // Generate semua hari dalam bulan
         for (let d = 1; d <= daysInMonth; d++) {
             const tgl = new Date(tahun, bulan - 1, d);
             tgl.setHours(0, 0, 0, 0);
             
-            const dayName = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'][tgl.getDay()];
+            const dayName = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'][tgl.getDay()];
+            const dayShort = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'][tgl.getDay()];
             
             // Format tanggal untuk display
             const tanggalStr = `${tahun}-${bulan.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
@@ -1354,20 +1357,24 @@ async function confirmLogout() {
             const isToday = tgl.getTime() === today.getTime();
             
             let dailyBookings = 0;
+            let dailyRevenue = 0;
             
-            html += `<tr class="${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} hover:bg-indigo-50/20 transition-colors">`;
+            const rowClass = d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30';
+            const todayClass = isToday ? 'bg-indigo-50' : '';
             
-            // Kolom Tanggal (Freeze)
-            html += `<td class="p-2 border-t border-gray-100 sticky left-0 ${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} z-20 ${isToday ? 'bg-indigo-50' : ''}" 
-                        style="min-width: 80px; width: 80px; max-width: 80px;">
-                        <div class="flex flex-col items-center leading-tight">
-                            <div class="flex items-center gap-1 w-full justify-between px-1">
-                                <span class="text-[12px] font-black ${tgl.getDay() === 0 || tgl.getDay() === 6 ? 'text-rose-500' : 'text-indigo-600'}">${dayName}</span>
-                                ${isToday ? '<span class="text-[8px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-black">INI</span>' : ''}
+            tableHtml += `<tr class="${rowClass} ${todayClass} hover:bg-indigo-50/50 transition-colors">`;
+            
+            // Kolom Tanggal
+            tableHtml += `<td class="p-3 border-t border-gray-200 font-medium" style="min-width: 100px;">
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold ${tgl.getDay() === 0 || tgl.getDay() === 6 ? 'text-rose-500' : 'text-indigo-600'}">${dayShort}</span>
+                                    ${isToday ? '<span class="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-black">HARI INI</span>' : ''}
+                                </div>
+                                <span class="text-base font-black text-gray-800">${d} ${MONTHS[bulan-1].substring(0,3)}</span>
+                                <span class="text-[10px] text-gray-400">${dayName}</span>
                             </div>
-                            <span class="text-[14px] font-black text-gray-800">${d} ${MONTHS[bulan-1].substring(0,3)}</span>
-                        </div>
-                    </td>`;
+                        </td>`;
 
             // Cek setiap jam
             for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
@@ -1388,123 +1395,106 @@ async function confirmLogout() {
                     totalBookings++;
                     dailyBookings++;
                     
+                    bookings.forEach(b => {
+                        dailyRevenue += Number(b.NOMINAL);
+                        totalPendapatan += Number(b.NOMINAL);
+                    });
+                    
                     const booking = bookings[0];
                     const isFirstHour = jam === parseInt(bookings[0].JAM_AWAL.split(':')[0]);
                     
                     if (isFirstHour) {
-                        html += `<td class="border border-gray-100 p-0 relative group cursor-pointer transition-all bg-gradient-to-br from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600" 
-                                    style="min-width: 45px; width: 45px; max-width: 45px; height: 42px;"
-                                    onclick="showBookingDetail('${booking.ID}')">
-                                    <div class="w-full h-full flex items-center justify-center">
-                                        <span class="text-[8px] text-white font-black opacity-0 group-hover:opacity-100 transition-opacity">
-                                            ${booking.NAMA.substring(0,2)}
-                                        </span>
-                                        <span class="absolute bottom-0 right-0 text-[6px] text-white/50 p-0.5">✓</span>
-                                    </div>
-                                </td>`;
+                        tableHtml += `<td class="border border-gray-200 p-0 relative group cursor-pointer transition-all bg-gradient-to-br from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600" 
+                                        style="min-width: 60px; height: 65px;"
+                                        onclick="showBookingDetail('${booking.ID}')">
+                                        <div class="w-full h-full flex flex-col items-center justify-center p-1">
+                                            <span class="text-[9px] text-white font-bold truncate max-w-full">${booking.NAMA.substring(0,8)}</span>
+                                            <span class="text-[8px] text-white/80">${booking.LAPANGAN.substring(0,5)}</span>
+                                            <span class="absolute top-0 right-0 text-[8px] text-white/60 p-0.5">✓</span>
+                                        </div>
+                                    </td>`;
                     } else {
-                        html += `<td class="border border-gray-100 bg-gradient-to-br from-rose-400 to-rose-500 bg-opacity-75" 
-                                    style="min-width: 45px; width: 45px; max-width: 45px; height: 42px;">
-                                    <div class="w-full h-full"></div>
-                                </td>`;
+                        tableHtml += `<td class="border border-gray-200 bg-gradient-to-br from-rose-400 to-rose-500 bg-opacity-75" 
+                                        style="min-width: 60px; height: 65px;">
+                                        <div class="w-full h-full"></div>
+                                    </td>`;
                     }
                 } else {
                     let isPeakHour = (jam >= 16 && jam <= 21);
                     let bgColor = isPeakHour ? 'from-emerald-300 to-emerald-400' : 'from-emerald-400 to-emerald-500';
                     
-                    html += `<td class="border border-gray-100 bg-gradient-to-br ${bgColor} hover:from-emerald-500 hover:to-emerald-600 transition-all cursor-pointer group" 
-                                style="min-width: 45px; width: 45px; max-width: 45px; height: 42px;"
-                                onclick="showAvailableSlot('${tanggalStr}', ${jam}, '${selectedGor}')">
-                                <div class="w-full h-full flex items-center justify-center">
-                                    <i class="fas fa-plus text-white text-opacity-0 group-hover:text-opacity-50 text-[9px]"></i>
-                                </div>
-                            </td>`;
+                    tableHtml += `<td class="border border-gray-200 bg-gradient-to-br ${bgColor} hover:from-emerald-500 hover:to-emerald-600 transition-all cursor-pointer group" 
+                                    style="min-width: 60px; height: 65px;"
+                                    onclick="showAvailableSlot('${tanggalStr}', ${jam}, '${selectedGor}')">
+                                    <div class="w-full h-full flex items-center justify-center">
+                                        <i class="fas fa-plus text-white text-opacity-0 group-hover:text-opacity-70 text-sm"></i>
+                                    </div>
+                                </td>`;
                 }
             }
             
             // Kolom TOTAL
-            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-2 text-center" 
-                        style="min-width: 80px; width: 80px; max-width: 80px;">
-                        <div class="flex flex-col items-center">
-                            <span class="text-[18px] font-black text-indigo-600">${dailyBookings}</span>
-                            <span class="text-[9px] font-bold text-indigo-400 uppercase">JAM</span>
-                        </div>
-                    </td>`;
+            tableHtml += `<td class="border-t border-gray-200 bg-indigo-50/70 p-2 text-center" style="min-width: 80px;">
+                            <div class="flex flex-col items-center">
+                                <span class="text-xl font-black text-indigo-600">${dailyBookings}</span>
+                                <span class="text-[9px] font-bold text-indigo-400">JAM</span>
+                                <span class="text-[8px] font-medium text-gray-500">Rp ${dailyRevenue.toLocaleString('id-ID')}</span>
+                            </div>
+                        </td>`;
             
-            html += `</tr>`;
+            tableHtml += `</tr>`;
             totalSesiBulan += dailyBookings;
         }
 
-        html += `</tbody></table></div></div>`;
+        tableHtml += `</tbody></table></div>`;
+        document.getElementById("jadwalTableContainer").innerHTML = tableHtml;
         
-        // Summary stats
+        // KPI SUMMARY
         const totalSlots = daysInMonth * totalJam;
         const occupancyRate = totalSlots > 0 ? Math.round((totalBookings / totalSlots) * 100) : 0;
         const bulanNama = MONTHS[bulan - 1];
+        const rataRataPerHari = (totalSesiBulan / daysInMonth).toFixed(1);
         
-        html += `
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-5 gap-2">
-            <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-3 rounded-xl col-span-2">
+        const kpiHtml = `
+            <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl col-span-2">
                 <div class="flex items-center justify-between">
                     <div>
-                        <div class="text-[9px] font-black text-indigo-400 uppercase">BULAN / GOR</div>
-                        <div class="text-lg font-black text-indigo-700">${bulanNama} ${tahun}</div>
-                        <div class="text-[10px] font-bold text-indigo-500">${selectedGor}</div>
-                        <div class="text-[8px] text-gray-500">${daysInMonth} hari operasional</div>
+                        <div class="text-[10px] font-black text-indigo-400 uppercase tracking-wider">BULAN / GOR</div>
+                        <div class="text-xl font-black text-indigo-700">${bulanNama} ${tahun}</div>
+                        <div class="text-sm font-bold text-indigo-500">${selectedGor}</div>
+                        <div class="text-[10px] text-gray-500 mt-1">${daysInMonth} hari operasional</div>
                     </div>
-                    <div class="flex gap-1">
-                        <button onclick="ubahBulan('prev')" class="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
-                            <i class="fas fa-chevron-left text-indigo-600 text-xs"></i>
+                    <div class="flex gap-2">
+                        <button onclick="ubahBulan('prev')" class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-100 transition-all">
+                            <i class="fas fa-chevron-left text-indigo-600"></i>
                         </button>
-                        <button onclick="ubahBulan('next')" class="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
-                            <i class="fas fa-chevron-right text-indigo-600 text-xs"></i>
+                        <button onclick="ubahBulan('next')" class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-100 transition-all">
+                            <i class="fas fa-chevron-right text-indigo-600"></i>
                         </button>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 rounded-xl">
-                <div class="text-[9px] font-black text-emerald-400 uppercase">JAM TERPAKAI</div>
-                <div class="text-lg font-black text-emerald-700">${totalSesiBulan}</div>
-                <div class="text-[8px] text-emerald-600">${(totalSesiBulan/daysInMonth).toFixed(1)}/hari</div>
+            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 rounded-xl">
+                <div class="text-[10px] font-black text-emerald-400 uppercase tracking-wider">JAM TERPAKAI</div>
+                <div class="text-2xl font-black text-emerald-700">${totalSesiBulan}</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1">Ø ${rataRataPerHari}/hari</div>
             </div>
-            <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-3 rounded-xl">
-                <div class="text-[9px] font-black text-amber-400 uppercase">OKUPANSI</div>
-                <div class="text-lg font-black text-amber-700">${occupancyRate}%</div>
-                <div class="text-[8px] text-amber-600">${totalBookings}/${totalSlots} slot</div>
+            
+            <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-4 rounded-xl">
+                <div class="text-[10px] font-black text-amber-400 uppercase tracking-wider">OKUPANSI</div>
+                <div class="text-2xl font-black text-amber-700">${occupancyRate}%</div>
+                <div class="text-[10px] text-amber-600 font-bold mt-1">${totalBookings}/${totalSlots} slot</div>
             </div>
-            <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-3 rounded-xl">
-                <div class="text-[9px] font-black text-purple-400 uppercase">TOTAL</div>
-                <div class="text-lg font-black text-purple-700">Rp ${data.reduce((sum, item) => sum + Number(item.NOMINAL), 0).toLocaleString('id-ID')}</div>
-                <div class="text-[8px] text-purple-600">Pendapatan</div>
+            
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
+                <div class="text-[10px] font-black text-purple-400 uppercase tracking-wider">PENDAPATAN</div>
+                <div class="text-xl font-black text-purple-700">Rp ${totalPendapatan.toLocaleString('id-ID')}</div>
+                <div class="text-[10px] text-purple-600 font-bold mt-1">Total bulan ini</div>
             </div>
-        </div>`;
-
-        document.getElementById("jadwalContainer").innerHTML = html;
-        
-        // Tambahkan CSS untuk freeze pane setelah tabel dirender
-        const style = document.createElement('style');
-        style.innerHTML = `
-            #freezePaneContainer::-webkit-scrollbar {
-                height: 8px;
-                width: 8px;
-            }
-            #freezePaneContainer::-webkit-scrollbar-track {
-                background: #f1f1f1;
-                border-radius: 10px;
-            }
-            #freezePaneContainer::-webkit-scrollbar-thumb {
-                background: #cbd5e1;
-                border-radius: 10px;
-            }
-            #freezePaneContainer::-webkit-scrollbar-thumb:hover {
-                background: #94a3b8;
-            }
-            .sticky.left-0 {
-                box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
-            }
         `;
-        document.head.appendChild(style);
+        
+        document.getElementById("kpiSummaryContainer").innerHTML = kpiHtml;
         
     } catch (error) {
         console.error("Error loading jadwal:", error);
@@ -1513,7 +1503,6 @@ async function confirmLogout() {
         toggleLoader(false);
     }
 }
-		
 		
 		
 	// Update fungsi showAvailableSlot untuk menerima parameter GOR
