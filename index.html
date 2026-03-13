@@ -593,54 +593,60 @@
 			}
 
 			
-			async function handleLogin(e) {
-		e.preventDefault();
-		const u = document.getElementById('user').value.trim().toUpperCase();
-		const p = document.getElementById('pass').value.trim();
-
-		toggleLoader(true, "Verifikasi...");
-
-		try {
-			const res = await run('checkLogin', u, p);
-
-			if (res.success) {
-				sessionId = res.sessionId;
-				localStorage.setItem('sessionId', sessionId);
-				
-				currentUser = res.username;
-				isUserAdmin = (res.role === 'ADMIN');
-
-				document.getElementById('loginPage').classList.add('hidden');
-				document.getElementById('mainApp').classList.remove('hidden');
-				document.getElementById('displayUser').innerText = isUserAdmin ? "ADMIN" : currentUser;
-				
-				// Tampilkan elemen khusus admin jika user adalah admin
-				toggleAdminElements();
-
-				setupSelectors();
-				
-				// TAMBAHKAN INI - panggil ulang untuk memastikan filter GOR terisi
-				populateGorFilter();
-				
-				await fetchData();
-				
-				// Hanya jalankan heartbeat dan polling untuk ADMIN
-				if (isUserAdmin) {
-					startHeartbeat();
-					startPolling();
-				}
-				
-				showToast("Login berhasil", "success");
-			} else {
-				toggleLoader(false);
-				showToast("Username atau password salah!", "error");
-			}
-		} catch (err) {
-			toggleLoader(false);
-			showToast("Gagal koneksi ke server", "error");
-		}
-	}
 			
+// Modifikasi fungsi handleLogin untuk memanggil resetJadwalFilters
+async function handleLogin(e) {
+    e.preventDefault();
+    const u = document.getElementById('user').value.trim().toUpperCase();
+    const p = document.getElementById('pass').value.trim();
+
+    toggleLoader(true, "Verifikasi...");
+
+    try {
+        const res = await run('checkLogin', u, p);
+
+        if (res.success) {
+            sessionId = res.sessionId;
+            localStorage.setItem('sessionId', sessionId);
+            
+            currentUser = res.username;
+            isUserAdmin = (res.role === 'ADMIN');
+
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('displayUser').innerText = isUserAdmin ? "ADMIN" : currentUser;
+            
+            // Tampilkan elemen khusus admin jika user adalah admin
+            toggleAdminElements();
+
+            setupSelectors();
+            
+            // TAMBAHKAN INI - Reset filter jadwal
+            resetJadwalFilters();
+            
+            // TAMBAHKAN INI - panggil ulang untuk memastikan filter GOR terisi
+            populateGorFilter();
+            
+            await fetchData();
+            
+            // Hanya jalankan heartbeat dan polling untuk ADMIN
+            if (isUserAdmin) {
+                startHeartbeat();
+                startPolling();
+            }
+            
+            showToast("Login berhasil", "success");
+        } else {
+            toggleLoader(false);
+            showToast("Username atau password salah!", "error");
+        }
+    } catch (err) {
+        toggleLoader(false);
+        showToast("Gagal koneksi ke server", "error");
+    }
+}
+
+					
 			// Fungsi untuk menampilkan/menyembunyikan elemen khusus admin
 			function toggleAdminElements() {
 				const adminElements = document.querySelectorAll('.admin-only');
@@ -653,36 +659,41 @@
 				});
 			}
 
-			async function confirmLogout() {
-				if (heartbeatInterval) clearInterval(heartbeatInterval);
-				if (pollInterval) clearInterval(pollInterval);
-				
-				toggleLoader(true, "Logout...");
-				
-				try {
-					if (sessionId) {
-						await run('logout', sessionId);
-					}
-				} catch (e) {
-					console.log("Logout error:", e);
-				} finally {
-					localStorage.removeItem('sessionId');
-					sessionId = null;
-					heartbeatInterval = null;
-					pollInterval = null;
-					currentUser = "";
-					isUserAdmin = false;
-					
-					document.getElementById('confirmLogoutModal').classList.add('hidden');
-					document.getElementById('mainApp').classList.add('hidden');
-					document.getElementById('loginPage').classList.remove('hidden');
-					document.getElementById('loginForm').reset();
-					
-					toggleLoader(false);
-					showToast("Logout berhasil", "success");
-				}
-			}
-
+			
+			// Modifikasi fungsi confirmLogout untuk memastikan reset saat logout
+async function confirmLogout() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (pollInterval) clearInterval(pollInterval);
+    
+    toggleLoader(true, "Logout...");
+    
+    try {
+        if (sessionId) {
+            await run('logout', sessionId);
+        }
+    } catch (e) {
+        console.log("Logout error:", e);
+    } finally {
+        localStorage.removeItem('sessionId');
+        sessionId = null;
+        heartbeatInterval = null;
+        pollInterval = null;
+        currentUser = "";
+        isUserAdmin = false;
+        
+        document.getElementById('confirmLogoutModal').classList.add('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+        document.getElementById('loginPage').classList.remove('hidden');
+        document.getElementById('loginForm').reset();
+        
+        // Reset filter jadwal (meskipun mainApp sudah hidden, ini untuk jaga-jaga)
+        resetJadwalFilters();
+        
+        toggleLoader(false);
+        showToast("Logout berhasil", "success");
+    }
+}
+			
 			function handleLogout() {
 				document.getElementById('confirmLogoutModal').classList.remove('hidden');
 			}
@@ -1623,30 +1634,43 @@
 
 	}
 	
-	function populateGorFilter() {
+	// Perbaiki fungsi populateGorFilter untuk user non-admin
+function populateGorFilter() {
     const selectGor = document.getElementById('filterGorJadwal');
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
     if (!selectGor) return;
     
-    let options = '';
+    let options = '<option value="">PILIH GOR</option>';
     
-    // Jika user adalah admin, tampilkan semua GOR (tanpa opsi "SEMUA GOR")
+    // Jika user adalah admin, tampilkan semua GOR
     if (isUserAdmin) {
         GORS.forEach(gor => {
             options += `<option value="${gor}">${gor}</option>`;
         });
-        // Pilih GOR pertama sebagai default
-        if (GORS.length > 0) {
-            selectGor.innerHTML = options;
-            selectGor.value = GORS[0];
-        }
     } else {
-        // Jika bukan admin, hanya tampilkan GOR miliknya (otomatis terpilih)
-        options += `<option value="${currentUser}" selected>${currentUser}</option>`;
-        selectGor.innerHTML = options;
+        // Jika bukan admin, hanya tampilkan GOR miliknya
+        // Tapi tetap dengan opsi "PILIH GOR" di awal (user harus memilih)
+        options += `<option value="${currentUser}">${currentUser}</option>`;
+    }
+    
+    selectGor.innerHTML = options;
+    
+    // Hapus event listener lama (untuk menghindari duplikasi)
+    selectGor.removeEventListener('change', handleGorChange);
+    
+    // Tambahkan event listener baru
+    selectGor.addEventListener('change', handleGorChange);
+    
+    // Reset tombol Tampilkan (karena belum ada GOR yang dipilih)
+    if (btnTampilkan) {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
     }
 }
 
-// Fungsi untuk mengaktifkan filter GOR setelah tanggal dipilih
+
+// Perbaiki fungsi enableGorFilter
 function enableGorFilter() {
     const tanggalAwal = document.getElementById("tanggalAwal").value;
     const filterGor = document.getElementById("filterGorJadwal");
@@ -1658,8 +1682,8 @@ function enableGorFilter() {
         filterGor.classList.remove("bg-gray-100", "opacity-50", "cursor-not-allowed");
         filterGor.classList.add("bg-white", "opacity-100", "cursor-pointer");
         
-        // Isi dropdown GOR (panggil fungsi populate yang sudah dimodifikasi)
-        populateGorFilterAfterDate();
+        // Isi dropdown GOR
+        populateGorFilter();
     } else {
         // Nonaktifkan kembali jika tanggal dihapus
         filterGor.disabled = true;
@@ -1669,6 +1693,18 @@ function enableGorFilter() {
         btnTampilkan.disabled = true;
         btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
         btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        
+        // Reset container jadwal
+        const jadwalContainer = document.getElementById("jadwalContainer");
+        if (jadwalContainer) {
+            jadwalContainer.innerHTML = `
+                <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                    <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
+                    <p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
+                </div>
+            `;
+        }
     }
 }
 
@@ -1705,9 +1741,68 @@ function populateGorFilterAfterDate() {
     });
 }
 
+// Tambahkan fungsi ini untuk mereset filter jadwal
+function resetJadwalFilters() {
+    const inputTanggal = document.getElementById("tanggalAwal");
+    const filterGor = document.getElementById("filterGorJadwal");
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    const jadwalContainer = document.getElementById("jadwalContainer");
+    
+    // Reset input tanggal ke kosong
+    if (inputTanggal) {
+        inputTanggal.value = "";
+    }
+    
+    // Reset dropdown GOR ke keadaan awal (disabled)
+    if (filterGor) {
+        filterGor.disabled = true;
+        filterGor.innerHTML = '<option value="">PILIH GOR</option>';
+        filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
+        filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
+    }
+    
+    // Reset tombol tampilkan
+    if (btnTampilkan) {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+    }
+    
+    // Reset container jadwal ke placeholder
+    if (jadwalContainer) {
+        jadwalContainer.innerHTML = `
+            <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
+                <p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
+            </div>
+        `;
+    }
+}
+
+
+// Fungsi handler untuk event change
+function handleGorChange() {
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    const selectedValue = this.value;
+    
+    if (selectedValue) {
+        btnTampilkan.disabled = false;
+        btnTampilkan.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btnTampilkan.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    } else {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    }
+}
 
 		</script>
 	</body>
 
 	</html>
+
+
+
+
 
