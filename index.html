@@ -478,6 +478,82 @@
 			const SPORTS = ["BADMINTON", "BASKET", "BOLA TANGAN", "FUTSAL", "GYM", "PENCAK SILAT", "PUSH BIKE", "SENAM", "VOLLY", "PANAHAN", "SEPAK TAKRAW", "TENIS", "BMX","SEPAK BOLA", "SEPATU RODA"];
 			const YEARS = ["2024", "2025", "2026"];
 
+// ============================================
+// KONFIGURASI GOR - COPY DARI BACKEND!
+// ============================================
+const GOR_RULES = {
+    "STADION": {
+        type: "kompleks",
+        areas: {
+            "STADION UTAMA": { sports: ["SEPAK BOLA", "EVENT BESAR"], maxParallel: 1, exclusive: true },
+            "LAPANGAN TENIS 1": { sports: ["TENIS"], maxParallel: 1, exclusive: false },
+            "LAPANGAN TENIS 2": { sports: ["TENIS"], maxParallel: 1, exclusive: false },
+            "LAPANGAN VOLLY": { sports: ["VOLLY"], maxParallel: 1, exclusive: false },
+            "LAPANGAN BASKET": { sports: ["BASKET"], maxParallel: 1, exclusive: false },
+            "AREA BMX": { sports: ["BMX", "SEPATU RODA"], maxParallel: 2, exclusive: false },
+            "OUTDOOR AREA": { sports: ["SEPATU RODA", "BMX", "VOLLY"], maxParallel: 2, exclusive: false }
+        }
+    },
+    "GOR KOTA": {
+        type: "badminton",
+        sport: "BADMINTON",
+        courts: ["A", "B", "C", "D"],
+        maxParallel: 4
+    },
+    "GOR UTAMA": {
+        type: "multifungsi",
+        indoor: {
+            sports: "ALL_EXCEPT_BADMINTON",
+            maxParallel: 1
+        },
+        outdoor: {
+            name: "ROADRACE",
+            sports: ["ROADRACE"],
+            maxParallel: 1,
+            exclusive: true
+        }
+    },
+    "GOR KANOR": {
+        type: "multifungsi",
+        badmintonRule: { maxTeams: 2, exclusive: true },
+        otherSports: { maxParallel: 1 }
+    },
+    "GOR SUMBEREJO": {
+        type: "multifungsi",
+        badmintonRule: { maxTeams: 2, exclusive: true },
+        otherSports: { maxParallel: 1 }
+    },
+    "GOR KEDUNGADEM": {
+        type: "multifungsi",
+        badmintonRule: { maxTeams: 2, exclusive: true },
+        otherSports: { maxParallel: 1 }
+    },
+    "GOR KALITIDU": {
+        type: "multifungsi",
+        badmintonRule: { maxTeams: 2, exclusive: true },
+        otherSports: { maxParallel: 1 }
+    },
+    "GOR TAMBAKREJO": {
+        type: "multifungsi",
+        badmintonRule: { maxTeams: 3, exclusive: true },
+        otherSports: { maxParallel: 1 }
+    },
+    "GOR KEDEWAN": {
+        type: "multifungsi",
+        badmintonRule: { maxTeams: 3, exclusive: true },
+        otherSports: { maxParallel: 1 }
+    },
+    "SPORT CENTER": {
+        type: "bebas",
+        maxParallel: Infinity
+    },
+    "GOR JUARA": {
+        type: "bebas",
+        maxParallel: Infinity
+    }
+};
+
+
 			// STATE GLOBAL
 			let userData = [];
 			let charts = {};
@@ -1452,6 +1528,9 @@ function buildJadwalTable(gor, data, tahun, bulan, daysInMonth, jamMulai, jamSel
 }
 
 // Fungsi baru: cek availability per slot
+    // Filter booking di tanggal & jam yang sama
+
+// Fungsi baru: cek availability per slot
 function checkAvailabilityForSlot(gor, allData, tahun, bulan, tanggal, jam) {
     // Filter booking di tanggal & jam yang sama
     const bookingsAtSlot = allData.filter(b => {
@@ -1472,11 +1551,7 @@ function checkAvailabilityForSlot(gor, allData, tahun, bulan, tanggal, jam) {
     
     // GOR UTAMA (indoor + outdoor)
     if (gor === "GOR UTAMA") {
-        // Kalo slot ini ada booking, gak available
         if (bookingsAtSlot.length > 0) return { available: false };
-        
-        // Cek apakah ada booking di jam yang sama di area lain?
-        // Untuk GOR UTAMA, indoor sama outdoor gak ganggu
         return { available: true };
     }
     
@@ -1487,10 +1562,14 @@ function checkAvailabilityForSlot(gor, allData, tahun, bulan, tanggal, jam) {
         
         // Kalo ada booking, cek apakah itu badminton dan masih muat
         const badmintonCount = bookingsAtSlot.filter(b => b.LAPANGAN === "BADMINTON").length;
-        const maxTeams = GOR_RULES[gor].badmintonRule.maxTeams;
+        
+        // AMAN: cek dulu apakah ada properti badmintonRule
+        let maxTeams = 2; // default
+        if (rules.badmintonRule && rules.badmintonRule.maxTeams) {
+            maxTeams = rules.badmintonRule.maxTeams;
+        }
         
         if (badmintonCount > 0 && badmintonCount < maxTeams) {
-            // Masih bisa tambah badminton
             return { available: true };
         }
         
@@ -1499,13 +1578,14 @@ function checkAvailabilityForSlot(gor, allData, tahun, bulan, tanggal, jam) {
     
     // STADION
     if (gor === "STADION") {
-        // Stadion kompleks, banyak area
-        return { available: true }; // nanti dicek di showAvailableSlot
+        return { available: true };
     }
     
     // Default: kalo ada booking, gak available
     return { available: bookingsAtSlot.length === 0 };
 }
+
+// Fungsi baru: warna booking berdasarkan GOR
 
 // Fungsi baru: warna booking berdasarkan GOR
 function getBookingColor(gor, bookings) {
@@ -2144,51 +2224,6 @@ function isJamConflict(booking, jamMulai, jamSelesai) {
     return (jamMulai < bSelesai && jamSelesai > bMulai);
 }
 
-
-function populateGorFilter() {
-    const selectGor = document.getElementById('filterGorJadwal');
-    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-    if (!selectGor) return;
-    
-    let options = '<option value="">PILIH GOR</option>';
-    
-    if (isUserAdmin) {
-        GORS.forEach(gor => {
-            const desc = getGorDescription(gor).substring(0, 30) + '...';
-            options += `<option value="${gor}" data-desc="${desc}">${gor}</option>`;
-        });
-    } else {
-        options += `<option value="${currentUser}" data-desc="${getGorDescription(currentUser)}">${currentUser}</option>`;
-    }
-    
-    selectGor.innerHTML = options;
-    
-    // Tambahin event untuk nampilin tooltip
-    selectGor.removeEventListener('change', handleGorChange);
-    selectGor.addEventListener('change', function(e) {
-        handleGorChange.call(this);
-        
-        // Tampilin rule yang dipilih
-        const selected = this.options[this.selectedIndex];
-        if (selected && selected.value) {
-            const desc = selected.getAttribute('data-desc');
-            const tooltip = document.getElementById('gorRuleTooltip') || document.createElement('div');
-            tooltip.id = 'gorRuleTooltip';
-            tooltip.className = 'mt-2 text-[9px] text-indigo-600 font-bold bg-indigo-50 p-2 rounded-lg';
-            tooltip.innerHTML = `📋 Rule: ${desc}`;
-            
-            const oldTooltip = document.getElementById('gorRuleTooltip');
-            if (oldTooltip) oldTooltip.remove();
-            
-            this.parentNode.insertBefore(tooltip, this.nextSibling);
-        }
-    });
-    
-    if (btnTampilkan) {
-        btnTampilkan.disabled = true;
-        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-    }
-}
 		</script>
 	</body>
 
