@@ -627,56 +627,69 @@
     }
 
     function populateLapangan(olahraga, gor, prefix = 'f') {
-        const select = document.getElementById(prefix + 'Lapangan');
-        if (!select) return;
-        
-        const boxLainya = document.getElementById(prefix + 'boxLainya');
-        const inputLainya = document.getElementById(prefix + 'LapanganLainya');
-        
-        if (boxLainya) boxLainya.classList.add('hidden');
-        if (inputLainya) inputLainya.value = '';
-        
-        let options = '';
-        
-        if (gor === 'STADION') {
-            if (olahraga === 'TENIS') {
-                options = '<option value="TENIS A">TENIS A</option><option value="TENIS B">TENIS B</option>';
-                select.innerHTML = options;
-                select.disabled = false;
-            } else if (olahraga === 'LAINYA') {
-                options = LAPANGAN_STADION.map(l => `<option value="${l}">${l}</option>`).join('');
-                select.innerHTML = options;
-                select.disabled = false;
-            } else {
-                const autoLapangan = mappingStadion[olahraga];
-                if (autoLapangan) {
-                    select.innerHTML = `<option value="${autoLapangan}" selected>${autoLapangan}</option>`;
-                    select.disabled = true;
-                } else {
-                    options = LAPANGAN_UMUM.map(l => `<option value="${l}">${l}</option>`).join('');
-                    select.innerHTML = options;
-                    select.disabled = false;
-                }
-            }
-        } else {
-            options = LAPANGAN_UMUM.map(l => `<option value="${l}">${l}</option>`).join('');
+    const select = document.getElementById(prefix + 'Lapangan');
+    if (!select) return;
+    
+    const boxLainya = document.getElementById(prefix + 'boxLainya');
+    const inputLainya = document.getElementById(prefix + 'LapanganLainya');
+    
+    if (boxLainya) boxLainya.classList.add('hidden');
+    if (inputLainya) inputLainya.value = '';
+    
+    let options = '';
+    
+    if (gor === 'STADION') {
+        if (olahraga === 'TENIS') {
+            // Untuk TENIS, pilihan terbatas dan bisa dipilih
+            options = '<option value="TENIS A">TENIS A</option><option value="TENIS B">TENIS B</option>';
             select.innerHTML = options;
             select.disabled = false;
+        } else if (olahraga === 'LAINYA') {
+            // UNTUK OLAHRAGA LAINYA: tampilkan semua lapangan STADION, bisa dipilih bebas
+            options = LAPANGAN_STADION.map(l => `<option value="${l}">${l}</option>`).join('');
+            select.innerHTML = options;
+            select.disabled = false; // BISA DIPILIH BEBAS
+        } else {
+            const autoLapangan = mappingStadion[olahraga];
+            if (autoLapangan) {
+                // Auto-set lapangan, tidak bisa diubah
+                select.innerHTML = `<option value="${autoLapangan}" selected>${autoLapangan}</option>`;
+                select.disabled = true;
+            } else {
+                // Fallback ke umum
+                options = LAPANGAN_UMUM.map(l => `<option value="${l}">${l}</option>`).join('');
+                select.innerHTML = options;
+                select.disabled = false;
+            }
         }
+    } else {
+        // Untuk GOR selain STADION, pilihan lapangan umum
+        options = LAPANGAN_UMUM.map(l => `<option value="${l}">${l}</option>`).join('');
+        select.innerHTML = options;
+        select.disabled = false;
     }
+}
 
     function toggleOlahragaLainya(val, prefix) {
-        const box = document.getElementById(prefix + 'boxOlahragaLainya');
-        if (box) {
-            if (val === 'LAINYA') {
-                box.classList.remove('hidden');
-                document.getElementById(prefix + 'OlahragaLainya').focus();
-            } else {
-                box.classList.add('hidden');
-                document.getElementById(prefix + 'OlahragaLainya').value = '';
+    const box = document.getElementById(prefix + 'boxOlahragaLainya');
+    const inputLainya = document.getElementById(prefix + 'OlahragaLainya');
+    
+    if (box) {
+        if (val === 'LAINYA') {
+            box.classList.remove('hidden');
+            if (inputLainya) {
+                inputLainya.focus();
+                inputLainya.required = true; // Jadikan required
+            }
+        } else {
+            box.classList.add('hidden');
+            if (inputLainya) {
+                inputLainya.value = '';
+                inputLainya.required = false;
             }
         }
     }
+}
 
     function toggleLainya(v, type) { 
         const id = type === 'modal' ? 'eboxLainya' : 'boxLainya';
@@ -1244,15 +1257,16 @@
         
         // Ambil nilai olahraga
         let olahraga = document.getElementById(prefix + 'Olahraga').value;
-        let olahragaReal = olahraga;
-        if (olahraga === 'LAINYA') {
-            olahragaReal = document.getElementById(prefix + 'OlahragaLainya').value.toUpperCase();
-            if (!olahragaReal) {
-                showToast("Nama olahraga lainya harus diisi", "error");
-                window.isSubmitting = false;
-                return;
-            }
-        }
+let olahragaReal = olahraga;
+if (olahraga === 'LAINYA') {
+    const olahargaLainya = document.getElementById(prefix + 'OlahragaLainya').value;
+    if (!olahargaLainya || olahargaLainya.trim() === '') {
+        showToast("Nama olahraga lainya harus diisi", "error");
+        window.isSubmitting = false;
+        return;
+    }
+    olahragaReal = olahargaLainya.toUpperCase();
+}
         
         // Ambil nilai lapangan
         let lapangan = document.getElementById(prefix + 'Lapangan').value;
