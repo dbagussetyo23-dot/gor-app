@@ -263,32 +263,52 @@
 					</div>
 				</section>
 
-				<!-- INPUT DATA PAGE -->
-				<section id="page-input" class="hidden max-w-2xl mx-auto py-10">
-					<div class="glass-card p-8 rounded-3xl space-y-6">
-						<h2 class="text-2xl font-black text-center text-gray-800">Input Data</h2>
-						<form id="mainForm" onsubmit="submitForm(event, 'main')" class="space-y-4">
-							<input type="text" id="fNama" placeholder="NAMA PEMAKAI" required class="w-full px-5 py-4 rounded-xl bg-gray-50 border-none font-bold uppercase text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-							<div class="grid grid-cols-3 gap-2">
-								<select id="fTanggal" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-								<select id="fBulan" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-								<input type="number" id="fTahun" value="2026" class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
-							</div>
-							<div class="grid grid-cols-2 gap-2">
-								<select id="fGor" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
-								<select id="fLapangan" onchange="toggleLainya(this.value, 'main')" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-							</div>
-							<div id="boxLainya" class="hidden"><input type="text" id="fLapanganLainya" placeholder="NAMA LAPANGAN LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none"></div>
-							<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-								<input type="time" id="fJamAwal" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-								<input type="time" id="fJamSelesai" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-								<input type="number" id="fJam" step="0.1" placeholder="JAM" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-								<input type="number" id="fNominal" placeholder="NOMINAL" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-							</div>
-							<button type="submit" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-indigo-700">Simpan Data</button>
-						</form>
-					</div>
-				</section>
+				<!-- INPUT DATA PAGE - UPDATE FORM -->
+<section id="page-input" class="hidden max-w-2xl mx-auto py-10">
+    <div class="glass-card p-8 rounded-3xl space-y-6">
+        <h2 class="text-2xl font-black text-center text-gray-800">Input Data</h2>
+        <form id="mainForm" onsubmit="submitForm(event, 'main')" class="space-y-4">
+            <input type="text" id="fNama" placeholder="NAMA PEMAKAI" required class="w-full px-5 py-4 rounded-xl bg-gray-50 border-none font-bold uppercase text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            
+            <div class="grid grid-cols-3 gap-2">
+                <select id="fTanggal" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+                <select id="fBulan" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+                <input type="number" id="fTahun" value="2026" class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <select id="fGor" onchange="handleGorChange()" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
+                <select id="fLapangan" onchange="handleLapanganChange('main')" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+            </div>
+            
+            <!-- JENIS LAPANGAN - BARIS BARU SESUAI GAMBAR -->
+            <div id="jenisLapanganContainer">
+                <select id="fJenisLapangan" required class="w-full px-5 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                    <option value="">PILIH JENIS LAPANGAN</option>
+                </select>
+            </div>
+            
+            <!-- Input untuk LAPANGAN LAINNYA (jika memilih LAINYA) -->
+            <div id="boxLainya" class="hidden">
+                <input type="text" id="fLapanganLainya" placeholder="NAMA LAPANGAN LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
+            </div>
+            
+            <!-- Input untuk JENIS LAPANGAN LAINNYA (opsional) -->
+            <div id="boxJenisLainya" class="hidden">
+                <input type="text" id="fJenisLapanganLainya" placeholder="JENIS LAPANGAN LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <input type="time" id="fJamAwal" onchange="hitungDurasi('main')" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="time" id="fJamSelesai" onchange="hitungDurasi('main')" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="number" id="fJam" step="0.1" placeholder="JAM" required readonly class="w-full px-3 py-4 rounded-xl bg-gray-100 font-bold text-sm outline-none cursor-not-allowed">
+                <input type="number" id="fNominal" placeholder="NOMINAL" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+            </div>
+            
+            <button type="submit" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-indigo-700">Simpan Data</button>
+        </form>
+    </div>
+</section>
 
 				<!-- RIWAYAT PAGE -->
 				<section id="page-history" class="hidden space-y-4">
@@ -306,14 +326,14 @@
 								<thead class="bg-gray-50 font-black uppercase text-gray-400">
 									<tr>
 										<th class="p-4">Tanggal</th>
-										<th class="p-4">Tahun</th>
-										<th class="p-4">Pemakai</th>
-										<th class="p-4">Lokasi</th>
-										<th class="p-4 text-center">Jam_Mulai</th>
-										<th class="p-4 text-center">Jam_Selesai</th>
-										<th class="p-4 text-center">Durasi</th>
-										<th class="p-4 text-right">Nominal</th>
-										<th class="p-4 text-center">Aksi</th>
+        <th class="p-4">Tahun</th>
+        <th class="p-4">Pemakai</th>
+        <th class="p-4">Lokasi</th> <!-- Diperlebar -->
+        <th class="p-4 text-center">Mulai</th>
+        <th class="p-4 text-center">Selesai</th>
+        <th class="p-4 text-center">Durasi</th>
+        <th class="p-4 text-right">Nominal</th>
+        <th class="p-4 text-center">Aksi</th>
 									</tr>
 								</thead>
 								<tbody id="historyTable" class="divide-y divide-gray-50 font-medium"></tbody>
@@ -408,34 +428,52 @@
 		</div>
 
 
-		<!-- EDIT MODAL -->
-		<div id="editModal">
-			<div class="max-w-xl w-full glass-card p-8 rounded-3xl relative">
-				<button onclick="closeEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
-				<h2 class="text-xl font-black mb-6 text-gray-800 uppercase tracking-tight">Edit Transaksi</h2>
-				<form id="editForm" onsubmit="submitForm(event, 'modal')" class="space-y-4">
-					<input type="hidden" id="eId">
-					<input type="text" id="eNama" placeholder="NAMA" required class="w-full px-5 py-3 rounded-xl bg-gray-50 font-bold uppercase text-sm outline-none">
-					<div class="grid grid-cols-3 gap-2">
-						<select id="eTanggal" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-						<select id="eBulan" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-						<input type="number" id="eTahun" class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
-					</div>
-					<div class="grid grid-cols-2 gap-2">
-						<select id="eGor" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
-						<select id="eLapangan" onchange="toggleLainya(this.value, 'modal')" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-					</div>
-					<div id="eboxLainya" class="hidden"><input type="text" id="eLapanganLainya" placeholder="LAINYA" class="w-full px-5 py-3 rounded-xl bg-amber-50 font-bold uppercase text-sm outline-none"></div>
-					<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-						<input type="time" id="eJamAwal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-						<input type="time" id="eJamSelesai" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-						<input type="number" id="eJam" step="0.1" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-						<input type="number" id="eNominal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-					</div>
-					<button type="submit" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-emerald-700 transition-all">Update Data</button>
-				</form>
-			</div>
-		</div>
+		<!-- EDIT MODAL - UPDATE FORM -->
+<div id="editModal">
+    <div class="max-w-xl w-full glass-card p-8 rounded-3xl relative">
+        <button onclick="closeEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        <h2 class="text-xl font-black mb-6 text-gray-800 uppercase tracking-tight">Edit Transaksi</h2>
+        <form id="editForm" onsubmit="submitForm(event, 'modal')" class="space-y-4">
+            <input type="hidden" id="eId">
+            <input type="text" id="eNama" placeholder="NAMA" required class="w-full px-5 py-3 rounded-xl bg-gray-50 font-bold uppercase text-sm outline-none">
+            
+            <div class="grid grid-cols-3 gap-2">
+                <select id="eTanggal" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+                <select id="eBulan" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+                <input type="number" id="eTahun" class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <select id="eGor" onchange="handleGorChange('modal')" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
+                <select id="eLapangan" onchange="handleLapanganChange('modal')" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+            </div>
+            
+            <!-- JENIS LAPANGAN untuk modal -->
+            <div id="ejenisLapanganContainer">
+                <select id="eJenisLapangan" required class="w-full px-5 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                    <option value="">PILIH JENIS LAPANGAN</option>
+                </select>
+            </div>
+            
+            <div id="eboxLainya" class="hidden">
+                <input type="text" id="eLapanganLainya" placeholder="LAINYA" class="w-full px-5 py-3 rounded-xl bg-amber-50 font-bold uppercase text-sm outline-none">
+            </div>
+            
+            <div id="eboxJenisLainya" class="hidden">
+                <input type="text" id="eJenisLapanganLainya" placeholder="JENIS LAPANGAN LAINNYA" class="w-full px-5 py-3 rounded-xl bg-amber-50 font-bold uppercase text-sm outline-none">
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <input type="time" id="eJamAwal" onchange="hitungDurasi('modal')" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="time" id="eJamSelesai" onchange="hitungDurasi('modal')" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="number" id="eJam" step="0.1" required readonly class="w-full px-2 py-3 rounded-xl bg-gray-100 font-bold text-sm outline-none cursor-not-allowed">
+                <input type="number" id="eNominal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+            </div>
+            
+            <button type="submit" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-emerald-700 transition-all">Update Data</button>
+        </form>
+    </div>
+</div>
 
 		<!-- TOAST NOTIFICATION -->
 		<div id="toast" class="fixed top-6 right-6 z-[9999] hidden">
@@ -477,7 +515,20 @@
 			const GORS = ["STADION", "GOR UTAMA", "GOR KOTA", "GOR KANOR", "GOR KALITIDU", "SPORT CENTER", "GOR SUMBEREJO", "GOR KEDUNGADEM", "GOR KEDEWAN", "GOR TAMBAKREJO"];
 			const SPORTS = ["BADMINTON", "BASKET", "BOLA TANGAN", "FUTSAL", "GYM", "PENCAK SILAT", "PUSH BIKE", "SENAM", "VOLLY", "PANAHAN", "SEPAK TAKRAW", "TENIS", "BMX","SEPAK BOLA", "SEPATU RODA"];
 			const YEARS = ["2024", "2025", "2026"];
-
+// Data mapping untuk jenis lapangan berdasarkan pilihan
+const JENIS_LAPANGAN_MAP = {
+    "STADION": {
+        "SEPAK BOLA": "STADION UTAMA",
+        "ATLETIK": "STADION UTAMA",
+        "BASKET": "LAPANGAN BASKET",
+        "SEPAK TAKRAW": "LAPANGAN SEPAK TAKRAW",
+        "VOLLY": "LAPANGAN VOLLY",
+        "SEPATU RODA": "SIRKUIT SEPATU RODA",
+        "BMX": "AREA BMX",
+        "TENIS": ["LAP. TENIS A", "LAP. TENIS B"], // Array untuk multiple pilihan
+        "LAINYA": "CUSTOM"
+    }
+};
 			// STATE GLOBAL
 			let userData = [];
 			let charts = {};
@@ -1120,35 +1171,43 @@ async function confirmLogout() {
 			// ============================================
 			// RENDER FUNCTIONS
 			// ============================================
+			
 			function renderHistory() {
-				const q = document.getElementById('histCari').value.toUpperCase();
-				const b = document.getElementById('histBulan').value;
-				const g = document.getElementById('histGor').value;
-				
-				const filtered = userData.filter(d => 
-					(isUserAdmin || d.GOR === currentUser) && 
-					d.NAMA.includes(q) && 
-					(b === "" || d.BULAN === b) && 
-					(g === "" || d.GOR === g)
-				);
-				
-				document.getElementById('historyTable').innerHTML = filtered.map(d => `
-					<tr class="hover:bg-gray-50">
-						<td class="p-4 text-gray-400 font-bold">${d.TANGGAL}/${d.BULAN.substring(0,3)}</td>
-						<td class="p-4 text-gray-400 font-bold">${d.TAHUN}</td>
-						<td class="p-4 font-black uppercase text-gray-700">${d.NAMA}</td>
-						<td class="p-4"><span class="block text-[9px] text-gray-300 font-black">${d.GOR}</span><span class="text-indigo-600 font-bold uppercase">${d.LAPANGAN}</span></td>
-						<td class="p-4 text-center font-bold text-gray-600">${formatTimeDirect(d.JAM_AWAL)}</td>
-						<td class="p-4 text-center font-bold text-gray-600">${formatTimeDirect(d.JAM_SELESAI)}</td>
-						<td class="p-4 text-center font-black">${d.JAM_DURASI}h</td>
-						<td class="p-4 text-right font-black text-emerald-600">Rp ${Number(d.NOMINAL).toLocaleString('id-ID')}</td>
-						<td class="p-4 flex justify-center gap-1">
-							<button onclick="openEditModal('${d.ID}')" class="w-8 h-8 rounded bg-amber-50 text-amber-600 flex items-center justify-center transition hover:bg-amber-100"><i class="fas fa-edit text-xs"></i></button>
-							<button onclick="openDeleteConfirm('${d.ID}')" class="w-8 h-8 rounded bg-rose-50 text-rose-500 flex items-center justify-center transition hover:bg-rose-100"><i class="fas fa-trash text-xs"></i></button>
-						</td>
-					</tr>
-				`).join('');
-			}
+    const q = document.getElementById('histCari').value.toUpperCase();
+    const b = document.getElementById('histBulan').value;
+    const g = document.getElementById('histGor').value;
+    
+    const filtered = userData.filter(d => 
+        (isUserAdmin || d.GOR === currentUser) && 
+        d.NAMA.includes(q) && 
+        (b === "" || d.BULAN === b) && 
+        (g === "" || d.GOR === g)
+    );
+    
+    document.getElementById('historyTable').innerHTML = filtered.map(d => `
+        <tr class="hover:bg-gray-50">
+            <td class="p-4 text-gray-400 font-bold">${d.TANGGAL}/${d.BULAN.substring(0,3)}</td>
+            <td class="p-4 text-gray-400 font-bold">${d.TAHUN}</td>
+            <td class="p-4 font-black uppercase text-gray-700">${d.NAMA}</td>
+            <td class="p-4">
+                <span class="block text-[9px] text-gray-300 font-black">${d.GOR}</span>
+                <span class="text-indigo-600 font-bold uppercase">${d.LAPANGAN}</span>
+                <!-- TAMBAHKAN INI: Tampilkan jenis lapangan -->
+                <span class="block text-[8px] text-gray-400 mt-1">${d.JENIS_LAPANGAN || '-'}</span>
+            </td>
+            <td class="p-4 text-center font-bold text-gray-600">${formatTimeDirect(d.JAM_AWAL)}</td>
+            <td class="p-4 text-center font-bold text-gray-600">${formatTimeDirect(d.JAM_SELESAI)}</td>
+            <td class="p-4 text-center font-black">${d.JAM_DURASI}h</td>
+            <td class="p-4 text-right font-black text-emerald-600">Rp ${Number(d.NOMINAL).toLocaleString('id-ID')}</td>
+            <td class="p-4 flex justify-center gap-1">
+                <button onclick="openEditModal('${d.ID}')" class="w-8 h-8 rounded bg-amber-50 text-amber-600 flex items-center justify-center transition hover:bg-amber-100"><i class="fas fa-edit text-xs"></i></button>
+                <button onclick="openDeleteConfirm('${d.ID}')" class="w-8 h-8 rounded bg-rose-50 text-rose-500 flex items-center justify-center transition hover:bg-rose-100"><i class="fas fa-trash text-xs"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+
 
 			function updateDashboard() {
 				const filtered = userData.filter(d => 
@@ -1678,26 +1737,20 @@ function populateGorFilter() {
     
     let options = '<option value="">PILIH GOR</option>';
     
-    // Jika user adalah admin, tampilkan semua GOR
     if (isUserAdmin) {
         GORS.forEach(gor => {
             options += `<option value="${gor}">${gor}</option>`;
         });
     } else {
-        // Jika bukan admin, hanya tampilkan GOR miliknya
-        // Tapi tetap dengan opsi "PILIH GOR" di awal (user harus memilih)
         options += `<option value="${currentUser}">${currentUser}</option>`;
     }
     
     selectGor.innerHTML = options;
     
-    // Hapus event listener lama (untuk menghindari duplikasi)
-    selectGor.removeEventListener('change', handleGorChange);
+    // GANTI: handleGorChange -> handleGorFilterChange
+    selectGor.removeEventListener('change', handleGorFilterChange);
+    selectGor.addEventListener('change', handleGorFilterChange);
     
-    // Tambahkan event listener baru
-    selectGor.addEventListener('change', handleGorChange);
-    
-    // Reset tombol Tampilkan (karena belum ada GOR yang dipilih)
     if (btnTampilkan) {
         btnTampilkan.disabled = true;
         btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
@@ -1705,23 +1758,20 @@ function populateGorFilter() {
     }
 }
 
-
 // Perbaiki fungsi enableGorFilter
+
 function enableGorFilter() {
     const tanggalAwal = document.getElementById("tanggalAwal").value;
     const filterGor = document.getElementById("filterGorJadwal");
     const btnTampilkan = document.getElementById("btnTampilkanJadwal");
     
     if (tanggalAwal) {
-        // Aktifkan dropdown GOR
         filterGor.disabled = false;
         filterGor.classList.remove("bg-gray-100", "opacity-50", "cursor-not-allowed");
         filterGor.classList.add("bg-white", "opacity-100", "cursor-pointer");
         
-        // Isi dropdown GOR
         populateGorFilter();
     } else {
-        // Nonaktifkan kembali jika tanggal dihapus
         filterGor.disabled = true;
         filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
         filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
@@ -1730,10 +1780,10 @@ function enableGorFilter() {
         btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
         btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
         
-        // Reset container jadwal
-        const jadwalContainer = document.getElementById("jadwalContainer");
-        if (jadwalContainer) {
-            jadwalContainer.innerHTML = `
+        // GANTI: jadwalContainer -> jadwalTableContainer
+        const jadwalTableContainer = document.getElementById("jadwalTableContainer");
+        if (jadwalTableContainer) {
+            jadwalTableContainer.innerHTML = `
                 <div class="bg-gray-50 rounded-2xl p-8 text-center">
                     <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
                     <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
@@ -1744,52 +1794,19 @@ function enableGorFilter() {
     }
 }
 
-function populateGorFilterAfterDate() {
-    const selectGor = document.getElementById('filterGorJadwal');
-    if (!selectGor) return;
-    
-    let options = '<option value="">PILIH GOR</option>';
-    
-    // Jika user adalah admin, tampilkan semua GOR
-    if (isUserAdmin) {
-        GORS.forEach(gor => {
-            options += `<option value="${gor}">${gor}</option>`;
-        });
-    } else {
-        // Jika bukan admin, hanya tampilkan GOR miliknya
-        options += `<option value="${currentUser}">${currentUser}</option>`;
-    }
-    
-    selectGor.innerHTML = options;
-    
-    // Tambahkan event listener untuk mengaktifkan tombol Tampilkan
-    selectGor.addEventListener('change', function() {
-        const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-        if (this.value) {
-            btnTampilkan.disabled = false;
-            btnTampilkan.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-            btnTampilkan.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
-        } else {
-            btnTampilkan.disabled = true;
-            btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-            btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
-        }
-    });
-}
 
 // Tambahkan fungsi ini untuk mereset filter jadwal
 function resetJadwalFilters() {
     const inputTanggal = document.getElementById("tanggalAwal");
     const filterGor = document.getElementById("filterGorJadwal");
     const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-    const jadwalContainer = document.getElementById("jadwalContainer");
+    // GANTI: jadwalContainer -> jadwalTableContainer
+    const jadwalTableContainer = document.getElementById("jadwalTableContainer");
     
-    // Reset input tanggal ke kosong
     if (inputTanggal) {
         inputTanggal.value = "";
     }
     
-    // Reset dropdown GOR ke keadaan awal (disabled)
     if (filterGor) {
         filterGor.disabled = true;
         filterGor.innerHTML = '<option value="">PILIH GOR</option>';
@@ -1797,16 +1814,15 @@ function resetJadwalFilters() {
         filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
     }
     
-    // Reset tombol tampilkan
     if (btnTampilkan) {
         btnTampilkan.disabled = true;
         btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
         btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
     }
     
-    // Reset container jadwal ke placeholder
-    if (jadwalContainer) {
-        jadwalContainer.innerHTML = `
+    // GANTI: jadwalContainer -> jadwalTableContainer
+    if (jadwalTableContainer) {
+        jadwalTableContainer.innerHTML = `
             <div class="bg-gray-50 rounded-2xl p-8 text-center">
                 <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
                 <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
@@ -1833,6 +1849,337 @@ function handleGorChange() {
     }
 }
 
+// Handler ketika GOR berubah
+function handleGorChange(type = 'main') {
+    const prefix = type === 'modal' ? 'e' : 'f';
+    const gor = document.getElementById(prefix + 'Gor').value;
+    const lapanganSelect = document.getElementById(prefix + 'Lapangan');
+    
+    // Reset lapangan
+    lapanganSelect.innerHTML = '';
+    
+    if (gor === "STADION") {
+        // Opsi lapangan untuk STADION
+        const stadionLapangan = [
+            "SEPAK BOLA", "EVENT", "UPACARA", "ATLETIK", "TENIS", 
+            "BASKET", "SEPAK TAKRAW", "VOLLY", "SEPATU RODA", "BMX", "LAINYA"
+        ];
+        stadionLapangan.forEach(lap => {
+            lapanganSelect.add(new Option(lap, lap));
+        });
+    } else {
+        // Untuk GOR lain, gunakan SPORTS biasa
+        SPORTS.forEach(s => lapanganSelect.add(new Option(s, s)));
+        lapanganSelect.add(new Option("LAINYA", "LAINYA"));
+    }
+    
+    // Trigger perubahan lapangan untuk mengupdate jenis lapangan
+    handleLapanganChange(type);
+}
+
+// Handler ketika LAPANGAN berubah
+function handleLapanganChange(type = 'main') {
+    const prefix = type === 'modal' ? 'e' : 'f';
+    const gor = document.getElementById(prefix + 'Gor').value;
+    const lapangan = document.getElementById(prefix + 'Lapangan').value;
+    const jenisContainer = document.getElementById((type === 'modal' ? 'e' : '') + 'jenisLapanganContainer');
+    const jenisSelect = document.getElementById((type === 'modal' ? 'e' : '') + 'JenisLapangan');
+    const boxLainya = document.getElementById((type === 'modal' ? 'e' : '') + 'boxLainya');
+    const boxJenisLainya = document.getElementById((type === 'modal' ? 'e' : '') + 'boxJenisLainya');
+    
+    // Reset
+    jenisSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
+    boxLainya.classList.add('hidden');
+    boxJenisLainya.classList.add('hidden');
+    
+    if (gor === "STADION" && JENIS_LAPANGAN_MAP.STADION[lapangan]) {
+        const mapping = JENIS_LAPANGAN_MAP.STADION[lapangan];
+        
+        if (Array.isArray(mapping)) {
+            // Multiple pilihan (untuk TENIS)
+            mapping.forEach(jenis => {
+                jenisSelect.add(new Option(jenis, jenis));
+            });
+            jenisContainer.classList.remove('hidden');
+        } else if (mapping === "CUSTOM") {
+            // Untuk LAINYA - user harus mengisi manual
+            jenisContainer.classList.add('hidden');
+            boxJenisLainya.classList.remove('hidden');
+            boxLainya.classList.remove('hidden'); // Untuk input lapangan lainnya
+        } else {
+            // Single pilihan otomatis
+            jenisSelect.innerHTML = `<option value="${mapping}" selected>${mapping}</option>`;
+            jenisContainer.classList.remove('hidden');
+        }
+    } else {
+        // Untuk GOR lain, user bisa memilih jenis lapangan dari opsi yang ada
+        const otherJenis = ["LAPANGAN A", "LAPANGAN B", "LAPANGAN C", "LAPANGAN UTAMA"];
+        otherJenis.forEach(jenis => {
+            jenisSelect.add(new Option(jenis, jenis));
+        });
+        jenisContainer.classList.remove('hidden');
+    }
+    
+    // Handle LAINYA untuk lapangan
+    if (lapangan === "LAINYA") {
+        boxLainya.classList.remove('hidden');
+    }
+}
+
+// Fungsi hitung durasi otomatis
+function hitungDurasi(type = 'main') {
+    const prefix = type === 'modal' ? 'e' : 'f';
+    const jamAwal = document.getElementById(prefix + 'JamAwal').value;
+    const jamSelesai = document.getElementById(prefix + 'JamSelesai').value;
+    const jamInput = document.getElementById(prefix + 'Jam');
+    
+    if (jamAwal && jamSelesai) {
+        const [jam1, menit1] = jamAwal.split(':').map(Number);
+        const [jam2, menit2] = jamSelesai.split(':').map(Number);
+        
+        let durasi = (jam2 + menit2/60) - (jam1 + menit1/60);
+        if (durasi < 0) durasi += 24; // Cross midnight
+        
+        jamInput.value = durasi.toFixed(1);
+    }
+}
+
+// Modifikasi fungsi submitForm untuk validasi booking
+async function submitForm(e, type) {
+    e.preventDefault();
+    
+    if (window.isSubmitting) return;
+    window.isSubmitting = true;
+    
+    const prefix = type === 'modal' ? 'e' : 'f';
+    
+    // Validasi semua field terisi
+    const requiredFields = [
+        prefix + 'Nama', prefix + 'Tanggal', prefix + 'Bulan', prefix + 'Tahun',
+        prefix + 'Gor', prefix + 'Lapangan', prefix + 'JenisLapangan',
+        prefix + 'JamAwal', prefix + 'JamSelesai', prefix + 'Jam', prefix + 'Nominal'
+    ];
+    
+    for (let fieldId of requiredFields) {
+        const field = document.getElementById(fieldId);
+        if (!field || !field.value) {
+            showToast("Semua kolom harus diisi!", "error");
+            window.isSubmitting = false;
+            return;
+        }
+    }
+    
+    const data = {
+        id: type === 'modal' ? document.getElementById('eId').value : "",
+        nama: document.getElementById(prefix + 'Nama').value.toUpperCase(),
+        tanggal: document.getElementById(prefix + 'Tanggal').value,
+        bulan: document.getElementById(prefix + 'Bulan').value,
+        tahun: document.getElementById(prefix + 'Tahun').value,
+        gor: document.getElementById(prefix + 'Gor').value,
+        lapangan: document.getElementById(prefix + 'Lapangan').value,
+        lapanganOriginal: document.getElementById(prefix + 'Lapangan').value, // Simpan nilai asli
+        lapanganLainnya: document.getElementById(prefix + 'LapanganLainya')?.value || '',
+        jenisLapangan: document.getElementById(prefix + 'JenisLapangan')?.value || 
+                      document.getElementById(prefix + 'JenisLapanganLainya')?.value || '',
+        jamAwal: document.getElementById(prefix + 'JamAwal').value,
+        jamSelesai: document.getElementById(prefix + 'JamSelesai').value,
+        jamDurasi: document.getElementById(prefix + 'Jam').value,
+        nominal: document.getElementById(prefix + 'Nominal').value,
+        currentUser: currentUser
+    };
+    
+    toggleLoader(true, "Menyimpan...");
+    
+    try {
+        const result = await run('saveData', data);
+        
+        if (result.success) {
+            if (type === 'modal') closeEditModal();
+            document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
+            
+            await fetchData();
+            showToast("Data berhasil disimpan", "success");
+        } else {
+            // Tampilkan pesan error dari server
+            showToast(result.message, "error");
+            
+            // Jika ada alternatif lapangan (untuk TENIS)
+            if (result.alternative) {
+                if (confirm(result.message + "\n\nGunakan lapangan " + result.alternative + "?")) {
+                    // Set jenis lapangan ke alternatif
+                    document.getElementById(prefix + 'JenisLapangan').value = result.alternative;
+                    // Submit ulang
+                    window.isSubmitting = false;
+                    submitForm(e, type);
+                    return;
+                }
+            }
+        }
+    } catch (e) {
+        showToast("Gagal menyimpan data", "error");
+    } finally {
+        toggleLoader(false);
+        window.isSubmitting = false;
+    }
+}
+
+// Update setupSelectors untuk menambahkan event listener
+function setupSelectors() {
+    const fill = (id, items) => {
+        const el = document.getElementById(id); 
+        if (!el) return;
+        el.innerHTML = '';
+        items.forEach(i => el.add(new Option(i, i)));
+    };
+    
+    fill('fTanggal', Array.from({length:31}, (_,i)=>i+1));
+    fill('fBulan', MONTHS);
+    
+    // GOR selector
+    const fGor = document.getElementById('fGor');
+    fGor.innerHTML = '';
+    GORS.forEach(g => fGor.add(new Option(g, g)));
+    
+    // Lapangan selector (akan diisi ulang saat GOR dipilih)
+    const fLapangan = document.getElementById('fLapangan');
+    fLapangan.innerHTML = '';
+    
+    fill('eTanggal', Array.from({length:31}, (_,i)=>i+1));
+    fill('eBulan', MONTHS);
+    
+    const eGor = document.getElementById('eGor');
+    eGor.innerHTML = '';
+    GORS.forEach(g => eGor.add(new Option(g, g)));
+    
+    const eLapangan = document.getElementById('eLapangan');
+    eLapangan.innerHTML = '';
+    
+    // History filters
+    const hbs = document.getElementById('histBulan'); 
+    if (hbs) {
+        hbs.innerHTML = '<option value="">SEMUA BULAN</option>'; 
+        MONTHS.forEach(m => hbs.add(new Option(m, m)));
+    }
+    
+    const hgs = document.getElementById('histGor'); 
+    if (hgs) {
+        hgs.innerHTML = '<option value="">SEMUA UNIT</option>'; 
+        GORS.forEach(g => hgs.add(new Option(g, g)));
+    }
+    
+    if (!isUserAdmin) {
+        dashSelectedGor = [currentUser];
+        const contGorDash = document.getElementById('contGorDash');
+        if (contGorDash) contGorDash.classList.add('hidden');
+        
+        const fGor = document.getElementById('fGor');
+        if (fGor) {
+            fGor.value = currentUser;
+            fGor.disabled = true;
+        }
+        
+        const eGor = document.getElementById('eGor');
+        if (eGor) {
+            eGor.value = currentUser;
+            eGor.disabled = true;
+        }
+        
+        if (hgs) {
+            hgs.value = currentUser;
+            hgs.disabled = true;
+        }
+    }
+    
+    // Trigger initial load untuk GOR
+    handleGorChange('main');
+    handleGorChange('modal');
+    
+    populateGorFilter();
+    initExcelFilters();
+    showPage('dashboard');
+}
+
+// Update openEditModal untuk mengisi jenis lapangan
+function openEditModal(id) {
+    const d = userData.find(i => i.ID === id);
+    if (!d) return;
+    
+    document.getElementById('eId').value = d.ID;
+    document.getElementById('eNama').value = d.NAMA;
+    document.getElementById('eTanggal').value = d.TANGGAL;
+    document.getElementById('eBulan').value = d.BULAN;
+    document.getElementById('eTahun').value = d.TAHUN;
+    document.getElementById('eGor').value = d.GOR;
+    
+    // Trigger perubahan GOR dulu
+    handleGorChange('modal');
+    
+    // Set nilai lapangan setelah options tersedia
+    setTimeout(() => {
+        if (SPORTS.includes(d.LAPANGAN) || 
+            ["SEPAK BOLA", "EVENT", "UPACARA", "ATLETIK", "TENIS", "BASKET", 
+             "SEPAK TAKRAW", "VOLLY", "SEPATU RODA", "BMX"].includes(d.LAPANGAN)) { 
+            document.getElementById('eLapangan').value = d.LAPANGAN; 
+            handleLapanganChange('modal');
+            
+            // Set jenis lapangan setelah options tersedia
+            setTimeout(() => {
+                if (document.getElementById('eJenisLapangan')) {
+                    document.getElementById('eJenisLapangan').value = d.JENIS_LAPANGAN || "";
+                }
+            }, 100);
+        } else { 
+            document.getElementById('eLapangan').value = 'LAINYA'; 
+            handleLapanganChange('modal');
+            document.getElementById('eLapanganLainya').value = d.LAPANGAN;
+            if (d.JENIS_LAPANGAN) {
+                document.getElementById('eJenisLapanganLainya').value = d.JENIS_LAPANGAN;
+            }
+        }
+    }, 100);
+    
+    document.getElementById('eJamAwal').value = formatTimeDirect(d.JAM_AWAL);
+    document.getElementById('eJamSelesai').value = formatTimeDirect(d.JAM_SELESAI);
+    document.getElementById('eJam').value = d.JAM_DURASI;
+    document.getElementById('eNominal').value = d.NOMINAL;
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+
+// 1. RENAME fungsi untuk jadwal (ganti nama)
+function handleGorFilterChange() {
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    const selectedValue = this.value;
+    
+    if (selectedValue) {
+        btnTampilkan.disabled = false;
+        btnTampilkan.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btnTampilkan.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    } else {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    }
+}
+
+
+
+
+// 1. RENAME fungsi untuk jadwal (ganti nama)
+function handleGorFilterChange() {
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    const selectedValue = this.value;
+    
+    if (selectedValue) {
+        btnTampilkan.disabled = false;
+        btnTampilkan.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btnTampilkan.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    } else {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    }
+}
 		</script>
 	</body>
 
