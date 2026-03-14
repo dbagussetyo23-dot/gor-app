@@ -278,6 +278,17 @@
 								<select id="fGor" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
 								<select id="fLapangan" onchange="toggleLainya(this.value, 'main')" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
 							</div>
+							<div class="grid grid-cols-2 gap-2">
+    <select id="fLapangan" onchange="updateJenisLapangan(this.value)" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+    
+    <select id="fJenisLapangan" required class="w-full px-4 py-4 rounded-xl bg-blue-50 border border-blue-100 font-bold text-sm outline-none">
+        <option value="">JENIS LAPANGAN</option>
+    </select>
+</div>
+
+<div id="boxLainya" class="hidden mt-2">
+    <input type="text" id="fLapanganLainya" placeholder="KETIK NAMA LAPANGAN BARU" class="w-full px-4 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
+</div>
 							<div id="boxLainya" class="hidden"><input type="text" id="fLapanganLainya" placeholder="NAMA LAPANGAN LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none"></div>
 							<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
 								<input type="time" id="fJamAwal" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
@@ -1796,6 +1807,53 @@ function handleGorChange() {
         btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
     }
 }
+
+function updateJenisLapangan(lapanganValue) {
+    const gor = document.getElementById("fGor").value;
+    const fJenis = document.getElementById("fJenisLapangan");
+    const boxLainya = document.getElementById("boxLainya");
+    const lapangan = lapanganValue.toUpperCase();
+    
+    // Reset dropdown Jenis Lapangan
+    fJenis.innerHTML = '<option value="">PILIH JENIS</option>';
+    boxLainya.classList.add("hidden");
+
+    if (gor === "STADION") {
+        if (lapangan === "SEPAK BOLA" || lapangan === "ATLETIK") {
+            tambahOpsi(fJenis, "STADION UTAMA", true);
+        } else if (lapangan === "BASKET") {
+            tambahOpsi(fJenis, "LAPANGAN BASKET", true);
+        } else if (lapangan === "SEPAK TAKRAW") {
+            tambahOpsi(fJenis, "LAPANGAN SEPAK TAKRAW", true);
+        } else if (lapangan === "VOLLY") {
+            tambahOpsi(fJenis, "LAPANGAN VOLLY", true);
+        } else if (lapangan === "SEPATU RODA") {
+            tambahOpsi(fJenis, "SIRKUIT SEPATU RODA", true);
+        } else if (lapangan === "BMX") {
+            tambahOpsi(fJenis, "AREA BMX", true);
+        } else if (lapangan === "TENIS") {
+            tambahOpsi(fJenis, "LAP.TENIS A");
+            tambahOpsi(fJenis, "LAP.TENIS B");
+            alert("INFO: Cek ketersediaan Lapangan A dan B secara bergantian.");
+        } else if (lapangan === "LAINNYA") {
+            boxLainya.classList.remove("hidden");
+            ["STADION UTAMA", "LAPANGAN BASKET", "LAPANGAN VOLLY", "LAPANGAN TAKRAW"].forEach(opt => tambahOpsi(fJenis, opt));
+        }
+    }
+}
+
+function tambahOpsi(selectEl, text, selected = false) {
+    const opt = document.createElement("option");
+    opt.value = text;
+    opt.text = text;
+    opt.selected = selected;
+    selectEl.add(opt);
+}
+
+// Tambahkan fungsi auto-kapital saat user mengetik Nama
+document.getElementById("fNama").addEventListener("input", function() {
+    this.value = this.value.toUpperCase();
+});
 
 		</script>
 	</body>
