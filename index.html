@@ -891,14 +891,7 @@ function setupSelectors() {
     if (eGor) { eGor.value = currentUser; eGor.disabled = true; }
     if (hgs) { hgs.value = currentUser; hgs.disabled = true; }
   }
-  setTimeout(() => {
-    handleGorChange('main');
-    handleGorChange('modal');
-  }, 500);
-  populateGorFilter();
-  initExcelFilters();
-  showPage('dashboard');
-  setTimeout(setupInitialForm, 2000);
+  
 }
 
 function initExcelFilters() {
@@ -1400,6 +1393,9 @@ function renderChart(id, type, labels, data, color, fill=false, axis='x') {
 // ============================================
 // SUBMIT FORM
 // ============================================
+// ============================================
+// SUBMIT FORM (LANJUTAN)
+// ============================================
 async function submitForm(e, type) {
   e.preventDefault();
   if (window.isSubmitting) return;
@@ -1745,8 +1741,7 @@ window.addEventListener('offline', () => {
     showGentleNotification('Koneksi terputus', 'warning');
   }
 });
-
-			</script>
+</script>
 		</body>
 
 		</html>
