@@ -1,434 +1,405 @@
-			<!DOCTYPE html>
-			<html lang="id">
-			<head>
-				<meta charset="UTF-8">
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<title>GOR Bojonegoro</title>
-				<link rel="shortcut icon" type="image/png" href="https://i.ibb.co.com/r2zRf2VH/favicon-32x32.png">
-				<script src="https://cdn.tailwindcss.com"></script>
-				<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-				<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-				<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-				<style>
-				
-				/* Animasi untuk modal */
+	<!DOCTYPE html>
+	<html lang="id">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>GOR Bojonegoro</title>
+		<link rel="shortcut icon" type="image/png" href="https://i.ibb.co.com/r2zRf2VH/favicon-32x32.png">
+		<script src="https://cdn.tailwindcss.com"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		<style>
+		
+		/* Animasi untuk modal */
+	@keyframes fadeInUp {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.animate-fade-in-up {
+		animation: fadeInUp 0.3s ease-out;
+	}
+
+	/* Style untuk modal detail */
+	#detailBookingModal {
+		backdrop-filter: blur(4px);
+	}
+
+	#detailBookingModal .bg-white {
+		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+	}
+		
+			body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; min-height: 100vh; overflow: hidden; }
+			.glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+			.sidebar-gradient { background: linear-gradient(180deg, #4f46e5 0%, #3730a3 100%); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+			.nav-item { transition: all 0.2s; white-space: nowrap; overflow: hidden; }
+			.nav-active { background: white !important; color: #4f46e5 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+			
+			#loader { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.9); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; }
+			.spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; }
+			@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+			.excel-dropdown { position: relative; display: inline-block; }
+			.excel-dropdown-content { 
+				display: none; position: absolute; background: white; min-width: 220px; 
+				max-height: 350px; overflow-y: auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); 
+				z-index: 100; border-radius: 12px; border: 1px solid #e2e8f0; padding: 0; margin-top: 8px;
+			}
+			.excel-dropdown.active .excel-dropdown-content { display: block; }
+			
+			.filter-header { position: sticky; top: 0; background: #f8fafc; padding: 10px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 8px; z-index: 10; }
+			.filter-body { padding: 8px; }
+			
+			.btn-filter-action { font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; cursor: pointer; border: 1px solid #e2e8f0; background: white; color: #4f46e5; }
+			.btn-filter-action:hover { background: #4f46e5; color: white; }
+
+			.check-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 700; color: #475569; transition: background 0.2s; }
+			.check-item:hover { background: #f1f5f9; }
+			.check-item input { width: 15px; height: 15px; cursor: pointer; accent-color: #4f46e5; }
+
+			.sidebar-minimized { width: 80px !important; }
+			.sidebar-minimized .nav-text, .sidebar-minimized .logo-text, .sidebar-minimized #displayUser { display: none; }
+			.sidebar-minimized .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+			.sidebar-minimized .nav-item i { margin-right: 0; font-size: 1.25rem; }
+
+			#editModal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+
+			.toast-error { background: #ef4444; }
+			.toast-success { background: #10b981; }
+			
 			@keyframes fadeInUp {
-				from {
-					opacity: 0;
-					transform: translateY(20px);
-				}
-				to {
-					opacity: 1;
-					transform: translateY(0);
-				}
+				from { opacity: 0; transform: translateY(20px); }
+				to { opacity: 1; transform: translateY(0); }
 			}
+			.animate-fade-in-up { animation: fadeInUp 0.3s ease-out; }
+			
+			#realtimeNotif { transition: all 0.3s; }
+			
+			/* Sembunyikan elemen admin secara default */
+			.admin-only { display: none; }
+		</style>
+	</head>
+	<body class="text-gray-800" onclick="closeAllDropdowns(event)">
 
-			.animate-fade-in-up {
-				animation: fadeInUp 0.3s ease-out;
-			}
+		<!-- LOADER -->
+		<div id="loader">
+			<div class="spinner"></div>
+			<p id="loaderText" class="mt-4 text-indigo-700 font-bold text-[10px] uppercase tracking-widest">Memproses...</p>
+		</div>
 
-			/* Style untuk modal detail */
-			#detailBookingModal {
-				backdrop-filter: blur(4px);
-			}
+		<!-- LOGIN PAGE -->
+	<div id="loginPage" class="fixed inset-0 z-50 flex items-center justify-center bg-indigo-900 px-4">
+		<div class="max-w-md w-full glass-card p-10 rounded-[2rem] relative z-10 shadow-2xl">
+			<div class="text-center mb-8">
+				<!-- LOGO KABUPATEN BOJONEGORO - VERSI FIX -->
+		   <div class="w-32 h-32 mx-auto mb-4 flex items-center justify-center">
+		<img src="https://lh3.googleusercontent.com/d/1FWhhjZUBOmYDjSUNFA3T4itTEeDwcipw"
+		 alt="Logo Kabupaten Bojonegoro"
+		 class="w-full h-full object-contain"
+		 style="max-width:100%;max-height:100%;"
+		 onerror="this.style.display='none'">
+	</div>
+				<h1 class="text-3xl font-black text-gray-900">GOR <span class="text-indigo-600">BOJONEGORO</span></h1>
+				<p class="text-gray-400 text-sm font-medium">Bojonegoro Sport Management</p>
+			</div>
+			<form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+				<input type="text" id="user" placeholder="USERNAME" required class="w-full px-6 py-4 rounded-xl bg-gray-50 border border-gray-100 outline-none uppercase font-bold text-sm">
+				<input type="password" id="pass" placeholder="PASSWORD" required class="w-full px-6 py-4 rounded-xl bg-gray-50 border border-gray-100 outline-none font-bold text-sm">
+				<button type="submit" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all uppercase text-sm">Masuk</button>
+			</form>
+		</div>
+	</div>
 
-			#detailBookingModal .bg-white {
-				box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-			}
-				
-					body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; min-height: 100vh; overflow: hidden; }
-					.glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
-					.sidebar-gradient { background: linear-gradient(180deg, #4f46e5 0%, #3730a3 100%); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-					.nav-item { transition: all 0.2s; white-space: nowrap; overflow: hidden; }
-					.nav-active { background: white !important; color: #4f46e5 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-					
-					#loader { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.9); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; }
-					.spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; }
-					@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-					.excel-dropdown { position: relative; display: inline-block; }
-					.excel-dropdown-content { 
-						display: none; position: absolute; background: white; min-width: 220px; 
-						max-height: 350px; overflow-y: auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); 
-						z-index: 100; border-radius: 12px; border: 1px solid #e2e8f0; padding: 0; margin-top: 8px;
-					}
-					.excel-dropdown.active .excel-dropdown-content { display: block; }
-					
-					.filter-header { position: sticky; top: 0; background: #f8fafc; padding: 10px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 8px; z-index: 10; }
-					.filter-body { padding: 8px; }
-					
-					.btn-filter-action { font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; cursor: pointer; border: 1px solid #e2e8f0; background: white; color: #4f46e5; }
-					.btn-filter-action:hover { background: #4f46e5; color: white; }
-
-					.check-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 700; color: #475569; transition: background 0.2s; }
-					.check-item:hover { background: #f1f5f9; }
-					.check-item input { width: 15px; height: 15px; cursor: pointer; accent-color: #4f46e5; }
-
-					.sidebar-minimized { width: 80px !important; }
-					.sidebar-minimized .nav-text, .sidebar-minimized .logo-text, .sidebar-minimized #displayUser { display: none; }
-					.sidebar-minimized .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
-					.sidebar-minimized .nav-item i { margin-right: 0; font-size: 1.25rem; }
-
-					#editModal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
-
-					.toast-error { background: #ef4444; }
-					.toast-success { background: #10b981; }
-					
-					@keyframes fadeInUp {
-						from { opacity: 0; transform: translateY(20px); }
-						to { opacity: 1; transform: translateY(0); }
-					}
-					.animate-fade-in-up { animation: fadeInUp 0.3s ease-out; }
-					
-					#realtimeNotif { transition: all 0.3s; }
-					
-					/* Sembunyikan elemen admin secara default */
-					.admin-only { display: none; }
-				</style>
-			</head>
-			<body class="text-gray-800" onclick="closeAllDropdowns(event)">
-
-				<!-- LOADER -->
-				<div id="loader">
-					<div class="spinner"></div>
-					<p id="loaderText" class="mt-4 text-indigo-700 font-bold text-[10px] uppercase tracking-widest">Memproses...</p>
-				</div>
-
-				<!-- LOGIN PAGE -->
-			<div id="loginPage" class="fixed inset-0 z-50 flex items-center justify-center bg-indigo-900 px-4">
-				<div class="max-w-md w-full glass-card p-10 rounded-[2rem] relative z-10 shadow-2xl">
-					<div class="text-center mb-8">
-						<!-- LOGO KABUPATEN BOJONEGORO - VERSI FIX -->
-				   <div class="w-32 h-32 mx-auto mb-4 flex items-center justify-center">
+		<!-- MAIN APP -->
+		<div id="mainApp" class="hidden flex h-screen overflow-hidden">
+			<!-- Sidebar -->
+			<aside id="sidebar" class="w-64 sidebar-gradient p-5 flex flex-col text-white flex-shrink-0 h-full">
+				<div class="mb-10 flex items-center justify-between">
+					<div class="flex items-center gap-3">
+						<div class="w-15 h-15 flex items-center justify-center">
 				<img src="https://lh3.googleusercontent.com/d/1FWhhjZUBOmYDjSUNFA3T4itTEeDwcipw"
-				 alt="Logo Kabupaten Bojonegoro"
-				 class="w-full h-full object-contain"
-				 style="max-width:100%;max-height:100%;"
-				 onerror="this.style.display='none'">
+		 alt="Logo Kabupaten Bojonegoro"
+		 class="w-full h-full object-contain"
+		 style="max-width:100%;max-height:100%;"
+		 onerror="this.style.display='none'">
 			</div>
-						<h1 class="text-3xl font-black text-gray-900">GOR <span class="text-indigo-600">BOJONEGORO</span></h1>
-						<p class="text-gray-400 text-sm font-medium">Bojonegoro Sport Management</p>
+						<div class="logo-text"><h2 class="text-lg font-black tracking-tight">GOR BOJONEGORO</h2></div>
 					</div>
-					<form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
-						<input type="text" id="user" placeholder="USERNAME" required class="w-full px-6 py-4 rounded-xl bg-gray-50 border border-gray-100 outline-none uppercase font-bold text-sm">
-						<input type="password" id="pass" placeholder="PASSWORD" required class="w-full px-6 py-4 rounded-xl bg-gray-50 border border-gray-100 outline-none font-bold text-sm">
-						<button type="submit" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all uppercase text-sm">Masuk</button>
-					</form>
+					<button onclick="toggleSidebar()" class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center transition hover:bg-white/20">
+						<i id="toggleIcon" class="fas fa-chevron-left text-xs"></i>
+					</button>
 				</div>
-			</div>
+				
+				<nav class="space-y-2 flex-grow">
+					<button onclick="showPage('dashboard')" id="btn-dashboard" class="nav-item w-full flex items-center p-4 rounded-xl font-bold nav-active">
+						<i class="fas fa-th-large w-5"></i> <span class="nav-text ml-4 text-sm">Dashboard</span>
+					</button>
+					<button onclick="showPage('input')" id="btn-input" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
+						<i class="fas fa-plus-circle w-5"></i> <span class="nav-text ml-4 text-sm">Input Data</span>
+					</button>
+					<button onclick="showPage('history')" id="btn-history" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
+						<i class="fas fa-history w-5"></i> <span class="nav-text ml-4 text-sm">Riwayat</span>
+					</button>
+					<button onclick="showPage('jadwal')" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
+		<i class="fas fa-calendar-alt w-5"></i>
+		<span class="nav-text ml-4 text-sm">Cek Jadwal</span>
+	</button>
+				</nav>
 
-				<!-- MAIN APP -->
-				<div id="mainApp" class="hidden flex h-screen overflow-hidden">
-					<!-- Sidebar -->
-					<aside id="sidebar" class="w-64 sidebar-gradient p-5 flex flex-col text-white flex-shrink-0 h-full">
-						<div class="mb-10 flex items-center justify-between">
-							<div class="flex items-center gap-3">
-								<div class="w-15 h-15 flex items-center justify-center">
-						<img src="https://lh3.googleusercontent.com/d/1FWhhjZUBOmYDjSUNFA3T4itTEeDwcipw"
-				 alt="Logo Kabupaten Bojonegoro"
-				 class="w-full h-full object-contain"
-				 style="max-width:100%;max-height:100%;"
-				 onerror="this.style.display='none'">
-					</div>
-								<div class="logo-text"><h2 class="text-lg font-black tracking-tight">GOR BOJONEGORO</h2></div>
-							</div>
-							<button onclick="toggleSidebar()" class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center transition hover:bg-white/20">
-								<i id="toggleIcon" class="fas fa-chevron-left text-xs"></i>
-							</button>
+				<div class="mt-auto pt-4 border-t border-white/10">
+					<p id="displayUser" class="text-[10px] font-black text-indigo-200 mb-4 px-4 uppercase tracking-tighter opacity-70"></p>
+					
+					<!-- USER AKTIF COUNTER - HANYA UNTUK ADMIN -->
+					<div id="adminUserCounter" class="admin-only px-4 mb-4">
+						<div class="text-[8px] font-black text-indigo-200 opacity-50">USER AKTIF</div>
+						<div class="text-sm font-black text-white flex items-center gap-2">
+							<span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+							<span id="activeUserCountValue">1</span>
 						</div>
-						
-						<nav class="space-y-2 flex-grow">
-							<button onclick="showPage('dashboard')" id="btn-dashboard" class="nav-item w-full flex items-center p-4 rounded-xl font-bold nav-active">
-								<i class="fas fa-th-large w-5"></i> <span class="nav-text ml-4 text-sm">Dashboard</span>
-							</button>
-							<button onclick="showPage('input')" id="btn-input" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
-								<i class="fas fa-plus-circle w-5"></i> <span class="nav-text ml-4 text-sm">Input Data</span>
-							</button>
-							<button onclick="showPage('history')" id="btn-history" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
-								<i class="fas fa-history w-5"></i> <span class="nav-text ml-4 text-sm">Riwayat</span>
-							</button>
-							<button onclick="showPage('jadwal')" class="nav-item w-full flex items-center p-4 rounded-xl font-bold text-indigo-100/60 hover:text-white">
-				<i class="fas fa-calendar-alt w-5"></i>
-				<span class="nav-text ml-4 text-sm">Cek Jadwal</span>
-			</button>
-						</nav>
-
-						<div class="mt-auto pt-4 border-t border-white/10">
-							<p id="displayUser" class="text-[10px] font-black text-indigo-200 mb-4 px-4 uppercase tracking-tighter opacity-70"></p>
-							
-							<!-- USER AKTIF COUNTER - HANYA UNTUK ADMIN -->
-							<div id="adminUserCounter" class="admin-only px-4 mb-4">
-								<div class="text-[8px] font-black text-indigo-200 opacity-50">USER AKTIF</div>
-								<div class="text-sm font-black text-white flex items-center gap-2">
-									<span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-									<span id="activeUserCountValue">1</span>
-								</div>
-							</div>
-							
-							<!-- LOGOUT BUTTON -->
-							<button onclick="handleLogout()" class="nav-item w-full flex items-center p-4 text-red-300 font-bold hover:bg-red-500/20 rounded-xl transition">
-								<i class="fas fa-power-off w-5"></i> <span class="nav-text ml-4 text-sm">Keluar</span>
-							</button>
-						</div>
-					</aside>
-
-					<main class="flex-grow p-6 md:p-8 overflow-y-auto h-full">
-						<!-- DASHBOARD PAGE -->
-						<section id="page-dashboard" class="space-y-6">
-							<div>
-								<h2 class="text-3xl font-black text-gray-900">Dashboard</h2>
-								
-								<!-- AUTO REFRESH INDICATOR - HANYA UNTUK ADMIN -->
-								<div id="adminAutoRefreshIndicator" class="admin-only mt-2 flex items-center gap-2 text-[10px] font-bold text-indigo-400">
-									<i class="fas fa-sync-alt fa-spin text-xs"></i>
-									<span>Auto refresh setiap 7 detik</span>
-								</div>
-								
-								<div class="flex flex-wrap gap-3 mt-5">
-									<div class="excel-dropdown" id="dd-bulan">
-										<button onclick="toggleDropdown('dd-bulan', event)" class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 text-[11px] font-bold text-gray-600 flex items-center gap-3">
-											<i class="fas fa-calendar-alt text-indigo-500"></i> Pilih Bulan <i class="fas fa-chevron-down opacity-30"></i>
-										</button>
-										<div class="excel-dropdown-content">
-											<div class="filter-header">
-												<button onclick="batchFilter('bulan', true)" class="btn-filter-action">Pilih Semua</button>
-												<button onclick="batchFilter('bulan', false)" class="btn-filter-action">Hapus Semua</button>
-											</div>
-											<div class="filter-body" id="listBulanDash"></div>
-										</div>
-									</div>
-									<div class="excel-dropdown" id="dd-tahun">
-										<button onclick="toggleDropdown('dd-tahun', event)" class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 text-[11px] font-bold text-gray-600 flex items-center gap-3">
-											<i class="fas fa-clock text-indigo-500"></i> Pilih Tahun <i class="fas fa-chevron-down opacity-30"></i>
-										</button>
-										<div class="excel-dropdown-content">
-											<div class="filter-header">
-												<button onclick="batchFilter('tahun', true)" class="btn-filter-action">Pilih Semua</button>
-												<button onclick="batchFilter('tahun', false)" class="btn-filter-action">Hapus Semua</button>
-											</div>
-											<div class="filter-body" id="listTahunDash"></div>
-										</div>
-									</div>
-									<div class="excel-dropdown" id="contGorDash">
-										<button onclick="toggleDropdown('contGorDash', event)" class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 text-[11px] font-bold text-gray-600 flex items-center gap-3">
-											<i class="fas fa-map-marker-alt text-indigo-500"></i> Unit GOR <i class="fas fa-chevron-down opacity-30"></i>
-										</button>
-										<div class="excel-dropdown-content">
-											<div class="filter-header">
-												<button onclick="batchFilter('gor', true)" class="btn-filter-action">Pilih Semua</button>
-												<button onclick="batchFilter('gor', false)" class="btn-filter-action">Hapus Semua</button>
-											</div>
-											<div class="filter-body" id="listGorDash"></div>
-										</div>
-									</div>
-									<div class="excel-dropdown" id="dd-lapangan">
-										<button onclick="toggleDropdown('dd-lapangan', event)" class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 text-[11px] font-bold text-gray-600 flex items-center gap-3">
-											<i class="fas fa-volleyball-ball text-indigo-500"></i> Lapangan <i class="fas fa-chevron-down opacity-30"></i>
-										</button>
-										<div class="excel-dropdown-content">
-											<div class="filter-header">
-												<button onclick="batchFilter('lapangan', true)" class="btn-filter-action">Pilih Semua</button>
-												<button onclick="batchFilter('lapangan', false)" class="btn-filter-action">Hapus Semua</button>
-											</div>
-											<div class="filter-body" id="listLapanganDash"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-
-							<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-								<div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500">
-									<p class="text-[10px] font-bold text-gray-400 uppercase">Total Pendapatan</p>
-									<h3 id="kpi-pendapatan" class="text-xl font-black text-indigo-600">Rp 0</h3>
-								</div>
-								<div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500">
-									<p class="text-[10px] font-bold text-gray-400 uppercase">Total Durasi</p>
-									<h3 id="kpi-durasi" class="text-xl font-black text-emerald-600">0 Jam</h3>
-								</div>
-								<div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500">
-									<p class="text-[10px] font-bold text-gray-400 uppercase">Total Penyewa</p>
-									<h3 id="kpi-pemakaian" class="text-xl font-black text-amber-600">0</h3>
-								</div>
-								<div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-rose-500">
-									<p class="text-[10px] font-bold text-gray-400 uppercase">Rata-rata/Sesi</p>
-									<h3 id="kpi-rata" class="text-xl font-black text-rose-600">Rp 0</h3>
-								</div>
-							</div>
-
-							<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-								<div class="glass-card p-6 rounded-2xl h-[300px]"><h4 class="text-[10px] font-black uppercase text-gray-400 mb-4">Grafik Pendapatan</h4><canvas id="chartLinePendapatan"></canvas></div>
-								<div class="glass-card p-6 rounded-2xl h-[300px]"><h4 class="text-[10px] font-black uppercase text-gray-400 mb-4">Grafik Durasi</h4><canvas id="chartBarDurasi"></canvas></div>
-								<div class="glass-card p-6 rounded-2xl h-[300px]"><h4 class="text-[10px] font-black uppercase text-gray-400 mb-4">Statistik Lapangan</h4><canvas id="chartBarLapangan"></canvas></div>
-								<div class="glass-card p-6 rounded-2xl h-[300px]"><h4 class="text-[10px] font-black uppercase text-gray-400 mb-4">Kontribusi GOR</h4><canvas id="chartDonutGor"></canvas></div>
-							</div>
-						</section>
-
-						<!-- INPUT DATA PAGE - UPDATE FORM -->
-		<section id="page-input" class="hidden max-w-2xl mx-auto py-10">
-			<div class="glass-card p-8 rounded-3xl space-y-6">
-				<h2 class="text-2xl font-black text-center text-gray-800">Input Data</h2>
-				<form id="mainForm" onsubmit="submitForm(event, 'main')" class="space-y-4">
-					<input type="text" id="fNama" placeholder="NAMA PEMAKAI" required class="w-full px-5 py-4 rounded-xl bg-gray-50 border-none font-bold uppercase text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-					
-					<div class="grid grid-cols-3 gap-2">
-						<select id="fTanggal" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-						<select id="fBulan" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-						<input type="number" id="fTahun" value="2026" class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
 					</div>
 					
-					<div class="grid grid-cols-2 gap-2">
-						<select id="fGor" onchange="handleGorChange('main')" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
-						<select id="fLapangan" onchange="handleLapanganChange('main')" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-					</div>
-					
-					<!-- JENIS LAPANGAN - BARIS BARU SESUAI GAMBAR -->
-					<div id="jenisLapanganContainer">
-						<select id="fJenisLapangan" required class="w-full px-5 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-							<option value="">PILIH JENIS LAPANGAN</option>
-						</select>
-					</div>
-					
-					<!-- Input untuk LAPANGAN LAINNYA (jika memilih LAINYA) -->
-					<div id="boxLainya" class="hidden">
-						<input type="text" id="fLapanganLainya" placeholder="NAMA LAPANGAN LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
-					</div>
-					
-					<!-- Input untuk JENIS LAPANGAN LAINNYA (opsional) -->
-					<div id="boxJenisLainya" class="hidden">
-						<input type="text" id="fJenisLapanganLainya" placeholder="JENIS LAPANGAN LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
-					</div>
-					
-					<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-						<input type="time" id="fJamAwal" onchange="hitungDurasi('main')" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-						<input type="time" id="fJamSelesai" onchange="hitungDurasi('main')" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-						<input type="number" id="fJam" step="0.1" placeholder="JAM" required readonly class="w-full px-3 py-4 rounded-xl bg-gray-100 font-bold text-sm outline-none cursor-not-allowed">
-						<input type="number" id="fNominal" placeholder="NOMINAL" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-					</div>
-					
-					<button type="submit" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-indigo-700">Simpan Data</button>
-				</form>
-			</div>
-		</section>
+					<!-- LOGOUT BUTTON -->
+					<button onclick="handleLogout()" class="nav-item w-full flex items-center p-4 text-red-300 font-bold hover:bg-red-500/20 rounded-xl transition">
+						<i class="fas fa-power-off w-5"></i> <span class="nav-text ml-4 text-sm">Keluar</span>
+					</button>
+				</div>
+			</aside>
 
-						<!-- RIWAYAT PAGE -->
-						<section id="page-history" class="hidden space-y-4">
-							<div class="flex flex-wrap justify-between items-center gap-4">
-								<h2 class="text-2xl font-black">Riwayat Transaksi</h2>
-								<div class="flex flex-wrap gap-2">
-									<input type="text" id="histCari" onkeyup="renderHistory()" placeholder="Cari Nama..." class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none w-32">
-									<select id="histBulan" onchange="renderHistory()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none"></select>
-									<select id="histGor" onchange="renderHistory()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none disabled:opacity-50"></select>
-								</div>
-							</div>
-							<div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-50">
-								<div class="overflow-x-auto">
-									<table class="w-full text-left text-[11px]">
-										<thead class="bg-gray-50 font-black uppercase text-gray-400">
-											<tr>
-												<th class="p-4">Tanggal</th>
-				<th class="p-4">Tahun</th>
-				<th class="p-4">Pemakai</th>
-				<th class="p-4">Lokasi</th> <!-- Diperlebar -->
-				<th class="p-4 text-center">Mulai</th>
-				<th class="p-4 text-center">Selesai</th>
-				<th class="p-4 text-center">Durasi</th>
-				<th class="p-4 text-right">Nominal</th>
-				<th class="p-4 text-center">Aksi</th>
-											</tr>
-										</thead>
-										<tbody id="historyTable" class="divide-y divide-gray-50 font-medium"></tbody>
-									</table>
-								</div>
-							</div>
-						</section>
-						
-						
-
-		<!-- CEK JADWAL PAGE -->
-		<section id="page-jadwal" class="hidden space-y-6">
-			<div class="glass-card p-8 rounded-3xl">
-				<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+			<main class="flex-grow p-6 md:p-8 overflow-y-auto h-full">
+				<!-- DASHBOARD PAGE -->
+				<section id="page-dashboard" class="space-y-6">
 					<div>
-						<h2 class="text-3xl font-black text-gray-800">
-							<i class="fas fa-calendar-alt text-indigo-600 mr-3"></i>
-							CEK JADWAL GOR
-						</h2>
-						<p class="text-gray-400 text-xs font-bold mt-1">Monitoring ketersediaan lapangan (08:00 - 22:00 WIB)</p>
-					</div>
-					
-					<div class="flex flex-wrap items-center gap-3">
-						<div class="relative">
-							<input type="date" id="tanggalAwal" 
-								   class="px-5 py-3 pr-10 rounded-xl border border-gray-200 bg-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-								   value="" placeholder="Pilih Tanggal"
-								   onchange="enableGorFilter()">
-							<i class="fas fa-calendar-day absolute right-4 top-1/2 -translate-y-1/2 text-indigo-400 text-sm"></i>
+						<h2 class="text-3xl font-black text-gray-900">Dashboard</h2>
+						
+						<!-- AUTO REFRESH INDICATOR - HANYA UNTUK ADMIN -->
+						<div id="adminAutoRefreshIndicator" class="admin-only mt-2 flex items-center gap-2 text-[10px] font-bold text-indigo-400">
+							<i class="fas fa-sync-alt fa-spin text-xs"></i>
+							<span>Auto refresh setiap 7 detik</span>
 						</div>
 						
-						<!-- FILTER GOR - AWALNYA DISABLED -->
-						<div class="relative min-w-[180px]">
-							<select id="filterGorJadwal" class="w-full px-5 py-3 rounded-xl border border-gray-200 bg-gray-100 font-bold text-sm outline-none opacity-50 cursor-not-allowed" disabled>
-								<option value="">PILIH GOR</option>
-							</select>
-							<i class="fas fa-map-marker-alt absolute right-4 top-1/2 -translate-y-1/2 text-indigo-300 text-sm"></i>
+						<div class="flex flex-wrap gap-3 mt-5">
+							<div class="excel-dropdown" id="dd-bulan">
+								<button onclick="toggleDropdown('dd-bulan', event)" class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 text-[11px] font-bold text-gray-600 flex items-center gap-3">
+									<i class="fas fa-calendar-alt text-indigo-500"></i> Pilih Bulan <i class="fas fa-chevron-down opacity-30"></i>
+								</button>
+								<div class="excel-dropdown-content">
+									<div class="filter-header">
+										<button onclick="batchFilter('bulan', true)" class="btn-filter-action">Pilih Semua</button>
+										<button onclick="batchFilter('bulan', false)" class="btn-filter-action">Hapus Semua</button>
+									</div>
+									<div class="filter-body" id="listBulanDash"></div>
+								</div>
+							</div>
+							<div class="excel-dropdown" id="dd-tahun">
+								<button onclick="toggleDropdown('dd-tahun', event)" class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 text-[11px] font-bold text-gray-600 flex items-center gap-3">
+									<i class="fas fa-clock text-indigo-500"></i> Pilih Tahun <i class="fas fa-chevron-down opacity-30"></i>
+								</button>
+								<div class="excel-dropdown-content">
+									<div class="filter-header">
+										<button onclick="batchFilter('tahun', true)" class="btn-filter-action">Pilih Semua</button>
+										<button onclick="batchFilter('tahun', false)" class="btn-filter-action">Hapus Semua</button>
+									</div>
+									<div class="filter-body" id="listTahunDash"></div>
+								</div>
+							</div>
+							<div class="excel-dropdown" id="contGorDash">
+								<button onclick="toggleDropdown('contGorDash', event)" class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 text-[11px] font-bold text-gray-600 flex items-center gap-3">
+									<i class="fas fa-map-marker-alt text-indigo-500"></i> Unit GOR <i class="fas fa-chevron-down opacity-30"></i>
+								</button>
+								<div class="excel-dropdown-content">
+									<div class="filter-header">
+										<button onclick="batchFilter('gor', true)" class="btn-filter-action">Pilih Semua</button>
+										<button onclick="batchFilter('gor', false)" class="btn-filter-action">Hapus Semua</button>
+									</div>
+									<div class="filter-body" id="listGorDash"></div>
+								</div>
+							</div>
+							<div class="excel-dropdown" id="dd-lapangan">
+								<button onclick="toggleDropdown('dd-lapangan', event)" class="bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 text-[11px] font-bold text-gray-600 flex items-center gap-3">
+									<i class="fas fa-volleyball-ball text-indigo-500"></i> Lapangan <i class="fas fa-chevron-down opacity-30"></i>
+								</button>
+								<div class="excel-dropdown-content">
+									<div class="filter-header">
+										<button onclick="batchFilter('lapangan', true)" class="btn-filter-action">Pilih Semua</button>
+										<button onclick="batchFilter('lapangan', false)" class="btn-filter-action">Hapus Semua</button>
+									</div>
+									<div class="filter-body" id="listLapanganDash"></div>
+								</div>
+							</div>
 						</div>
-						
-						<button onclick="cekJadwal()" id="btnTampilkanJadwal"
-								class="bg-indigo-400 text-white px-6 py-3 rounded-xl font-black opacity-50 cursor-not-allowed transition-all flex items-center gap-2" disabled>
-							<i class="fas fa-search"></i>
-							TAMPILKAN
-						</button>
 					</div>
-				</div>
 
-				<!-- LEGEND & INFO - TETAP DI LUAR SCROLL -->
-				<div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-gray-50 p-4 rounded-xl">
-					<div class="flex items-center gap-6">
-						<div class="flex items-center gap-2">
-							<div class="w-5 h-5 bg-emerald-400 rounded-lg shadow-sm"></div>
-							<span class="text-xs font-bold text-gray-600">TERSEDIA</span>
+					<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+						<div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500">
+							<p class="text-[10px] font-bold text-gray-400 uppercase">Total Pendapatan</p>
+							<h3 id="kpi-pendapatan" class="text-xl font-black text-indigo-600">Rp 0</h3>
 						</div>
-						<div class="flex items-center gap-2">
-							<div class="w-5 h-5 bg-rose-400 rounded-lg shadow-sm"></div>
-							<span class="text-xs font-bold text-gray-600">TERBOOKING</span>
+						<div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500">
+							<p class="text-[10px] font-bold text-gray-400 uppercase">Total Durasi</p>
+							<h3 id="kpi-durasi" class="text-xl font-black text-emerald-600">0 Jam</h3>
 						</div>
-					</div>
-					<div class="flex items-center gap-4">
-						<div class="flex items-center gap-1 text-amber-600">
-							<i class="fas fa-clock text-xs"></i>
-							<span class="text-[10px] font-black">08:00 - 22:00 WIB</span>
+						<div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500">
+							<p class="text-[10px] font-bold text-gray-400 uppercase">Total Penyewa</p>
+							<h3 id="kpi-pemakaian" class="text-xl font-black text-amber-600">0</h3>
 						</div>
-						<div class="flex items-center gap-1 text-indigo-400">
-							<i class="fas fa-info-circle text-xs"></i>
-							<span class="text-[10px] font-bold">Klik sel untuk detail</span>
+						<div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-rose-500">
+							<p class="text-[10px] font-bold text-gray-400 uppercase">Rata-rata/Sesi</p>
+							<h3 id="kpi-rata" class="text-xl font-black text-rose-600">Rp 0</h3>
 						</div>
 					</div>
-				</div>
 
-				<!-- FILTER INFO - AKAN DIISI JAVASCRIPT, TETAP DI LUAR SCROLL -->
-				<div id="filterInfoContainer" class="mb-4"></div>
-
-				<!-- CONTAINER KHUSUS UNTUK TABEL (SCROLL VERTICAL SAJA) -->
-				<div id="jadwalTableContainer" class="relative border border-gray-200 rounded-xl overflow-y-auto" style="max-height: 450px;">
-					<!-- Placeholder akan diganti dengan tabel oleh JavaScript -->
-					<div class="bg-gray-50 rounded-2xl p-8 text-center">
-						<i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
-						<p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
-						<p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
+					<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+						<div class="glass-card p-6 rounded-2xl h-[300px]"><h4 class="text-[10px] font-black uppercase text-gray-400 mb-4">Grafik Pendapatan</h4><canvas id="chartLinePendapatan"></canvas></div>
+						<div class="glass-card p-6 rounded-2xl h-[300px]"><h4 class="text-[10px] font-black uppercase text-gray-400 mb-4">Grafik Durasi</h4><canvas id="chartBarDurasi"></canvas></div>
+						<div class="glass-card p-6 rounded-2xl h-[300px]"><h4 class="text-[10px] font-black uppercase text-gray-400 mb-4">Statistik Lapangan</h4><canvas id="chartBarLapangan"></canvas></div>
+						<div class="glass-card p-6 rounded-2xl h-[300px]"><h4 class="text-[10px] font-black uppercase text-gray-400 mb-4">Kontribusi GOR</h4><canvas id="chartDonutGor"></canvas></div>
 					</div>
-				</div>
+				</section>
 
-				<!-- KPI SUMMARY - TETAP DI LUAR SCROLL -->
-				<div id="kpiSummaryContainer" class="mt-4 grid grid-cols-1 md:grid-cols-5 gap-2">
-					<!-- Akan diisi oleh JavaScript -->
-				</div>
-			</div>
-		</section>
-					</main>
-				</div>
+				<!-- INPUT DATA PAGE -->
+				<section id="page-input" class="hidden max-w-2xl mx-auto py-10">
+					<div class="glass-card p-8 rounded-3xl space-y-6">
+						<h2 class="text-2xl font-black text-center text-gray-800">Input Data</h2>
+						<form id="mainForm" onsubmit="submitForm(event, 'main')" class="space-y-4">
+							<input type="text" id="fNama" placeholder="NAMA PEMAKAI" required class="w-full px-5 py-4 rounded-xl bg-gray-50 border-none font-bold uppercase text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+							<div class="grid grid-cols-3 gap-2">
+								<select id="fTanggal" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+								<select id="fBulan" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+								<input type="number" id="fTahun" value="2026" class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
+							</div>
+							<div class="grid grid-cols-2 gap-2">
+								<select id="fGor" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
+								<select id="fLapangan" onchange="toggleLainya(this.value, 'main')" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+							</div>
+							<div id="boxLainya" class="hidden"><input type="text" id="fLapanganLainya" placeholder="NAMA LAPANGAN LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none"></div>
+							<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+								<input type="time" id="fJamAwal" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+								<input type="time" id="fJamSelesai" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+								<input type="number" id="fJam" step="0.1" placeholder="JAM" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+								<input type="number" id="fNominal" placeholder="NOMINAL" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+							</div>
+							<button type="submit" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-indigo-700">Simpan Data</button>
+						</form>
+					</div>
+				</section>
+
+				<!-- RIWAYAT PAGE -->
+				<section id="page-history" class="hidden space-y-4">
+					<div class="flex flex-wrap justify-between items-center gap-4">
+						<h2 class="text-2xl font-black">Riwayat Transaksi</h2>
+						<div class="flex flex-wrap gap-2">
+							<input type="text" id="histCari" onkeyup="renderHistory()" placeholder="Cari Nama..." class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none w-32">
+							<select id="histBulan" onchange="renderHistory()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none"></select>
+							<select id="histGor" onchange="renderHistory()" class="px-4 py-2 rounded-xl border border-gray-100 text-[10px] font-bold outline-none disabled:opacity-50"></select>
+						</div>
+					</div>
+					<div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-50">
+						<div class="overflow-x-auto">
+							<table class="w-full text-left text-[11px]">
+								<thead class="bg-gray-50 font-black uppercase text-gray-400">
+									<tr>
+										<th class="p-4">Tanggal</th>
+										<th class="p-4">Tahun</th>
+										<th class="p-4">Pemakai</th>
+										<th class="p-4">Lokasi</th>
+										<th class="p-4 text-center">Jam_Mulai</th>
+										<th class="p-4 text-center">Jam_Selesai</th>
+										<th class="p-4 text-center">Durasi</th>
+										<th class="p-4 text-right">Nominal</th>
+										<th class="p-4 text-center">Aksi</th>
+									</tr>
+								</thead>
+								<tbody id="historyTable" class="divide-y divide-gray-50 font-medium"></tbody>
+							</table>
+						</div>
+					</div>
+				</section>
+				
+				
+	<!-- CEK JADWAL PAGE -->
+<!-- CEK JADWAL PAGE -->
+<section id="page-jadwal" class="hidden space-y-6">
+    <div class="glass-card p-8 rounded-3xl">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+                <h2 class="text-3xl font-black text-gray-800">
+                    <i class="fas fa-calendar-alt text-indigo-600 mr-3"></i>
+                    CEK JADWAL GOR
+                </h2>
+                <p class="text-gray-400 text-xs font-bold mt-1">Monitoring ketersediaan lapangan (08:00 - 22:00 WIB)</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="relative">
+                    <input type="date" id="tanggalAwal" 
+                           class="px-5 py-3 pr-10 rounded-xl border border-gray-200 bg-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                           value="" placeholder="Pilih Tanggal"
+                           onchange="enableGorFilter()">
+                    <i class="fas fa-calendar-day absolute right-4 top-1/2 -translate-y-1/2 text-indigo-400 text-sm"></i>
+                </div>
+                
+                <!-- FILTER GOR - AWALNYA DISABLED -->
+                <div class="relative min-w-[180px]">
+                    <select id="filterGorJadwal" class="w-full px-5 py-3 rounded-xl border border-gray-200 bg-gray-100 font-bold text-sm outline-none opacity-50 cursor-not-allowed" disabled>
+                        <option value="">PILIH GOR</option>
+                    </select>
+                    <i class="fas fa-map-marker-alt absolute right-4 top-1/2 -translate-y-1/2 text-indigo-300 text-sm"></i>
+                </div>
+                
+                <button onclick="cekJadwal()" id="btnTampilkanJadwal"
+                        class="bg-indigo-400 text-white px-6 py-3 rounded-xl font-black opacity-50 cursor-not-allowed transition-all flex items-center gap-2" disabled>
+                    <i class="fas fa-search"></i>
+                    TAMPILKAN
+                </button>
+            </div>
+        </div>
+
+        <!-- LEGEND & INFO -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-gray-50 p-4 rounded-xl">
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 bg-emerald-400 rounded-lg shadow-sm"></div>
+                    <span class="text-xs font-bold text-gray-600">TERSEDIA</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 bg-rose-400 rounded-lg shadow-sm"></div>
+                    <span class="text-xs font-bold text-gray-600">TERBOOKING</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-1 text-amber-600">
+                    <i class="fas fa-clock text-xs"></i>
+                    <span class="text-[10px] font-black">08:00 - 22:00 WIB</span>
+                </div>
+                <div class="flex items-center gap-1 text-indigo-400">
+                    <i class="fas fa-info-circle text-xs"></i>
+                    <span class="text-[10px] font-bold">Klik sel untuk detail</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- JADWAL CONTAINER - AWALNYA KOSONG / PLACEHOLDER -->
+        <div id="jadwalContainer" class="overflow-x-auto pb-4">
+            <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
+                <p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
+            </div>
+        </div>
+    </div>
+</section>
+			</main>
+		</div>
 
 
-				<!-- EDIT MODAL - UPDATE FORM -->
+		<!-- EDIT MODAL -->
 		<div id="editModal">
 			<div class="max-w-xl w-full glass-card p-8 rounded-3xl relative">
 				<button onclick="closeEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
@@ -436,1398 +407,1402 @@
 				<form id="editForm" onsubmit="submitForm(event, 'modal')" class="space-y-4">
 					<input type="hidden" id="eId">
 					<input type="text" id="eNama" placeholder="NAMA" required class="w-full px-5 py-3 rounded-xl bg-gray-50 font-bold uppercase text-sm outline-none">
-					
 					<div class="grid grid-cols-3 gap-2">
 						<select id="eTanggal" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
 						<select id="eBulan" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
 						<input type="number" id="eTahun" class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
 					</div>
-					
 					<div class="grid grid-cols-2 gap-2">
-						<select id="eGor" onchange="handleGorChange('modal')" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
-						<select id="eLapangan" onchange="handleLapanganChange('modal')" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+						<select id="eGor" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
+						<select id="eLapangan" onchange="toggleLainya(this.value, 'modal')" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
 					</div>
-					
-					<!-- JENIS LAPANGAN untuk modal -->
-					<div id="ejenisLapanganContainer">
-						<select id="eJenisLapangan" required class="w-full px-5 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-							<option value="">PILIH JENIS LAPANGAN</option>
-						</select>
-					</div>
-					
-					<div id="eboxLainya" class="hidden">
-						<input type="text" id="eLapanganLainya" placeholder="LAINYA" class="w-full px-5 py-3 rounded-xl bg-amber-50 font-bold uppercase text-sm outline-none">
-					</div>
-					
-					<div id="eboxJenisLainya" class="hidden">
-						<input type="text" id="eJenisLapanganLainya" placeholder="JENIS LAPANGAN LAINNYA" class="w-full px-5 py-3 rounded-xl bg-amber-50 font-bold uppercase text-sm outline-none">
-					</div>
-					
+					<div id="eboxLainya" class="hidden"><input type="text" id="eLapanganLainya" placeholder="LAINYA" class="w-full px-5 py-3 rounded-xl bg-amber-50 font-bold uppercase text-sm outline-none"></div>
 					<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-						<input type="time" id="eJamAwal" onchange="hitungDurasi('modal')" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-						<input type="time" id="eJamSelesai" onchange="hitungDurasi('modal')" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-						<input type="number" id="eJam" step="0.1" required readonly class="w-full px-2 py-3 rounded-xl bg-gray-100 font-bold text-sm outline-none cursor-not-allowed">
+						<input type="time" id="eJamAwal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+						<input type="time" id="eJamSelesai" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+						<input type="number" id="eJam" step="0.1" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
 						<input type="number" id="eNominal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
 					</div>
-					
 					<button type="submit" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-emerald-700 transition-all">Update Data</button>
 				</form>
 			</div>
 		</div>
 
-				<!-- TOAST NOTIFICATION -->
-				<div id="toast" class="fixed top-6 right-6 z-[9999] hidden">
-					<div id="toastBox" class="px-6 py-4 rounded-xl shadow-lg text-sm font-bold text-white flex items-center gap-3">
-						<i id="toastIcon" class="fas fa-exclamation-circle"></i>
-						<span id="toastText"></span>
-					</div>
+		<!-- TOAST NOTIFICATION -->
+		<div id="toast" class="fixed top-6 right-6 z-[9999] hidden">
+			<div id="toastBox" class="px-6 py-4 rounded-xl shadow-lg text-sm font-bold text-white flex items-center gap-3">
+				<i id="toastIcon" class="fas fa-exclamation-circle"></i>
+				<span id="toastText"></span>
+			</div>
+		</div>
+
+		<!-- CONFIRM DELETE MODAL -->
+		<div id="confirmDeleteModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center">
+			<div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+				<h3 class="text-lg font-black mb-2 text-gray-800">Hapus Data?</h3>
+				<p class="text-sm text-gray-500 mb-5">Data yang dihapus tidak dapat dikembalikan.</p>
+				<div class="flex justify-end gap-3">
+					<button onclick="closeDeleteConfirm()" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold">Batal</button>
+					<button id="btnConfirmDelete" class="px-4 py-2 rounded-lg bg-rose-600 text-white font-black">Hapus</button>
 				</div>
+			</div>
+		</div>
 
-				<!-- CONFIRM DELETE MODAL -->
-				<div id="confirmDeleteModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center">
-					<div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-						<h3 class="text-lg font-black mb-2 text-gray-800">Hapus Data?</h3>
-						<p class="text-sm text-gray-500 mb-5">Data yang dihapus tidak dapat dikembalikan.</p>
-						<div class="flex justify-end gap-3">
-							<button onclick="closeDeleteConfirm()" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold">Batal</button>
-							<button id="btnConfirmDelete" class="px-4 py-2 rounded-lg bg-rose-600 text-white font-black">Hapus</button>
-						</div>
-					</div>
+		<!-- CONFIRM LOGOUT MODAL -->
+		<div id="confirmLogoutModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center">
+			<div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+				<h3 class="text-lg font-black mb-2 text-gray-800">Keluar Aplikasi?</h3>
+				<p class="text-sm text-gray-500 mb-5">Anda akan keluar dari sistem.</p>
+				<div class="flex justify-end gap-3">
+					<button onclick="closeLogoutConfirm()" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold">Batal</button>
+					<button onclick="confirmLogout()" class="px-4 py-2 rounded-lg bg-rose-600 text-white font-black">Keluar</button>
 				</div>
+			</div>
+		</div>
 
-				<!-- CONFIRM LOGOUT MODAL -->
-				<div id="confirmLogoutModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center">
-					<div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-						<h3 class="text-lg font-black mb-2 text-gray-800">Keluar Aplikasi?</h3>
-						<p class="text-sm text-gray-500 mb-5">Anda akan keluar dari sistem.</p>
-						<div class="flex justify-end gap-3">
-							<button onclick="closeLogoutConfirm()" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold">Batal</button>
-							<button onclick="confirmLogout()" class="px-4 py-2 rounded-lg bg-rose-600 text-white font-black">Keluar</button>
-						</div>
-					</div>
-				</div>
+		<script>
+			// ============================================
+			// KONSTANTA DAN VARIABEL GLOBAL
+			// ============================================
+			const MONTHS = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
+			const GORS = ["STADION", "GOR UTAMA", "GOR KOTA", "GOR KANOR", "GOR KALITIDU", "SPORT CENTER", "GOR SUMBEREJO", "GOR KEDUNGADEM", "GOR KEDEWAN", "GOR TAMBAKREJO"];
+			const SPORTS = ["BADMINTON", "BASKET", "BOLA TANGAN", "FUTSAL", "GYM", "PENCAK SILAT", "PUSH BIKE", "SENAM", "VOLLY", "PANAHAN", "SEPAK TAKRAW", "TENIS", "BMX","SEPAK BOLA", "SEPATU RODA"];
+			const YEARS = ["2024", "2025", "2026"];
 
-				<script>
-					// ============================================
-					// KONSTANTA DAN VARIABEL GLOBAL
-					// ============================================
-			 // ============================================
-	// KONSTANTA DAN VARIABEL GLOBAL
-	// ============================================
-	const MONTHS = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
-	const GORS = ["STADION", "GOR UTAMA", "GOR KOTA", "GOR KANOR", "GOR KALITIDU", "SPORT CENTER", "GOR SUMBEREJO", "GOR KEDUNGADEM", "GOR KEDEWAN", "GOR TAMBAKREJO"];
-	const SPORTS = ["BADMINTON", "BASKET", "BOLA TANGAN", "FUTSAL", "GYM", "PENCAK SILAT", "PUSH BIKE", "SENAM", "VOLLY", "PANAHAN", "SEPAK TAKRAW", "TENIS", "BMX","SEPAK BOLA", "SEPATU RODA"];
-	const YEARS = ["2024", "2025", "2026"];
+			// STATE GLOBAL
+			let userData = [];
+			let charts = {};
+			let currentUser = ""; 
+			let isUserAdmin = false;
+			let sessionId = null;
+			let heartbeatInterval = null;
+			let pollInterval = null;
+			let currentHash = '';
+			let lastUpdate = 0;
+			let lastNotificationTime = 0;
+			const NOTIFICATION_COOLDOWN = 5000;
+			let deleteTargetId = null;
 
-	// STATE GLOBAL
-	let userData = [];
-	let charts = {};
-	let currentUser = ""; 
-	let isUserAdmin = false;
-	let sessionId = null;
-	let heartbeatInterval = null;
-	let pollInterval = null;
-	let currentHash = '';
-	let lastUpdate = 0;
-	let lastNotificationTime = 0;
-	const NOTIFICATION_COOLDOWN = 5000;
-	let deleteTargetId = null;
+			// FILTER STATE
+			let dashSelectedBulan = [...MONTHS];
+			let dashSelectedGor = [...GORS];
+			let dashSelectedTahun = [...YEARS];
+			let dashSelectedLapangan = [...SPORTS, "LAINYA"];
 
-	// FILTER STATE
-	let dashSelectedBulan = [...MONTHS];
-	let dashSelectedGor = [...GORS];
-	let dashSelectedTahun = [...YEARS];
-	let dashSelectedLapangan = [...SPORTS, "LAINYA"];
-
-	// ============================================
-	// UTILITY FUNCTIONS
-	// ============================================
-	const API_URL = "https://script.google.com/macros/s/AKfycbwbn3QiYQSDWaxkQw1jQ2lB7wEbojU509cV4sMlUovRNDr6oRibcPcEEZ6WtRS_aNplpg/exec";
-
+			// ============================================
+			// UTILITY FUNCTIONS
+			// ============================================
+			const API_URL = "https://script.google.com/macros/s/AKfycbwbn3QiYQSDWaxkQw1jQ2lB7wEbojU509cV4sMlUovRNDr6oRibcPcEEZ6WtRS_aNplpg/exec";
 	async function run(action, ...params) {
+
 	  const form = new FormData();
 	  form.append("data", JSON.stringify({
 		action: action,
 		params: params
 	  }));
+
 	  const res = await fetch(API_URL, {
 		method: "POST",
 		body: form
 	  });
+
 	  return await res.json();
 	}
 
-	function toggleLoader(show, text = "Memproses...") {
-	  document.getElementById('loader').style.display = show ? 'flex' : 'none';
-	  document.getElementById('loaderText').innerText = text;
-	}
-
-	function showToast(message, type = 'error') {
-	  const toast = document.getElementById('toast');
-	  const box = document.getElementById('toastBox');
-	  const text = document.getElementById('toastText');
-	  const icon = document.getElementById('toastIcon');
-
-	  box.className = `px-6 py-4 rounded-xl shadow-lg text-sm font-bold text-white flex items-center gap-3 toast-${type}`;
-	  icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
-	  text.innerText = message;
-	  toast.classList.remove('hidden');
-	  setTimeout(() => toast.classList.add('hidden'), 3000);
-	}
-
-	function formatTimeDirect(val) {
-	  if (!val) return "-";
-	  if (typeof val === 'string' && val.includes('T')) {
-		const timePart = val.split('T')[1];
-		const hms = timePart.split(':');
-		return hms[0].padStart(2, '0') + ':' + hms[1].padStart(2, '0');
-	  }
-	  if (val instanceof Date) {
-		const h = val.getHours().toString().padStart(2, '0');
-		const m = val.getMinutes().toString().padStart(2, '0');
-		return `${h}:${m}`;
-	  }
-	  if (typeof val === 'string' && val.includes(':')) {
-		const p = val.split(':');
-		return p[0].padStart(2, '0') + ':' + p[1].padStart(2, '0');
-	  }
-	  return val;
-	}
-
-	// ============================================
-	// SESSION MANAGEMENT
-	// ============================================
-	function checkStoredSession() {
-	  const storedSessionId = localStorage.getItem('sessionId');
-	  if (storedSessionId) {
-		toggleLoader(true, "Memverifikasi session...");
-		run('verifySession', storedSessionId)
-		  .then(res => {
-			if (res.valid) {
-			  sessionId = storedSessionId;
-			  currentUser = res.username;
-			  isUserAdmin = res.role === 'ADMIN';
-			  document.getElementById('loginPage').classList.add('hidden');
-			  document.getElementById('mainApp').classList.remove('hidden');
-			  document.getElementById('displayUser').innerText = isUserAdmin ? "ADMIN" : currentUser;
-			  toggleAdminElements();
-			  setupSelectors();
-			  fetchData();
-			  if (isUserAdmin) {
-				startHeartbeat();
-				startPolling();
-			  }
-			} else {
-			  localStorage.removeItem('sessionId');
-			  document.getElementById('loginPage').classList.remove('hidden');
+			function toggleLoader(show, text = "Memproses...") {
+				document.getElementById('loader').style.display = show ? 'flex' : 'none';
+				document.getElementById('loaderText').innerText = text;
 			}
-			toggleLoader(false);
-		  })
-		  .catch(() => {
-			toggleLoader(false);
-			document.getElementById('loginPage').classList.remove('hidden');
-		  });
-		return true;
-	  }
-	  return false;
-	}
 
-	async function handleLogin(e) {
-	  e.preventDefault();
-	  const u = document.getElementById('user').value.trim().toUpperCase();
-	  const p = document.getElementById('pass').value.trim();
+			function showToast(message, type = 'error') {
+				const toast = document.getElementById('toast');
+				const box = document.getElementById('toastBox');
+				const text = document.getElementById('toastText');
+				const icon = document.getElementById('toastIcon');
 
-	  toggleLoader(true, "Verifikasi...");
+				box.className = `px-6 py-4 rounded-xl shadow-lg text-sm font-bold text-white flex items-center gap-3 toast-${type}`;
+				icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+				text.innerText = message;
+				toast.classList.remove('hidden');
+				setTimeout(() => toast.classList.add('hidden'), 3000);
+			}
 
-	  try {
-		const res = await run('checkLogin', u, p);
-
-		if (res.success) {
-		  sessionId = res.sessionId;
-		  localStorage.setItem('sessionId', sessionId);
-		  currentUser = res.username;
-		  isUserAdmin = (res.role === 'ADMIN');
-
-		  document.getElementById('loginPage').classList.add('hidden');
-		  document.getElementById('mainApp').classList.remove('hidden');
-		  document.getElementById('displayUser').innerText = isUserAdmin ? "ADMIN" : currentUser;
-		  toggleAdminElements();
-
-		  setupSelectors();
-		  resetJadwalFilters();
-		  populateGorFilter();
-		  await fetchData();
-
-		  if (isUserAdmin) {
-			startHeartbeat();
-			startPolling();
-		  }
-
-		  showToast("Login berhasil", "success");
-		} else {
-		  toggleLoader(false);
-		  showToast("Username atau password salah!", "error");
+			function formatTimeDirect(val) {
+		if (!val) return "-";
+		if (typeof val === 'string' && val.includes('T')) {
+			const timePart = val.split('T')[1];
+			const hms = timePart.split(':');
+			return hms[0].padStart(2, '0') + ':' + hms[1].padStart(2, '0');
 		}
-	  } catch (err) {
-		toggleLoader(false);
-		showToast("Gagal koneksi ke server", "error");
-	  }
-	}
-
-	function toggleAdminElements() {
-	  const adminElements = document.querySelectorAll('.admin-only');
-	  adminElements.forEach(el => {
-		if (isUserAdmin) {
-		  el.style.display = 'block';
-		} else {
-		  el.style.display = 'none';
+		if (val instanceof Date) {
+			const h = val.getHours().toString().padStart(2, '0');
+			const m = val.getMinutes().toString().padStart(2, '0');
+			return `${h}:${m}`;
 		}
-	  });
-	}
-
-	async function confirmLogout() {
-	  if (heartbeatInterval) clearInterval(heartbeatInterval);
-	  if (pollInterval) clearInterval(pollInterval);
-	  toggleLoader(true, "Logout...");
-	  try {
-		if (sessionId) {
-		  await run('logout', sessionId);
+		if (typeof val === 'string' && val.includes(':')) {
+			const p = val.split(':');
+			return p[0].padStart(2, '0') + ':' + p[1].padStart(2, '0');
 		}
-	  } catch (e) {
-		console.log("Logout error:", e);
-	  } finally {
-		localStorage.removeItem('sessionId');
-		sessionId = null;
-		heartbeatInterval = null;
-		pollInterval = null;
-		currentUser = "";
-		isUserAdmin = false;
-		document.getElementById('confirmLogoutModal').classList.add('hidden');
-		document.getElementById('mainApp').classList.add('hidden');
-		document.getElementById('loginPage').classList.remove('hidden');
-		document.getElementById('loginForm').reset();
-		resetJadwalFilters();
-		toggleLoader(false);
-		showToast("Logout berhasil", "success");
-	  }
+		return val;
 	}
 
-	function handleLogout() {
-	  document.getElementById('confirmLogoutModal').classList.remove('hidden');
-	}
-
-	function closeLogoutConfirm() {
-	  document.getElementById('confirmLogoutModal').classList.add('hidden');
-	}
-
-	// ============================================
-	// HEARTBEAT & REAL-TIME (HANYA UNTUK ADMIN)
-	// ============================================
-	function startHeartbeat() {
-	  if (!isUserAdmin) return;
-	  if (heartbeatInterval) clearInterval(heartbeatInterval);
-	  sendHeartbeatNow();
-	  heartbeatInterval = setInterval(sendHeartbeatNow, 30000);
-	}
-
-	async function sendHeartbeatNow() {
-	  if (!sessionId || !isUserAdmin) return;
-	  try {
-		const result = await run('sendHeartbeat', sessionId);
-		if (result && result.success) {
-		  updateActiveUserCount(result.activeCount || 1);
-		}
-	  } catch (e) {
-		console.log("Heartbeat error:", e);
-		if (e.message && e.message.includes('Session')) {
-		  handleSessionExpired();
-		}
-	  }
-	}
-
-	function updateActiveUserCount(count) {
-	  if (!isUserAdmin) return;
-	  const element = document.getElementById('activeUserCountValue');
-	  if (element) element.innerText = count || 1;
-	}
-
-	function handleSessionExpired() {
-	  if (heartbeatInterval) clearInterval(heartbeatInterval);
-	  if (pollInterval) clearInterval(pollInterval);
-	  showToast("Sesi anda habis, silakan login ulang", "error");
-	  setTimeout(() => {
-		localStorage.removeItem('sessionId');
-		document.getElementById('mainApp').classList.add('hidden');
-		document.getElementById('loginPage').classList.remove('hidden');
-		document.getElementById('loginForm').reset();
-		currentUser = "";
-		isUserAdmin = false;
-		sessionId = null;
-	  }, 2000);
-	}
-
-	function startPolling() {
-	  if (!isUserAdmin) return;
-	  if (pollInterval) clearInterval(pollInterval);
-	  setTimeout(() => {
-		if (userData.length > 0) {
-		  const dataString = JSON.stringify(userData);
-		  currentHash = btoa(dataString);
-		  lastUpdate = new Date().getTime();
-		}
-	  }, 1000);
-	  pollInterval = setInterval(checkForUpdates, 7000);
-	}
-
-	async function checkForUpdates() {
-	  if (!isUserAdmin) return;
-	  if (document.getElementById('page-dashboard').classList.contains('hidden')) return;
-	  if (!sessionId) return;
-	  try {
-		const result = await run('checkForUpdates', currentHash, lastUpdate);
-		if (result.hasUpdate) {
-		  userData = result.data;
-		  currentHash = result.newHash;
-		  lastUpdate = result.lastUpdate;
-		  updateDashboard();
-		  showGentleNotification('Data telah diperbarui');
-		  if (!document.getElementById('page-history').classList.contains('hidden')) {
-			renderHistory();
-		  }
-		}
-	  } catch (e) {
-		console.log("Polling check failed:", e);
-	  }
-	}
-
-	function showGentleNotification(message) {
-	  if (!isUserAdmin) return;
-	  const now = new Date().getTime();
-	  if (now - lastNotificationTime < NOTIFICATION_COOLDOWN) return;
-	  lastNotificationTime = now;
-	  const notif = document.createElement('div');
-	  notif.className = 'fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-3 rounded-xl text-xs font-bold shadow-lg z-50 animate-fade-in-up flex items-center gap-2';
-	  notif.innerHTML = `<i class="fas fa-sync-alt text-xs animate-spin"></i><span>${message}</span>`;
-	  document.body.appendChild(notif);
-	  setTimeout(() => {
-		notif.style.opacity = '0';
-		notif.style.transition = 'opacity 0.5s';
-		setTimeout(() => notif.remove(), 500);
-	  }, 3000);
-	}
-
-	// ============================================
-	// DATA FETCHING
-	// ============================================
-	async function fetchData() {
-	  toggleLoader(true, "Sinkronisasi...");
-	  try {
-		const result = await run('getDataWithHash');
-		userData = result.data;
-		currentHash = result.hash;
-		lastUpdate = result.lastUpdate;
-		updateDashboard();
-		renderHistory();
-		toggleLoader(false);
-	  } catch (e) {
-		console.error("Fetch data error:", e);
-		toggleLoader(false);
-	  }
-	}
-
-	// ============================================
-	// UI SETUP
-	// ============================================
-	function setupSelectors() {
-	  console.log("setupSelectors called");
-	  const fill = (id, items) => {
-		const el = document.getElementById(id);
-		if (!el) return;
-		el.innerHTML = '';
-		items.forEach(i => el.add(new Option(i, i)));
-	  };
-	  fill('fTanggal', Array.from({length:31}, (_,i)=>i+1));
-	  fill('fBulan', MONTHS);
-	  fill('eTanggal', Array.from({length:31}, (_,i)=>i+1));
-	  fill('eBulan', MONTHS);
-	  
-	  const fGor = document.getElementById('fGor');
-	  if (fGor) {
-		fGor.innerHTML = '';
-		GORS.forEach(g => fGor.add(new Option(g, g)));
-		fGor.onchange = function() { handleGorChange('main'); };
-	  }
-	  const eGor = document.getElementById('eGor');
-	  if (eGor) {
-		eGor.innerHTML = '';
-		GORS.forEach(g => eGor.add(new Option(g, g)));
-		eGor.onchange = function() { handleGorChange('modal'); };
-	  }
-	  const fLapangan = document.getElementById('fLapangan');
-	  if (fLapangan) {
-		fLapangan.innerHTML = '';
-		fLapangan.onchange = function() { handleLapanganChange('main'); };
-	  }
-	  const eLapangan = document.getElementById('eLapangan');
-	  if (eLapangan) {
-		eLapangan.innerHTML = '';
-		eLapangan.onchange = function() { handleLapanganChange('modal'); };
-	  }
-	  const hbs = document.getElementById('histBulan');
-	  if (hbs) {
-		hbs.innerHTML = '<option value="">SEMUA BULAN</option>';
-		MONTHS.forEach(m => hbs.add(new Option(m, m)));
-	  }
-	  const hgs = document.getElementById('histGor');
-	  if (hgs) {
-		hgs.innerHTML = '<option value="">SEMUA UNIT</option>';
-		GORS.forEach(g => hgs.add(new Option(g, g)));
-	  }
-	  if (!isUserAdmin) {
-		dashSelectedGor = [currentUser];
-		const contGorDash = document.getElementById('contGorDash');
-		if (contGorDash) contGorDash.classList.add('hidden');
-		if (fGor) { fGor.value = currentUser; fGor.disabled = true; }
-		if (eGor) { eGor.value = currentUser; eGor.disabled = true; }
-		if (hgs) { hgs.value = currentUser; hgs.disabled = true; }
-	  }
-	  
-	}
-
-	function initExcelFilters() {
-	  const build = (id, items, state, type) => {
-		const el = document.getElementById(id);
-		if (!el) return;
-		el.innerHTML = items.map(item => `
-		  <label class="check-item" onclick="event.stopPropagation()">
-			<input type="checkbox" data-type="${type}" value="${item}" ${state.includes(String(item)) ? 'checked' : ''} onchange="toggleExcelFilter('${type}', '${item}', this.checked)">
-			<span>${item}</span>
-		  </label>
-		`).join('');
-	  };
-	  build('listBulanDash', MONTHS, dashSelectedBulan, 'bulan');
-	  build('listTahunDash', YEARS, dashSelectedTahun, 'tahun');
-	  if (isUserAdmin) build('listGorDash', GORS, dashSelectedGor, 'gor');
-	  build('listLapanganDash', [...SPORTS, "LAINYA"], dashSelectedLapangan, 'lapangan');
-	}
-
-	// ============================================
-	// PAGE NAVIGATION
-	// ============================================
-	function showPage(id) {
-	  ['dashboard', 'input', 'history', 'jadwal'].forEach(p => {
-		const page = document.getElementById(`page-${p}`);
-		const btn = document.getElementById(`btn-${p}`);
-		if (page) page.classList.add('hidden');
-		if (btn) btn.classList.remove('nav-active');
-	  });
-	  const page = document.getElementById(`page-${id}`);
-	  const btn = document.getElementById(`btn-${id}`);
-	  if (page) page.classList.remove('hidden');
-	  if (btn) btn.classList.add('nav-active');
-	}
-
-	function toggleSidebar() {
-	  const sb = document.getElementById('sidebar');
-	  sb.classList.toggle('sidebar-minimized');
-	  document.getElementById('toggleIcon').className = sb.classList.contains('sidebar-minimized') ? 'fas fa-chevron-right text-xs' : 'fas fa-chevron-left text-xs';
-	  setTimeout(() => Object.values(charts).forEach(c => c && c.resize), 300);
-	}
-
-	function toggleDropdown(id, event) {
-	  event.stopPropagation();
-	  const el = document.getElementById(id);
-	  const isActive = el.classList.contains('active');
-	  closeAllDropdowns();
-	  if (!isActive) el.classList.add('active');
-	}
-
-	function closeAllDropdowns() {
-	  document.querySelectorAll('.excel-dropdown').forEach(d => d.classList.remove('active'));
-	}
-
-	function batchFilter(type, checked) {
-	  if (type === 'bulan') dashSelectedBulan = checked ? [...MONTHS] : [];
-	  else if (type === 'tahun') dashSelectedTahun = checked ? [...YEARS] : [];
-	  else if (type === 'gor') dashSelectedGor = checked ? [...GORS] : [];
-	  else if (type === 'lapangan') dashSelectedLapangan = checked ? [...SPORTS, "LAINYA"] : [];
-	  document.querySelectorAll(`input[data-type="${type}"]`).forEach(cb => cb.checked = checked);
-	  updateDashboard();
-	}
-
-	function toggleExcelFilter(type, val, checked) {
-	  if (type === 'bulan') {
-		if (checked) { if (!dashSelectedBulan.includes(val)) dashSelectedBulan.push(val); }
-		else { dashSelectedBulan = dashSelectedBulan.filter(i => i !== val); }
-	  } else if (type === 'tahun') {
-		if (checked) { if (!dashSelectedTahun.includes(String(val))) dashSelectedTahun.push(String(val)); }
-		else { dashSelectedTahun = dashSelectedTahun.filter(i => i !== String(val)); }
-	  } else if (type === 'gor') {
-		if (checked) { if (!dashSelectedGor.includes(val)) dashSelectedGor.push(val); }
-		else { dashSelectedGor = dashSelectedGor.filter(i => i !== val); }
-	  } else if (type === 'lapangan') {
-		if (checked) { if (!dashSelectedLapangan.includes(val)) dashSelectedLapangan.push(val); }
-		else { dashSelectedLapangan = dashSelectedLapangan.filter(i => i !== val); }
-	  }
-	  updateDashboard();
-	}
-
-	// ============================================
-	// FUNGSI UNTUK FORM INPUT (MAIN DAN MODAL)
-	// ============================================
-function handleGorChange(type = 'main') {
-  console.log("handleGorChange called with type:", type);
-  const prefix = type === 'modal' ? 'e' : 'f';
-  const gorSelect = document.getElementById(prefix + 'Gor');
-  if (!gorSelect) return;
-  const gor = gorSelect.value;
-  const lapanganSelect = document.getElementById(prefix + 'Lapangan');
-  if (!lapanganSelect) {
-    console.error("Lapangan select not found!");
-    return;
-  }
-  
-  // Kosongkan dropdown lapangan
-  lapanganSelect.innerHTML = '';
-  
-  if (gor === "STADION") {
-    // Untuk STADION, lapangan adalah jenis OLAHRAGA yang tersedia
-    const stadionLapangan = [
-      "SEPAK BOLA", "EVENT", "UPACARA", "ATLETIK", "TENIS", 
-      "BASKET", "SEPAK TAKRAW", "VOLLY", "SEPATU RODA", "BMX", "LAINYA"
-    ];
-    stadionLapangan.forEach(lap => {
-      lapanganSelect.add(new Option(lap, lap));
-    });
-  } else {
-    // Untuk GOR lain, gunakan daftar olahraga umum
-    SPORTS.forEach(s => lapanganSelect.add(new Option(s, s)));
-    lapanganSelect.add(new Option("LAINYA", "LAINYA"));
-  }
-  
-  // Trigger perubahan lapangan
-  setTimeout(() => handleLapanganChange(type), 200);
-}
-
-	
-	function handleLapanganChange(type = 'main') {
-  console.log("handleLapanganChange called");
-  const prefix = type === 'modal' ? 'e' : 'f';
-  const gor = document.getElementById(prefix + 'Gor')?.value;
-  const lapangan = document.getElementById(prefix + 'Lapangan')?.value;
-  console.log("GOR:", gor, "Lapangan:", lapangan);
-  
-  const jenisContainer = document.getElementById((type === 'modal' ? 'e' : 'f') + 'jenisLapanganContainer');
-  const jenisSelect = document.getElementById((type === 'modal' ? 'e' : 'f') + 'JenisLapangan');
-  const boxLainya = document.getElementById((type === 'modal' ? 'e' : 'f') + 'boxLainya');
-  const boxJenisLainya = document.getElementById((type === 'modal' ? 'e' : 'f') + 'boxJenisLainya');
-  
-  // Reset semua
-  if (jenisSelect) {
-    jenisSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
-    jenisSelect.disabled = false;
-    jenisSelect.classList.remove('hidden');
-  }
-  if (boxLainya) boxLainya.classList.add('hidden');
-  if (boxJenisLainya) boxJenisLainya.classList.add('hidden');
-  if (jenisContainer) jenisContainer.classList.remove('hidden');
-  
-  if (!gor || !lapangan) return;
-  
-  // ATURAN UNTUK STADION
-  if (gor === "STADION") {
-    // Setiap olahraga memiliki lapangan spesifik sendiri
-    if (lapangan === "SEPAK BOLA" || lapangan === "EVENT" || lapangan === "UPACARA" || lapangan === "ATLETIK") {
-      // Semua ini pakai STADION UTAMA
-      if (jenisSelect) {
-        jenisSelect.innerHTML = '<option value="STADION UTAMA" selected>STADION UTAMA</option>';
-        jenisSelect.disabled = true; // Tidak bisa diganti
-      }
-    } 
-    else if (lapangan === "BASKET") {
-      if (jenisSelect) {
-        jenisSelect.innerHTML = '<option value="LAPANGAN BASKET" selected>LAPANGAN BASKET</option>';
-        jenisSelect.disabled = true;
-      }
-    } 
-    else if (lapangan === "SEPAK TAKRAW") {
-      if (jenisSelect) {
-        jenisSelect.innerHTML = '<option value="LAPANGAN SEPAK TAKRAW" selected>LAPANGAN SEPAK TAKRAW</option>';
-        jenisSelect.disabled = true;
-      }
-    } 
-    else if (lapangan === "VOLLY") {
-      if (jenisSelect) {
-        jenisSelect.innerHTML = '<option value="LAPANGAN VOLLY" selected>LAPANGAN VOLLY</option>';
-        jenisSelect.disabled = true;
-      }
-    } 
-    else if (lapangan === "SEPATU RODA") {
-      if (jenisSelect) {
-        jenisSelect.innerHTML = '<option value="SIRKUIT SEPATU RODA" selected>SIRKUIT SEPATU RODA</option>';
-        jenisSelect.disabled = true;
-      }
-    } 
-    else if (lapangan === "BMX") {
-      if (jenisSelect) {
-        jenisSelect.innerHTML = '<option value="AREA BMX" selected>AREA BMX</option>';
-        jenisSelect.disabled = true;
-      }
-    } 
-    else if (lapangan === "TENIS") {
-      // TENIS punya 2 lapangan terpisah
-      if (jenisSelect) {
-        jenisSelect.innerHTML = `
-          <option value="">PILIH LAPANGAN TENIS</option>
-          <option value="TENIS A">TENIS A</option>
-          <option value="TENIS B">TENIS B</option>
-        `;
-        jenisSelect.disabled = false; // Bisa pilih A atau B
-      }
-    } 
-    else if (lapangan === "LAINYA") {
-      // Untuk LAINYA, sembunyikan jenis container dan tampilkan box input
-      if (jenisContainer) jenisContainer.classList.add('hidden');
-      if (boxLainya) boxLainya.classList.remove('hidden'); // untuk nama lapangan
-      if (boxJenisLainya) boxJenisLainya.classList.remove('hidden'); // untuk jenis lapangan
-    }
-  } 
-  else {
-    // Untuk GOR selain STADION
-    if (lapangan === "LAINYA") {
-      if (jenisContainer) jenisContainer.classList.add('hidden');
-      if (boxLainya) boxLainya.classList.remove('hidden');
-      if (boxJenisLainya) boxJenisLainya.classList.remove('hidden');
-    } else {
-      // Untuk GOR lain, tampilkan pilihan lapangan umum (A, B, C, dll)
-      if (jenisSelect) {
-        jenisSelect.innerHTML = `
-          <option value="">PILIH JENIS LAPANGAN</option>
-          <option value="LAPANGAN A">LAPANGAN A</option>
-          <option value="LAPANGAN B">LAPANGAN B</option>
-          <option value="LAPANGAN C">LAPANGAN C</option>
-          <option value="LAPANGAN UTAMA">LAPANGAN UTAMA</option>
-        `;
-        jenisSelect.disabled = false;
-      }
-    }
-  }
-}
-	
-	function hitungDurasi(type = 'main') {
-	  const prefix = type === 'modal' ? 'e' : 'f';
-	  const jamAwal = document.getElementById(prefix + 'JamAwal')?.value;
-	  const jamSelesai = document.getElementById(prefix + 'JamSelesai')?.value;
-	  const jamInput = document.getElementById(prefix + 'Jam');
-	  if (jamAwal && jamSelesai && jamInput) {
-		const [jam1, menit1] = jamAwal.split(':').map(Number);
-		const [jam2, menit2] = jamSelesai.split(':').map(Number);
-		let durasi = (jam2 + menit2/60) - (jam1 + menit1/60);
-		if (durasi < 0) durasi += 24;
-		jamInput.value = durasi.toFixed(1);
-	  }
-	}
-
-	// ============================================
-	// FUNGSI UNTUK JADWAL (FILTER GOR)
-	// ============================================
-	function handleGorFilterChange() {
-	  console.log("handleGorFilterChange called");
-	  const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-	  const selectedValue = this.value;
-	  if (selectedValue) {
-		btnTampilkan.disabled = false;
-		btnTampilkan.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-		btnTampilkan.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
-	  } else {
-		btnTampilkan.disabled = true;
-		btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-		btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
-	  }
-	}
-
-	function populateGorFilter() {
-	  console.log("populateGorFilter called");
-	  const selectGor = document.getElementById('filterGorJadwal');
-	  const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-	  if (!selectGor) return;
-	  let options = '<option value="">PILIH GOR</option>';
-	  if (isUserAdmin) {
-		GORS.forEach(gor => { options += `<option value="${gor}">${gor}</option>`; });
-	  } else {
-		options += `<option value="${currentUser}">${currentUser}</option>`;
-	  }
-	  selectGor.innerHTML = options;
-	  selectGor.removeEventListener('change', handleGorFilterChange);
-	  selectGor.addEventListener('change', handleGorFilterChange);
-	  if (btnTampilkan) {
-		btnTampilkan.disabled = true;
-		btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
-		btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-	  }
-	}
-
-	function enableGorFilter() {
-	  const tanggalAwal = document.getElementById("tanggalAwal").value;
-	  const filterGor = document.getElementById("filterGorJadwal");
-	  const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-	  if (tanggalAwal) {
-		filterGor.disabled = false;
-		filterGor.classList.remove("bg-gray-100", "opacity-50", "cursor-not-allowed");
-		filterGor.classList.add("bg-white", "opacity-100", "cursor-pointer");
-		populateGorFilter();
-	  } else {
-		filterGor.disabled = true;
-		filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
-		filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
-		btnTampilkan.disabled = true;
-		btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
-		btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-		const jadwalTableContainer = document.getElementById("jadwalTableContainer");
-		if (jadwalTableContainer) {
-		  jadwalTableContainer.innerHTML = `
-			<div class="bg-gray-50 rounded-2xl p-8 text-center">
-			  <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
-			  <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
-			  <p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
-			</div>
-		  `;
-		}
-	  }
-	}
-
-	function resetJadwalFilters() {
-	  const inputTanggal = document.getElementById("tanggalAwal");
-	  const filterGor = document.getElementById("filterGorJadwal");
-	  const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-	  const jadwalTableContainer = document.getElementById("jadwalTableContainer");
-	  if (inputTanggal) inputTanggal.value = "";
-	  if (filterGor) {
-		filterGor.disabled = true;
-		filterGor.innerHTML = '<option value="">PILIH GOR</option>';
-		filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
-		filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
-	  }
-	  if (btnTampilkan) {
-		btnTampilkan.disabled = true;
-		btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
-		btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-	  }
-	  if (jadwalTableContainer) {
-		jadwalTableContainer.innerHTML = `
-		  <div class="bg-gray-50 rounded-2xl p-8 text-center">
-			<i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
-			<p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
-			<p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
-		  </div>
-		`;
-	  }
-	}
-
-	// ============================================
-	// FUNGSI SETUP ULANG (PASTIKAN SELECTOR TERISI)
-	// ============================================
-	function setupInitialForm() {
-	  console.log("setupInitialForm called");
-	  setTimeout(() => {
-		const fGor = document.getElementById('fGor');
-		if (fGor && fGor.value) {
-		  console.log("Triggering initial handleGorChange for main");
-		  handleGorChange('main');
-		}
-	  }, 1000);
-	  setTimeout(() => {
-		const eGor = document.getElementById('eGor');
-		if (eGor && eGor.value) {
-		  handleGorChange('modal');
-		}
-	  }, 1500);
-	}
-
-	// ============================================
-	// DELETE HANDLING
-	// ============================================
-	function openDeleteConfirm(id) {
-	  deleteTargetId = id;
-	  document.getElementById('confirmDeleteModal').classList.remove('hidden');
-	}
-
-	function closeDeleteConfirm() {
-	  deleteTargetId = null;
-	  document.getElementById('confirmDeleteModal').classList.add('hidden');
-	}
-
-	// ============================================
-	// EDIT MODAL
-	// ============================================
-	function openEditModal(id) {
-	  const d = userData.find(i => i.ID === id);
-	  if (!d) return;
-	  document.getElementById('eId').value = d.ID;
-	  document.getElementById('eNama').value = d.NAMA;
-	  document.getElementById('eTanggal').value = d.TANGGAL;
-	  document.getElementById('eBulan').value = d.BULAN;
-	  document.getElementById('eTahun').value = d.TAHUN;
-	  document.getElementById('eGor').value = d.GOR;
-	  handleGorChange('modal');
-	  setTimeout(() => {
-		const eLapangan = document.getElementById('eLapangan');
-		const eJenisLapangan = document.getElementById('eJenisLapangan');
-		const eJenisLapanganLainya = document.getElementById('eJenisLapanganLainya');
-		const eLapanganLainya = document.getElementById('eLapanganLainya');
-		const isStandardLapangan = SPORTS.includes(d.LAPANGAN) || 
-		  ["SEPAK BOLA", "EVENT", "UPACARA", "ATLETIK", "TENIS", "BASKET", 
-		   "SEPAK TAKRAW", "VOLLY", "SEPATU RODA", "BMX"].includes(d.LAPANGAN);
-		if (isStandardLapangan) {
-		  if (eLapangan) eLapangan.value = d.LAPANGAN;
-		  handleLapanganChange('modal');
-		  setTimeout(() => {
-			if (eJenisLapangan && d.JENIS_LAPANGAN) {
-			  let optionExists = false;
-			  for (let i = 0; i < eJenisLapangan.options.length; i++) {
-				if (eJenisLapangan.options[i].value === d.JENIS_LAPANGAN) {
-				  optionExists = true; break;
+			// ============================================
+			// SESSION MANAGEMENT
+			// ============================================
+			function checkStoredSession() {
+				const storedSessionId = localStorage.getItem('sessionId');
+				
+				if (storedSessionId) {
+					toggleLoader(true, "Memverifikasi session...");
+					
+					run('verifySession', storedSessionId)
+						.then(res => {
+							if (res.valid) {
+								sessionId = storedSessionId;
+								currentUser = res.username;
+								isUserAdmin = res.role === 'ADMIN';
+								
+								document.getElementById('loginPage').classList.add('hidden');
+								document.getElementById('mainApp').classList.remove('hidden');
+								document.getElementById('displayUser').innerText = isUserAdmin ? "ADMIN" : currentUser;
+								
+								// Tampilkan elemen khusus admin jika user adalah admin
+								toggleAdminElements();
+								
+								setupSelectors();
+								fetchData();
+								
+								// Hanya jalankan heartbeat dan polling untuk ADMIN
+								if (isUserAdmin) {
+									startHeartbeat();
+									startPolling();
+								}
+							} else {
+								localStorage.removeItem('sessionId');
+								document.getElementById('loginPage').classList.remove('hidden');
+							}
+							toggleLoader(false);
+						})
+						.catch(() => {
+							toggleLoader(false);
+							document.getElementById('loginPage').classList.remove('hidden');
+						});
+					return true;
 				}
-			  }
-			  if (optionExists) {
-				eJenisLapangan.value = d.JENIS_LAPANGAN;
-			  } else {
-				eJenisLapangan.add(new Option(d.JENIS_LAPANGAN, d.JENIS_LAPANGAN));
-				eJenisLapangan.value = d.JENIS_LAPANGAN;
-			  }
+				return false;
 			}
-		  }, 200);
-		} else {
-		  if (eLapangan) eLapangan.value = 'LAINYA';
-		  handleLapanganChange('modal');
-		  if (eLapanganLainya) eLapanganLainya.value = d.LAPANGAN;
-		  if (eJenisLapanganLainya && d.JENIS_LAPANGAN) {
-			eJenisLapanganLainya.value = d.JENIS_LAPANGAN;
-		  }
-		}
-	  }, 200);
-	  document.getElementById('eJamAwal').value = formatTimeDirect(d.JAM_AWAL);
-	  document.getElementById('eJamSelesai').value = formatTimeDirect(d.JAM_SELESAI);
-	  document.getElementById('eJam').value = d.JAM_DURASI;
-	  document.getElementById('eNominal').value = d.NOMINAL;
-	  document.getElementById('editModal').style.display = 'flex';
-	}
 
-	function closeEditModal() {
-	  document.getElementById('editModal').style.display = 'none';
-	}
+			
+			
+// Modifikasi fungsi handleLogin untuk memanggil resetJadwalFilters
+async function handleLogin(e) {
+    e.preventDefault();
+    const u = document.getElementById('user').value.trim().toUpperCase();
+    const p = document.getElementById('pass').value.trim();
 
-	// ============================================
-	// RENDER FUNCTIONS
-	// ============================================
-	// ============================================
-	// RENDER FUNCTIONS (LANJUTAN)
-	// ============================================
-	function renderHistory() {
-	  const q = document.getElementById('histCari').value.toUpperCase();
-	  const b = document.getElementById('histBulan').value;
-	  const g = document.getElementById('histGor').value;
-	  const filtered = userData.filter(d => 
-		(isUserAdmin || d.GOR === currentUser) && 
-		d.NAMA.includes(q) && 
-		(b === "" || d.BULAN === b) && 
-		(g === "" || d.GOR === g)
-	  );
-	  document.getElementById('historyTable').innerHTML = filtered.map(d => `
-		<tr class="hover:bg-gray-50">
-		  <td class="p-4 text-gray-400 font-bold">${d.TANGGAL}/${d.BULAN.substring(0,3)}</td>
-		  <td class="p-4 text-gray-400 font-bold">${d.TAHUN}</td>
-		  <td class="p-4 font-black uppercase text-gray-700">${d.NAMA}</td>
-		  <td class="p-4">
-			<span class="block text-[9px] text-gray-300 font-black">${d.GOR}</span>
-			<span class="text-indigo-600 font-bold uppercase">${d.LAPANGAN}</span>
-			<span class="block text-[8px] text-gray-400 mt-1">${d.JENIS_LAPANGAN || '-'}</span>
-		  </td>
-		  <td class="p-4 text-center font-bold text-gray-600">${formatTimeDirect(d.JAM_AWAL)}</td>
-		  <td class="p-4 text-center font-bold text-gray-600">${formatTimeDirect(d.JAM_SELESAI)}</td>
-		  <td class="p-4 text-center font-black">${d.JAM_DURASI}h</td>
-		  <td class="p-4 text-right font-black text-emerald-600">Rp ${Number(d.NOMINAL).toLocaleString('id-ID')}</td>
-		  <td class="p-4 flex justify-center gap-1">
-			<button onclick="openEditModal('${d.ID}')" class="w-8 h-8 rounded bg-amber-50 text-amber-600 flex items-center justify-center transition hover:bg-amber-100"><i class="fas fa-edit text-xs"></i></button>
-			<button onclick="openDeleteConfirm('${d.ID}')" class="w-8 h-8 rounded bg-rose-50 text-rose-500 flex items-center justify-center transition hover:bg-rose-100"><i class="fas fa-trash text-xs"></i></button>
-		  </td>
-		</tr>
-	  `).join('');
-	}
+    toggleLoader(true, "Verifikasi...");
 
-	function updateDashboard() {
-	  const filtered = userData.filter(d => 
-		dashSelectedBulan.includes(d.BULAN) && 
-		dashSelectedGor.includes(d.GOR) && 
-		dashSelectedTahun.includes(String(d.TAHUN)) && 
-		dashSelectedLapangan.includes(SPORTS.includes(d.LAPANGAN) ? d.LAPANGAN : "LAINYA")
-	  );
-	  const totalNominal = filtered.reduce((a, b) => a + Number(b.NOMINAL), 0);
-	  const totalDurasi = filtered.reduce((a, b) => a + Number(b.JAM_DURASI), 0);
-	  const count = filtered.length;
-	  document.getElementById('kpi-pendapatan').innerText = `Rp ${totalNominal.toLocaleString('id-ID')}`;
-	  document.getElementById('kpi-durasi').innerText = `${totalDurasi.toFixed(1)} Jam`;
-	  document.getElementById('kpi-pemakaian').innerText = count;
-	  document.getElementById('kpi-rata').innerText = `Rp ${(count ? totalNominal/count : 0).toLocaleString('id-ID', {maximumFractionDigits:0})}`;
-	  const lineData = MONTHS.map(m => filtered.filter(d => d.BULAN === m).reduce((a,b) => a + Number(b.NOMINAL), 0));
-	  renderChart('chartLinePendapatan', 'line', MONTHS.map(m => m.substring(0,3)), lineData, '#4f46e5', true);
-	  const barData = MONTHS.map(m => filtered.filter(d => d.BULAN === m).reduce((a,b) => a + Number(b.JAM_DURASI), 0));
-	  renderChart('chartBarDurasi', 'bar', MONTHS.map(m => m.substring(0,3)), barData, '#10b981');
-	  const currentLaps = [...new Set(filtered.map(d => d.LAPANGAN))];
-	  const lapsData = currentLaps.map(l => filtered.filter(d => d.LAPANGAN === l).length);
-	  renderChart('chartBarLapangan', 'bar', currentLaps, lapsData, '#f59e0b', false, 'y');
-	  const gorsData = GORS.map(g => filtered.filter(d => d.GOR === g).reduce((a,b) => a + Number(b.NOMINAL), 0));
-	  renderChart('chartDonutGor', 'doughnut', GORS, gorsData, ['#4f46e5','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316','#6366f1','#14b8a6']);
-	}
+    try {
+        const res = await run('checkLogin', u, p);
 
-	function renderChart(id, type, labels, data, color, fill=false, axis='x') {
-	  const canvas = document.getElementById(id);
-	  if (!canvas) return;
-	  if (charts[id]) charts[id].destroy();
-	  const ctx = canvas.getContext('2d');
-	  charts[id] = new Chart(ctx, {
-		type: type,
-		data: {
-		  labels: labels,
-		  datasets: [{ 
-			data: data, 
-			backgroundColor: Array.isArray(color) ? color : (fill ? color + '15' : color), 
-			borderColor: Array.isArray(color) ? '#fff' : color, 
-			borderWidth: 2, 
-			tension: 0.35, 
-			fill: fill, 
-			borderRadius: type === 'bar' ? 6 : 0 
-		  }]
-		},
-		options: { 
-		  indexAxis: axis, 
-		  maintainAspectRatio: false, 
-		  plugins: { legend: { display: type === 'doughnut' } }, 
-		  scales: type === 'doughnut' ? {} : { 
-			y: { grid: { display: false }, ticks: { font: { size: 8, weight: 'bold' } } }, 
-			x: { grid: { display: false }, ticks: { font: { size: 8, weight: 'bold' } } } 
-		  } 
-		}
-	  });
-	}
+        if (res.success) {
+            sessionId = res.sessionId;
+            localStorage.setItem('sessionId', sessionId);
+            
+            currentUser = res.username;
+            isUserAdmin = (res.role === 'ADMIN');
 
-	// ============================================
-	// SUBMIT FORM (LENGKAP)
-	// ============================================
-	async function submitForm(e, type) {
-	  e.preventDefault();
-	  if (window.isSubmitting) return;
-	  window.isSubmitting = true;
-	  
-	  const prefix = type === 'modal' ? 'e' : 'f';
-	  
-	  // Validasi semua field terisi
-	  const requiredFields = [
-		prefix + 'Nama', prefix + 'Tanggal', prefix + 'Bulan', prefix + 'Tahun',
-		prefix + 'Gor', prefix + 'Lapangan', prefix + 'JamAwal', 
-		prefix + 'JamSelesai', prefix + 'Jam', prefix + 'Nominal'
-	  ];
-	  
-	  // Validasi jenis lapangan
-	  const jenisLapangan = document.getElementById(prefix + 'JenisLapangan')?.value;
-	  const jenisLapanganLainya = document.getElementById(prefix + 'JenisLapanganLainya')?.value;
-	  
-	  if (!jenisLapangan && !jenisLapanganLainya) {
-		showToast("Jenis lapangan harus diisi!", "error");
-		window.isSubmitting = false;
-		return;
-	  }
-	  
-	  for (let fieldId of requiredFields) {
-		const field = document.getElementById(fieldId);
-		if (!field || !field.value) {
-		  showToast("Semua kolom harus diisi!", "error");
-		  window.isSubmitting = false;
-		  return;
-		}
-	  }
-	  
-	  // Ambil nilai jenis lapangan
-	  let jenisLapanganValue = '';
-	  if (document.getElementById(prefix + 'JenisLapangan')?.value) {
-		jenisLapanganValue = document.getElementById(prefix + 'JenisLapangan').value;
-	  } else if (document.getElementById(prefix + 'JenisLapanganLainya')?.value) {
-		jenisLapanganValue = document.getElementById(prefix + 'JenisLapanganLainya').value;
-	  }
-	  
-	  const data = {
-		id: type === 'modal' ? document.getElementById('eId').value : "",
-		nama: document.getElementById(prefix + 'Nama').value.toUpperCase(),
-		tanggal: document.getElementById(prefix + 'Tanggal').value,
-		bulan: document.getElementById(prefix + 'Bulan').value,
-		tahun: document.getElementById(prefix + 'Tahun').value,
-		gor: document.getElementById(prefix + 'Gor').value,
-		lapangan: document.getElementById(prefix + 'Lapangan').value,
-		lapanganOriginal: document.getElementById(prefix + 'Lapangan').value,
-		lapanganLainnya: document.getElementById(prefix + 'LapanganLainya')?.value || '',
-		jenisLapangan: jenisLapanganValue,
-		jamAwal: document.getElementById(prefix + 'JamAwal').value,
-		jamSelesai: document.getElementById(prefix + 'JamSelesai').value,
-		jamDurasi: document.getElementById(prefix + 'Jam').value,
-		nominal: document.getElementById(prefix + 'Nominal').value,
-		currentUser: currentUser
-	  };
-	  
-	  console.log("Data to save:", data);
-	  toggleLoader(true, "Menyimpan...");
-	  
-	  try {
-		const result = await run('saveData', data);
-		console.log("Save result:", result);
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('displayUser').innerText = isUserAdmin ? "ADMIN" : currentUser;
+            
+            // Tampilkan elemen khusus admin jika user adalah admin
+            toggleAdminElements();
+
+            setupSelectors();
+            
+            // TAMBAHKAN INI - Reset filter jadwal
+            resetJadwalFilters();
+            
+            // TAMBAHKAN INI - panggil ulang untuk memastikan filter GOR terisi
+            populateGorFilter();
+            
+            await fetchData();
+            
+            // Hanya jalankan heartbeat dan polling untuk ADMIN
+            if (isUserAdmin) {
+                startHeartbeat();
+                startPolling();
+            }
+            
+            showToast("Login berhasil", "success");
+        } else {
+            toggleLoader(false);
+            showToast("Username atau password salah!", "error");
+        }
+    } catch (err) {
+        toggleLoader(false);
+        showToast("Gagal koneksi ke server", "error");
+    }
+}
+
+					
+			// Fungsi untuk menampilkan/menyembunyikan elemen khusus admin
+			function toggleAdminElements() {
+				const adminElements = document.querySelectorAll('.admin-only');
+				adminElements.forEach(el => {
+					if (isUserAdmin) {
+						el.style.display = 'block'; // atau 'flex' tergantung kebutuhan
+					} else {
+						el.style.display = 'none';
+					}
+				});
+			}
+
+			
+			// Modifikasi fungsi confirmLogout untuk memastikan reset saat logout
+async function confirmLogout() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (pollInterval) clearInterval(pollInterval);
+    
+    toggleLoader(true, "Logout...");
+    
+    try {
+        if (sessionId) {
+            await run('logout', sessionId);
+        }
+    } catch (e) {
+        console.log("Logout error:", e);
+    } finally {
+        localStorage.removeItem('sessionId');
+        sessionId = null;
+        heartbeatInterval = null;
+        pollInterval = null;
+        currentUser = "";
+        isUserAdmin = false;
+        
+        document.getElementById('confirmLogoutModal').classList.add('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+        document.getElementById('loginPage').classList.remove('hidden');
+        document.getElementById('loginForm').reset();
+        
+        // Reset filter jadwal (meskipun mainApp sudah hidden, ini untuk jaga-jaga)
+        resetJadwalFilters();
+        
+        toggleLoader(false);
+        showToast("Logout berhasil", "success");
+    }
+}
+			
+			function handleLogout() {
+				document.getElementById('confirmLogoutModal').classList.remove('hidden');
+			}
+
+			function closeLogoutConfirm() {
+				document.getElementById('confirmLogoutModal').classList.add('hidden');
+			}
+
+			// ============================================
+			// HEARTBEAT & REAL-TIME (HANYA UNTUK ADMIN)
+			// ============================================
+			function startHeartbeat() {
+				if (!isUserAdmin) return; // Hanya admin
+				
+				if (heartbeatInterval) {
+					clearInterval(heartbeatInterval);
+					heartbeatInterval = null;
+				}
+				sendHeartbeatNow();
+				heartbeatInterval = setInterval(sendHeartbeatNow, 30000);
+			}
+
+			async function sendHeartbeatNow() {
+				if (!sessionId || !isUserAdmin) return; // Hanya admin
+				try {
+					const result = await run('sendHeartbeat', sessionId);
+					if (result && result.success) {
+						updateActiveUserCount(result.activeCount || 1);
+					}
+				} catch (e) {
+					console.log("Heartbeat error:", e);
+					if (e.message && e.message.includes('Session')) {
+						handleSessionExpired();
+					}
+				}
+			}
+
+			function updateActiveUserCount(count) {
+				if (!isUserAdmin) return; // Hanya admin
+				const element = document.getElementById('activeUserCountValue');
+				if (element) {
+					element.innerText = count || 1;
+				}
+			}
+
+			function handleSessionExpired() {
+				if (heartbeatInterval) clearInterval(heartbeatInterval);
+				if (pollInterval) clearInterval(pollInterval);
+				
+				showToast("Sesi anda habis, silakan login ulang", "error");
+				
+				setTimeout(() => {
+					localStorage.removeItem('sessionId');
+					document.getElementById('mainApp').classList.add('hidden');
+					document.getElementById('loginPage').classList.remove('hidden');
+					document.getElementById('loginForm').reset();
+					currentUser = "";
+					isUserAdmin = false;
+					sessionId = null;
+				}, 2000);
+			}
+
+			function startPolling() {
+				if (!isUserAdmin) return; // Hanya admin
+				
+				if (pollInterval) {
+					clearInterval(pollInterval);
+					pollInterval = null;
+				}
+				
+				setTimeout(() => {
+					if (userData.length > 0) {
+						const dataString = JSON.stringify(userData);
+						currentHash = btoa(dataString);
+						lastUpdate = new Date().getTime();
+					}
+				}, 1000);
+				
+				pollInterval = setInterval(checkForUpdates, 7000);
+			}
+
+			async function checkForUpdates() {
+				if (!isUserAdmin) return; // Hanya admin
+				if (document.getElementById('page-dashboard').classList.contains('hidden')) {
+					return;
+				}
+				if (!sessionId) return;
+				
+				try {
+					const result = await run('checkForUpdates', currentHash, lastUpdate);
+					
+					if (result.hasUpdate) {
+						userData = result.data;
+						currentHash = result.newHash;
+						lastUpdate = result.lastUpdate;
+						
+						updateDashboard();
+						
+						// Notifikasi hanya untuk admin
+						showGentleNotification('Data telah diperbarui');
+						
+						if (!document.getElementById('page-history').classList.contains('hidden')) {
+							renderHistory();
+						}
+					}
+				} catch (e) {
+					console.log("Polling check failed:", e);
+				}
+			}
+
+			function showGentleNotification(message) {
+				if (!isUserAdmin) return; // Hanya admin
+				
+				const now = new Date().getTime();
+				if (now - lastNotificationTime < NOTIFICATION_COOLDOWN) {
+					return;
+				}
+				lastNotificationTime = now;
+				
+				const notif = document.createElement('div');
+				notif.className = 'fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-3 rounded-xl text-xs font-bold shadow-lg z-50 animate-fade-in-up flex items-center gap-2';
+				notif.innerHTML = `
+					<i class="fas fa-sync-alt text-xs animate-spin"></i>
+					<span>${message}</span>
+				`;
+				document.body.appendChild(notif);
+				
+				setTimeout(() => {
+					notif.style.opacity = '0';
+					notif.style.transition = 'opacity 0.5s';
+					setTimeout(() => notif.remove(), 500);
+				}, 3000);
+			}
+
+			// ============================================
+			// DATA FETCHING
+			// ============================================
+			async function fetchData() {
+				toggleLoader(true, "Sinkronisasi...");
+				try { 
+					const result = await run('getDataWithHash');
+					userData = result.data;
+					currentHash = result.hash;
+					lastUpdate = result.lastUpdate;
+					
+					updateDashboard(); 
+					renderHistory(); 
+					toggleLoader(false); 
+				} catch (e) { 
+					console.error("Fetch data error:", e);
+					toggleLoader(false); 
+				}
+			}
+
+			// ============================================
+			// UI SETUP
+			// ============================================
+			
+			function setupSelectors() {
+		const fill = (id, items) => {
+			const el = document.getElementById(id); 
+			if (!el) return;
+			el.innerHTML = '';
+			items.forEach(i => el.add(new Option(i, i)));
+		};
 		
-		if (result.success) {
-		  if (type === 'modal') closeEditModal();
-		  document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
-		  await fetchData();
-		  showToast("Data berhasil disimpan", "success");
-		} else {
-		  showToast(result.message, "error");
-		  if (result.alternative) {
-			if (confirm(result.message + "\n\nGunakan lapangan " + result.alternative + "?")) {
-			  document.getElementById(prefix + 'JenisLapangan').value = result.alternative;
-			  window.isSubmitting = false;
-			  submitForm(e, type);
-			  return;
-			}
-		  }
+		fill('fTanggal', Array.from({length:31}, (_,i)=>i+1));
+		fill('fBulan', MONTHS);
+		fill('fGor', GORS);
+		
+		const ls = document.getElementById('fLapangan'); 
+		if (ls) {
+			ls.innerHTML = ''; 
+			SPORTS.forEach(s => ls.add(new Option(s, s))); 
+			ls.add(new Option("LAINYA", "LAINYA"));
 		}
-	  } catch (e) {
-		console.error("Submit error:", e);
-		showToast("Gagal menyimpan data: " + e.message, "error");
-	  } finally {
-		toggleLoader(false);
-		window.isSubmitting = false;
-	  }
+		
+		fill('eTanggal', Array.from({length:31}, (_,i)=>i+1));
+		fill('eBulan', MONTHS);
+		fill('eGor', GORS);
+		
+		const els = document.getElementById('eLapangan'); 
+		if (els) {
+			els.innerHTML = ''; 
+			SPORTS.forEach(s => els.add(new Option(s, s))); 
+			els.add(new Option("LAINYA", "LAINYA"));
+		}
+		
+		const hbs = document.getElementById('histBulan'); 
+		if (hbs) {
+			hbs.innerHTML = '<option value="">SEMUA BULAN</option>'; 
+			MONTHS.forEach(m => hbs.add(new Option(m, m)));
+		}
+		
+		const hgs = document.getElementById('histGor'); 
+		if (hgs) {
+			hgs.innerHTML = '<option value="">SEMUA UNIT</option>'; 
+			GORS.forEach(g => hgs.add(new Option(g, g)));
+		}
+		
+		if (!isUserAdmin) {
+			dashSelectedGor = [currentUser];
+			const contGorDash = document.getElementById('contGorDash');
+			if (contGorDash) contGorDash.classList.add('hidden');
+			
+			const fGor = document.getElementById('fGor');
+			if (fGor) {
+				fGor.value = currentUser;
+				fGor.disabled = true;
+			}
+			
+			const eGor = document.getElementById('eGor');
+			if (eGor) {
+				eGor.value = currentUser;
+				eGor.disabled = true;
+			}
+			
+			if (hgs) {
+				hgs.value = currentUser;
+				hgs.disabled = true;
+			}
+		}
+		
+		// TAMBAHKAN INI - Panggil fungsi untuk mengisi filter GOR di halaman jadwal
+		populateGorFilter();
+		
+		initExcelFilters();
+		showPage('dashboard');
+	}
+			
+			function initExcelFilters() {
+				const build = (id, items, state, type) => {
+					const el = document.getElementById(id);
+					if (!el) return;
+					el.innerHTML = items.map(item => `
+						<label class="check-item" onclick="event.stopPropagation()">
+							<input type="checkbox" data-type="${type}" value="${item}" ${state.includes(String(item)) ? 'checked' : ''} onchange="toggleExcelFilter('${type}', '${item}', this.checked)">
+							<span>${item}</span>
+						</label>
+					`).join('');
+				};
+				
+				build('listBulanDash', MONTHS, dashSelectedBulan, 'bulan');
+				build('listTahunDash', YEARS, dashSelectedTahun, 'tahun');
+				if (isUserAdmin) build('listGorDash', GORS, dashSelectedGor, 'gor');
+				build('listLapanganDash', [...SPORTS, "LAINYA"], dashSelectedLapangan, 'lapangan');
+			}
+
+			// ============================================
+			// PAGE NAVIGATION
+			// ============================================
+			function showPage(id) {
+
+	['dashboard', 'input', 'history','jadwal'].forEach(p => {
+
+	const page = document.getElementById(`page-${p}`);
+	const btn = document.getElementById(`btn-${p}`);
+
+	if(page) page.classList.add('hidden');
+	if(btn) btn.classList.remove('nav-active');
+
+	});
+
+	const page = document.getElementById(`page-${id}`);
+	const btn = document.getElementById(`btn-${id}`);
+
+	if(page) page.classList.remove('hidden');
+	if(btn) btn.classList.add('nav-active');
+
 	}
 
-	// ============================================
-	// JADWAL FUNCTIONS (LENGKAP)
-	// ============================================
-	async function cekJadwal() {
-	  const tanggalAwal = document.getElementById("tanggalAwal").value;
-	  const selectedGor = document.getElementById("filterGorJadwal").value;
-	  if (!tanggalAwal) { showToast("Pilih tanggal terlebih dahulu", "error"); return; }
-	  if (!selectedGor) { showToast("Pilih GOR terlebih dahulu", "error"); return; }
-	  toggleLoader(true, `Memuat jadwal ${selectedGor}...`);
-	  try {
-		const res = await run('getDataWithHash');
-		let data = res.data || [];
-		data = data.filter(x => x.GOR === selectedGor);
-		const [tahun, bulan] = tanggalAwal.split('-').map(Number);
-		const daysInMonth = new Date(tahun, bulan, 0).getDate();
-		const JAM_MULAI = 8, JAM_SELESAI = 22, totalJam = JAM_SELESAI - JAM_MULAI + 1;
-		const filterInfo = `<div class="mb-4 p-3 bg-indigo-50 rounded-xl flex items-center gap-2">
-		  <i class="fas fa-filter text-indigo-600"></i>
-		  <span class="text-xs font-bold text-indigo-700">Menampilkan jadwal: <span class="bg-indigo-200 px-2 py-1 rounded">${selectedGor}</span> - Bulan: ${MONTHS[bulan-1]} ${tahun}</span>
-		</div>`;
-		document.getElementById("filterInfoContainer").innerHTML = filterInfo;
-		let tableHtml = `
-		  <div class="min-w-full inline-block align-middle">
-			<table class="min-w-full border-collapse">
-			  <thead class="sticky top-0 z-10">
-				<tr>
-				  <th class="p-3 text-left font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500" style="min-width: 100px;">
-					<div class="flex items-center gap-2"><i class="fas fa-calendar text-xs"></i><span class="text-sm">TANGGAL</span></div>
-				  </th>`;
-		for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
-		  let jamDisplay = jam.toString().padStart(2, '0');
-		  let isPeakHour = (jam >= 16 && jam <= 21);
-		  tableHtml += `<th class="p-2 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''}" style="min-width: 60px;">
-			<div class="flex flex-col items-center"><span class="text-xs">${jamDisplay}</span><span class="text-[8px] opacity-50">${isPeakHour ? 'PEAK' : ''}</span></div>
-		  </th>`;
-		}
-		tableHtml += `<th class="p-3 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width: 80px;"><span class="text-sm">TOTAL</span></th></tr></thead><tbody>`;
-		let totalBookings = 0, totalSesiBulan = 0, totalPendapatan = 0;
-		for (let d = 1; d <= daysInMonth; d++) {
-		  const tgl = new Date(tahun, bulan - 1, d); tgl.setHours(0,0,0,0);
-		  const dayName = ['MINGGU','SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU'][tgl.getDay()];
-		  const dayShort = ['MIN','SEN','SEL','RAB','KAM','JUM','SAB'][tgl.getDay()];
-		  const tanggalStr = `${tahun}-${bulan.toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
-		  const today = new Date(); today.setHours(0,0,0,0);
-		  const isToday = tgl.getTime() === today.getTime();
-		  let dailyBookings = 0, dailyRevenue = 0;
-		  const rowClass = d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30';
-		  const todayClass = isToday ? 'bg-indigo-50' : '';
-		  tableHtml += `<tr class="${rowClass} ${todayClass} hover:bg-indigo-50/50 transition-colors">`;
-		  tableHtml += `<td class="p-3 border-t border-gray-200 font-medium" style="min-width: 100px;">
-			<div class="flex flex-col">
-			  <div class="flex items-center gap-2">
-				<span class="text-xs font-bold ${tgl.getDay()===0||tgl.getDay()===6?'text-rose-500':'text-indigo-600'}">${dayShort}</span>
-				${isToday?'<span class="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-black">HARI INI</span>':''}
-			  </div>
-			  <span class="text-base font-black text-gray-800">${d} ${MONTHS[bulan-1].substring(0,3)}</span>
-			  <span class="text-[10px] text-gray-400">${dayName}</span>
-			</div>
-		  </td>`;
-		  for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
-			const bookings = data.filter(x => {
-			  const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
-			  tglDb.setHours(0,0,0,0);
-			  if (tglDb.getTime() !== tgl.getTime()) return false;
-			  const jamMulai = parseInt(x.JAM_AWAL.split(':')[0]);
-			  const jamSelesai = parseInt(x.JAM_SELESAI.split(':')[0]) || jamMulai + 1;
-			  return jam >= jamMulai && jam < jamSelesai;
+			function toggleSidebar() {
+				const sb = document.getElementById('sidebar');
+				sb.classList.toggle('sidebar-minimized');
+				document.getElementById('toggleIcon').className = sb.classList.contains('sidebar-minimized') ? 'fas fa-chevron-right text-xs' : 'fas fa-chevron-left text-xs';
+				setTimeout(() => Object.values(charts).forEach(c => c && c.resize), 300);
+			}
+
+			function toggleDropdown(id, event) {
+				event.stopPropagation();
+				const el = document.getElementById(id);
+				const isActive = el.classList.contains('active');
+				closeAllDropdowns();
+				if (!isActive) el.classList.add('active');
+			}
+
+			function closeAllDropdowns() {
+				document.querySelectorAll('.excel-dropdown').forEach(d => d.classList.remove('active'));
+			}
+
+			function batchFilter(type, checked) {
+				if (type === 'bulan') dashSelectedBulan = checked ? [...MONTHS] : [];
+				else if (type === 'tahun') dashSelectedTahun = checked ? [...YEARS] : [];
+				else if (type === 'gor') dashSelectedGor = checked ? [...GORS] : [];
+				else if (type === 'lapangan') dashSelectedLapangan = checked ? [...SPORTS, "LAINYA"] : [];
+				
+				document.querySelectorAll(`input[data-type="${type}"]`).forEach(cb => cb.checked = checked);
+				updateDashboard();
+			}
+
+			function toggleExcelFilter(type, val, checked) {
+				if (type === 'bulan') {
+					if (checked) { if (!dashSelectedBulan.includes(val)) dashSelectedBulan.push(val); }
+					else { dashSelectedBulan = dashSelectedBulan.filter(i => i !== val); }
+				} else if (type === 'tahun') {
+					if (checked) { if (!dashSelectedTahun.includes(String(val))) dashSelectedTahun.push(String(val)); }
+					else { dashSelectedTahun = dashSelectedTahun.filter(i => i !== String(val)); }
+				} else if (type === 'gor') {
+					if (checked) { if (!dashSelectedGor.includes(val)) dashSelectedGor.push(val); }
+					else { dashSelectedGor = dashSelectedGor.filter(i => i !== val); }
+				} else if (type === 'lapangan') {
+					if (checked) { if (!dashSelectedLapangan.includes(val)) dashSelectedLapangan.push(val); }
+					else { dashSelectedLapangan = dashSelectedLapangan.filter(i => i !== val); }
+				}
+				updateDashboard();
+			}
+
+			// ============================================
+			// FORM HANDLING
+			// ============================================
+			function toggleLainya(v, type) { 
+				const id = type === 'modal' ? 'eboxLainya' : 'boxLainya';
+				const el = document.getElementById(id);
+				if (el) el.classList.toggle('hidden', v !== 'LAINYA'); 
+			}
+
+			async function submitForm(e, type) {
+				e.preventDefault();
+				
+				if (window.isSubmitting) return;
+				window.isSubmitting = true;
+				
+				const prefix = type === 'modal' ? 'e' : 'f';
+				const data = {
+					id: type === 'modal' ? document.getElementById('eId').value : "",
+					nama: document.getElementById(prefix + 'Nama').value.toUpperCase(),
+					tanggal: document.getElementById(prefix + 'Tanggal').value,
+					bulan: document.getElementById(prefix + 'Bulan').value,
+					tahun: document.getElementById(prefix + 'Tahun').value,
+					gor: document.getElementById(prefix + 'Gor').value,
+					lapangan: document.getElementById(prefix + 'Lapangan').value,
+					lapanganLainnya: document.getElementById(prefix + 'LapanganLainya')?.value || '',
+					jamAwal: document.getElementById(prefix + 'JamAwal').value,
+					jamSelesai: document.getElementById(prefix + 'JamSelesai').value,
+					jamDurasi: document.getElementById(prefix + 'Jam').value,
+					nominal: document.getElementById(prefix + 'Nominal').value,
+					currentUser: currentUser
+				};
+				
+				toggleLoader(true, "Menyimpan...");
+				
+				try {
+					await run('saveData', data);
+					
+					if (type === 'modal') closeEditModal();
+					document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
+					
+					await fetchData();
+					showToast("Data berhasil disimpan", "success");
+				} catch (e) {
+					showToast("Gagal menyimpan data", "error");
+				} finally {
+					toggleLoader(false);
+					window.isSubmitting = false;
+				}
+			}
+
+			// ============================================
+			// DELETE HANDLING
+			// ============================================
+			function openDeleteConfirm(id) {
+				deleteTargetId = id;
+				document.getElementById('confirmDeleteModal').classList.remove('hidden');
+			}
+
+			function closeDeleteConfirm() {
+				deleteTargetId = null;
+				document.getElementById('confirmDeleteModal').classList.add('hidden');
+			}
+
+			// ============================================
+			// EDIT MODAL
+			// ============================================
+			function openEditModal(id) {
+				const d = userData.find(i => i.ID === id);
+				if (!d) return;
+				
+				document.getElementById('eId').value = d.ID;
+				document.getElementById('eNama').value = d.NAMA;
+				document.getElementById('eTanggal').value = d.TANGGAL;
+				document.getElementById('eBulan').value = d.BULAN;
+				document.getElementById('eTahun').value = d.TAHUN;
+				document.getElementById('eGor').value = d.GOR;
+				
+				if (SPORTS.includes(d.LAPANGAN)) { 
+					document.getElementById('eLapangan').value = d.LAPANGAN; 
+					toggleLainya('', 'modal'); 
+				} else { 
+					document.getElementById('eLapangan').value = 'LAINYA'; 
+					toggleLainya('LAINYA', 'modal'); 
+					document.getElementById('eLapanganLainya').value = d.LAPANGAN; 
+				}
+				
+				document.getElementById('eJamAwal').value = formatTimeDirect(d.JAM_AWAL);
+				document.getElementById('eJamSelesai').value = formatTimeDirect(d.JAM_SELESAI);
+				document.getElementById('eJam').value = d.JAM_DURASI;
+				document.getElementById('eNominal').value = d.NOMINAL;
+				document.getElementById('editModal').style.display = 'flex';
+			}
+
+			function closeEditModal() { 
+				document.getElementById('editModal').style.display = 'none'; 
+			}
+
+			// ============================================
+			// RENDER FUNCTIONS
+			// ============================================
+			function renderHistory() {
+				const q = document.getElementById('histCari').value.toUpperCase();
+				const b = document.getElementById('histBulan').value;
+				const g = document.getElementById('histGor').value;
+				
+				const filtered = userData.filter(d => 
+					(isUserAdmin || d.GOR === currentUser) && 
+					d.NAMA.includes(q) && 
+					(b === "" || d.BULAN === b) && 
+					(g === "" || d.GOR === g)
+				);
+				
+				document.getElementById('historyTable').innerHTML = filtered.map(d => `
+					<tr class="hover:bg-gray-50">
+						<td class="p-4 text-gray-400 font-bold">${d.TANGGAL}/${d.BULAN.substring(0,3)}</td>
+						<td class="p-4 text-gray-400 font-bold">${d.TAHUN}</td>
+						<td class="p-4 font-black uppercase text-gray-700">${d.NAMA}</td>
+						<td class="p-4"><span class="block text-[9px] text-gray-300 font-black">${d.GOR}</span><span class="text-indigo-600 font-bold uppercase">${d.LAPANGAN}</span></td>
+						<td class="p-4 text-center font-bold text-gray-600">${formatTimeDirect(d.JAM_AWAL)}</td>
+						<td class="p-4 text-center font-bold text-gray-600">${formatTimeDirect(d.JAM_SELESAI)}</td>
+						<td class="p-4 text-center font-black">${d.JAM_DURASI}h</td>
+						<td class="p-4 text-right font-black text-emerald-600">Rp ${Number(d.NOMINAL).toLocaleString('id-ID')}</td>
+						<td class="p-4 flex justify-center gap-1">
+							<button onclick="openEditModal('${d.ID}')" class="w-8 h-8 rounded bg-amber-50 text-amber-600 flex items-center justify-center transition hover:bg-amber-100"><i class="fas fa-edit text-xs"></i></button>
+							<button onclick="openDeleteConfirm('${d.ID}')" class="w-8 h-8 rounded bg-rose-50 text-rose-500 flex items-center justify-center transition hover:bg-rose-100"><i class="fas fa-trash text-xs"></i></button>
+						</td>
+					</tr>
+				`).join('');
+			}
+
+			function updateDashboard() {
+				const filtered = userData.filter(d => 
+					dashSelectedBulan.includes(d.BULAN) && 
+					dashSelectedGor.includes(d.GOR) && 
+					dashSelectedTahun.includes(String(d.TAHUN)) && 
+					dashSelectedLapangan.includes(SPORTS.includes(d.LAPANGAN) ? d.LAPANGAN : "LAINYA")
+				);
+				
+				const totalNominal = filtered.reduce((a, b) => a + Number(b.NOMINAL), 0);
+				const totalDurasi = filtered.reduce((a, b) => a + Number(b.JAM_DURASI), 0);
+				const count = filtered.length;
+				
+				document.getElementById('kpi-pendapatan').innerText = `Rp ${totalNominal.toLocaleString('id-ID')}`;
+				document.getElementById('kpi-durasi').innerText = `${totalDurasi.toFixed(1)} Jam`;
+				document.getElementById('kpi-pemakaian').innerText = count;
+				document.getElementById('kpi-rata').innerText = `Rp ${(count ? totalNominal/count : 0).toLocaleString('id-ID', {maximumFractionDigits:0})}`;
+
+				const lineData = MONTHS.map(m => filtered.filter(d => d.BULAN === m).reduce((a,b) => a + Number(b.NOMINAL), 0));
+				renderChart('chartLinePendapatan', 'line', MONTHS.map(m => m.substring(0,3)), lineData, '#4f46e5', true);
+				
+				const barData = MONTHS.map(m => filtered.filter(d => d.BULAN === m).reduce((a,b) => a + Number(b.JAM_DURASI), 0));
+				renderChart('chartBarDurasi', 'bar', MONTHS.map(m => m.substring(0,3)), barData, '#10b981');
+				
+				const currentLaps = [...new Set(filtered.map(d => d.LAPANGAN))];
+				const lapsData = currentLaps.map(l => filtered.filter(d => d.LAPANGAN === l).length);
+				renderChart('chartBarLapangan', 'bar', currentLaps, lapsData, '#f59e0b', false, 'y');
+				
+				const gorsData = GORS.map(g => filtered.filter(d => d.GOR === g).reduce((a,b) => a + Number(b.NOMINAL), 0));
+				renderChart('chartDonutGor', 'doughnut', GORS, gorsData, ['#4f46e5','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316','#6366f1','#14b8a6']);
+			}
+
+			function renderChart(id, type, labels, data, color, fill=false, axis='x') {
+				const canvas = document.getElementById(id);
+				if (!canvas) return;
+				
+				if (charts[id]) charts[id].destroy();
+				
+				const ctx = canvas.getContext('2d');
+				charts[id] = new Chart(ctx, {
+					type: type,
+					data: {
+						labels: labels,
+						datasets: [{ 
+							data: data, 
+							backgroundColor: Array.isArray(color) ? color : (fill ? color + '15' : color), 
+							borderColor: Array.isArray(color) ? '#fff' : color, 
+							borderWidth: 2, 
+							tension: 0.35, 
+							fill: fill, 
+							borderRadius: type === 'bar' ? 6 : 0 
+						}]
+					},
+					options: { 
+						indexAxis: axis, 
+						maintainAspectRatio: false, 
+						plugins: { 
+							legend: { display: type === 'doughnut' } 
+						}, 
+						scales: type === 'doughnut' ? {} : { 
+							y: { 
+								grid: { display: false }, 
+								ticks: { font: { size: 8, weight: 'bold' } } 
+							}, 
+							x: { 
+								grid: { display: false }, 
+								ticks: { font: { size: 8, weight: 'bold' } } 
+							} 
+						} 
+					}
+				});
+			}
+
+			// ============================================
+			// EVENT LISTENERS
+			// ============================================
+			document.getElementById('btnConfirmDelete').onclick = async () => {
+				if (!deleteTargetId) return;
+
+				toggleLoader(true, "Menghapus data...");
+				try {
+					await run('deleteData', deleteTargetId);
+					showToast("Data berhasil dihapus", "success");
+					await fetchData();
+				} catch (e) {
+					showToast("Gagal menghapus data", "error");
+				} finally {
+					toggleLoader(false);
+					closeDeleteConfirm();
+				}
+			};
+
+			window.addEventListener('load', function() {
+				if (!checkStoredSession()) {
+					document.getElementById('loginPage').classList.remove('hidden');
+				}
 			});
-			if (bookings.length > 0) {
-			  totalBookings++; dailyBookings++;
-			  bookings.forEach(b => { dailyRevenue += Number(b.NOMINAL); totalPendapatan += Number(b.NOMINAL); });
-			  const booking = bookings[0];
-			  const isFirstHour = jam === parseInt(bookings[0].JAM_AWAL.split(':')[0]);
-			  if (isFirstHour) {
-				tableHtml += `<td class="border border-gray-200 p-0 relative group cursor-pointer transition-all bg-gradient-to-br from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600" style="min-width:60px;height:65px;" onclick="showBookingDetail('${booking.ID}')">
-				  <div class="w-full h-full flex flex-col items-center justify-center p-1">
-					<span class="text-[9px] text-white font-bold truncate max-w-full">${booking.NAMA.substring(0,8)}</span>
-					<span class="text-[8px] text-white/80">${booking.LAPANGAN.substring(0,5)}</span>
-					<span class="absolute top-0 right-0 text-[8px] text-white/60 p-0.5">✓</span>
-				  </div>
-				</td>`;
-			  } else {
-				tableHtml += `<td class="border border-gray-200 bg-gradient-to-br from-rose-400 to-rose-500 bg-opacity-75" style="min-width:60px;height:65px;"><div class="w-full h-full"></div></td>`;
-			  }
-			} else {
-			  let isPeakHour = (jam >= 16 && jam <= 21);
-			  let bgColor = isPeakHour ? 'from-emerald-300 to-emerald-400' : 'from-emerald-400 to-emerald-500';
-			  tableHtml += `<td class="border border-gray-200 bg-gradient-to-br ${bgColor} hover:from-emerald-500 hover:to-emerald-600 transition-all cursor-pointer group" style="min-width:60px;height:65px;" onclick="showAvailableSlot('${tanggalStr}', ${jam}, '${selectedGor}')">
-				<div class="w-full h-full flex items-center justify-center"><i class="fas fa-plus text-white text-opacity-0 group-hover:text-opacity-70 text-sm"></i></div>
-			  </td>`;
-			}
-		  }
-		  tableHtml += `<td class="border-t border-gray-200 bg-indigo-50/70 p-2 text-center" style="min-width:80px;">
-			<div class="flex flex-col items-center">
-			  <span class="text-xl font-black text-indigo-600">${dailyBookings}</span>
-			  <span class="text-[9px] font-bold text-indigo-400">JAM</span>
-			  <span class="text-[8px] font-medium text-gray-500">Rp ${dailyRevenue.toLocaleString('id-ID')}</span>
-			</div>
-		  </td>`;
-		  tableHtml += `</tr>`;
-		  totalSesiBulan += dailyBookings;
-		}
-		tableHtml += `</tbody></table></div>`;
-		document.getElementById("jadwalTableContainer").innerHTML = tableHtml;
-		const totalSlots = daysInMonth * totalJam;
-		const occupancyRate = totalSlots > 0 ? Math.round((totalBookings / totalSlots) * 100) : 0;
-		const bulanNama = MONTHS[bulan - 1];
-		const rataRataPerHari = (totalSesiBulan / daysInMonth).toFixed(1);
-		const kpiHtml = `
-		  <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl col-span-2">
-			<div class="flex items-center justify-between">
-			  <div>
-				<div class="text-[10px] font-black text-indigo-400 uppercase tracking-wider">BULAN / GOR</div>
-				<div class="text-xl font-black text-indigo-700">${bulanNama} ${tahun}</div>
-				<div class="text-sm font-bold text-indigo-500">${selectedGor}</div>
-				<div class="text-[10px] text-gray-500 mt-1">${daysInMonth} hari operasional</div>
-			  </div>
-			  <div class="flex gap-2">
-				<button onclick="ubahBulan('prev')" class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-100 transition-all"><i class="fas fa-chevron-left text-indigo-600"></i></button>
-				<button onclick="ubahBulan('next')" class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-100 transition-all"><i class="fas fa-chevron-right text-indigo-600"></i></button>
-			  </div>
-			</div>
-		  </div>
-		  <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 rounded-xl">
-			<div class="text-[10px] font-black text-emerald-400 uppercase tracking-wider">JAM TERPAKAI</div>
-			<div class="text-2xl font-black text-emerald-700">${totalSesiBulan}</div>
-			<div class="text-[10px] text-emerald-600 font-bold mt-1">Ø ${rataRataPerHari}/hari</div>
-		  </div>
-		  <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-4 rounded-xl">
-			<div class="text-[10px] font-black text-amber-400 uppercase tracking-wider">OKUPANSI</div>
-			<div class="text-2xl font-black text-amber-700">${occupancyRate}%</div>
-			<div class="text-[10px] text-amber-600 font-bold mt-1">${totalBookings}/${totalSlots} slot</div>
-		  </div>
-		  <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
-			<div class="text-[10px] font-black text-purple-400 uppercase tracking-wider">PENDAPATAN</div>
-			<div class="text-xl font-black text-purple-700">Rp ${totalPendapatan.toLocaleString('id-ID')}</div>
-			<div class="text-[10px] text-purple-600 font-bold mt-1">Total bulan ini</div>
-		  </div>
-		`;
-		document.getElementById("kpiSummaryContainer").innerHTML = kpiHtml;
-	  } catch (error) {
-		console.error("Error loading jadwal:", error);
-		showToast("Gagal memuat jadwal", "error");
-	  } finally {
-		toggleLoader(false);
-	  }
-	}
 
+			window.addEventListener('online', () => {
+				if (isUserAdmin) {
+					showGentleNotification('Koneksi tersambung kembali');
+					if (sessionId) checkForUpdates();
+				}
+			});
+
+			window.addEventListener('offline', () => {
+				if (isUserAdmin) {
+					showGentleNotification('Koneksi terputus', 'warning');
+				}
+			});
+			
+		async function cekJadwal() {
+    const tanggalAwal = document.getElementById("tanggalAwal").value;
+    const selectedGor = document.getElementById("filterGorJadwal").value;
+    
+    if (!tanggalAwal) {
+        showToast("Pilih tanggal terlebih dahulu", "error");
+        return;
+    }
+    
+    if (!selectedGor) {
+        showToast("Pilih GOR terlebih dahulu", "error");
+        return;
+    }
+
+    toggleLoader(true, `Memuat jadwal ${selectedGor}...`);
+    
+    try {
+        const res = await run('getDataWithHash');
+        let data = res.data || [];
+
+        // FILTER LANGSUNG DENGAN SELECTEDGOR
+        data = data.filter(x => x.GOR === selectedGor);
+
+        // Parse tanggal awal
+        const [tahun, bulan] = tanggalAwal.split('-').map(Number);
+        
+        // Hitung jumlah hari dalam bulan
+        const daysInMonth = new Date(tahun, bulan, 0).getDate();
+
+        // Jam operasional GOR: 08:00 - 22:00
+        const JAM_MULAI = 8;
+        const JAM_SELESAI = 22;
+
+        // TITLE UNTUK MENAMPILKAN FILTER AKTIF
+        const filterInfo = `<div class="mb-4 p-3 bg-indigo-50 rounded-xl flex items-center gap-2">
+            <i class="fas fa-filter text-indigo-600"></i>
+            <span class="text-xs font-bold text-indigo-700">Menampilkan jadwal: <span class="bg-indigo-200 px-2 py-1 rounded">${selectedGor}</span> - Bulan: ${MONTHS[bulan-1]} ${tahun}</span>
+        </div>`;
+
+        let html = filterInfo + `
+        <div class="w-full">
+            <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100">
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="p-2 text-left font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500 sticky left-0 z-20" style="min-width: 70px; max-width: 70px;">
+                                    <div class="flex items-center gap-1">
+                                        <i class="fas fa-calendar text-[10px]"></i>
+                                        <span class="text-[11px]">TGL</span>
+                                    </div>
+                                </th>`;
+
+        // Header jam
+        for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
+            let jamDisplay = jam.toString().padStart(2, '0');
+            let isPeakHour = (jam >= 16 && jam <= 21);
+            
+            html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''}" style="min-width: 32px; max-width: 32px;">
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px]">${jamDisplay}</span>
+                            <span class="text-[6px] opacity-50">${isPeakHour ? 'PK' : ''}</span>
+                        </div>
+                    </th>`;
+        }
+
+        // Kolom TOTAL
+        html += `<th class="p-2 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width: 70px; max-width: 70px;">
+            <span class="text-[12px] font-black">TOTAL</span>
+        </th>`;
+        html += `</tr></thead><tbody>`;
+
+        // Hitung total booking
+        let totalBookings = 0;
+        let totalSesiBulan = 0;
+
+        // Generate semua hari dalam bulan
+        for (let d = 1; d <= daysInMonth; d++) {
+            const tgl = new Date(tahun, bulan - 1, d);
+            tgl.setHours(0, 0, 0, 0);
+            
+            const dayName = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'][tgl.getDay()];
+            
+            // Format tanggal untuk display
+            const tanggalStr = `${tahun}-${bulan.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+            
+            // Cek apakah hari ini
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const isToday = tgl.getTime() === today.getTime();
+            
+            let dailyBookings = 0;
+            
+            html += `<tr class="${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} hover:bg-indigo-50/20 transition-colors">`;
+            
+            // Kolom Tanggal
+            html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} z-10 ${isToday ? 'bg-indigo-50' : ''}" style="min-width: 70px; max-width: 70px;">
+                        <div class="flex flex-col items-center leading-tight">
+                            <div class="flex items-center gap-1 w-full justify-between px-1">
+                                <span class="text-[12px] font-black ${tgl.getDay() === 0 || tgl.getDay() === 6 ? 'text-rose-500' : 'text-indigo-600'}">${dayName}</span>
+                                ${isToday ? '<span class="text-[8px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-black">INI</span>' : ''}
+                            </div>
+                            <span class="text-[14px] font-black text-gray-800">${d}/${bulan}</span>
+                        </div>
+                    </td>`;
+
+            // Cek setiap jam
+            for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
+                // Cari booking di jam ini
+                const bookings = data.filter(x => {
+                    const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
+                    tglDb.setHours(0, 0, 0, 0);
+                    
+                    if (tglDb.getTime() !== tgl.getTime()) return false;
+                    
+                    const jamMulai = parseInt(x.JAM_AWAL.split(':')[0]);
+                    const jamSelesai = parseInt(x.JAM_SELESAI.split(':')[0]) || jamMulai + 1;
+                    
+                    return jam >= jamMulai && jam < jamSelesai;
+                });
+
+                if (bookings.length > 0) {
+                    totalBookings++;
+                    dailyBookings++;
+                    
+                    const booking = bookings[0];
+                    const isFirstHour = jam === parseInt(bookings[0].JAM_AWAL.split(':')[0]);
+                    
+                    if (isFirstHour) {
+                        html += `<td class="border border-gray-100 p-0 relative group cursor-pointer transition-all bg-gradient-to-br from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600" 
+                                    style="min-width: 32px; max-width: 32px; height: 38px;"
+                                    onclick="showBookingDetail('${booking.ID}')">
+                                    <div class="w-full h-full flex items-center justify-center">
+                                        <span class="text-[8px] text-white font-black opacity-0 group-hover:opacity-100 transition-opacity">
+                                            ${booking.NAMA.substring(0,2)}
+                                        </span>
+                                    </div>
+                                </td>`;
+                    } else {
+                        html += `<td class="border border-gray-100 bg-gradient-to-br from-rose-400 to-rose-500 bg-opacity-75" style="min-width: 32px; max-width: 32px; height: 38px;"></td>`;
+                    }
+                } else {
+                    let isPeakHour = (jam >= 16 && jam <= 21);
+                    let bgColor = isPeakHour ? 'from-emerald-300 to-emerald-400' : 'from-emerald-400 to-emerald-500';
+                    
+                    html += `<td class="border border-gray-100 bg-gradient-to-br ${bgColor} hover:from-emerald-500 hover:to-emerald-600 transition-all cursor-pointer group" 
+                                style="min-width: 32px; max-width: 32px; height: 38px;"
+                                onclick="showAvailableSlot('${tanggalStr}', ${jam}, '${selectedGor}')">
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <i class="fas fa-plus text-white text-opacity-0 group-hover:text-opacity-50 text-[9px]"></i>
+                                </div>
+                            </td>`;
+                }
+            }
+            
+            // Kolom TOTAL
+            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-2 text-center" style="min-width: 70px; max-width: 70px;">
+                <div class="flex flex-col items-center">
+                    <span class="text-[18px] font-black text-indigo-600">${dailyBookings}</span>
+                    <span class="text-[9px] font-bold text-indigo-400 uppercase">JAM</span>
+                </div>
+            </td>`;
+            
+            html += `</tr>`;
+            totalSesiBulan += dailyBookings;
+        }
+
+        html += `</tbody></table></div></div></div>`;
+        
+        // Summary stats
+        const totalSlots = daysInMonth * (JAM_SELESAI - JAM_MULAI + 1);
+        const occupancyRate = totalSlots > 0 ? Math.round((totalBookings / totalSlots) * 100) : 0;
+        const bulanNama = MONTHS[bulan - 1];
+        
+        html += `
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-5 gap-2">
+            <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-3 rounded-xl col-span-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-[9px] font-black text-indigo-400 uppercase">BULAN / GOR</div>
+                        <div class="text-lg font-black text-indigo-700">${bulanNama} ${tahun}</div>
+                        <div class="text-[10px] font-bold text-indigo-500">${selectedGor}</div>
+                        <div class="text-[8px] text-gray-500">${daysInMonth} hari operasional</div>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="ubahBulan('prev')" class="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
+                            <i class="fas fa-chevron-left text-indigo-600 text-xs"></i>
+                        </button>
+                        <button onclick="ubahBulan('next')" class="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
+                            <i class="fas fa-chevron-right text-indigo-600 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 rounded-xl">
+                <div class="text-[9px] font-black text-emerald-400 uppercase">JAM</div>
+                <div class="text-lg font-black text-emerald-700">${totalSesiBulan}</div>
+                <div class="text-[8px] text-emerald-600">${(totalSesiBulan/daysInMonth).toFixed(1)}/hari</div>
+            </div>
+            <div class="bg-gradient-to-br from-rose-50 to-rose-100 p-3 rounded-xl">
+                <div class="text-[9px] font-black text-rose-400 uppercase">OKUPANSI</div>
+                <div class="text-lg font-black text-rose-700">${occupancyRate}%</div>
+                <div class="text-[8px] text-rose-600">${totalBookings}/${totalSlots}</div>
+            </div>
+        </div>`;
+
+        document.getElementById("jadwalContainer").innerHTML = html;
+        
+    } catch (error) {
+        console.error("Error loading jadwal:", error);
+        showToast("Gagal memuat jadwal", "error");
+    } finally {
+        toggleLoader(false);
+    }
+}
+		
+		
+	// Update fungsi showAvailableSlot untuk menerima parameter GOR
 	function showAvailableSlot(tanggal, jam, gor = '') {
-	  showPage('input');
-	  const parts = tanggal.split('-');
-	  document.getElementById('fTanggal').value = parseInt(parts[2]);
-	  document.getElementById('fBulan').value = MONTHS[parseInt(parts[1]) - 1];
-	  document.getElementById('fTahun').value = parts[0];
-	  document.getElementById('fJamAwal').value = `${jam.toString().padStart(2, '0')}:00`;
-	  document.getElementById('fJamSelesai').value = `${(jam + 1).toString().padStart(2, '0')}:00`;
-	  document.getElementById('fJam').value = 1;
-	  if (gor) {
-		document.getElementById('fGor').value = gor;
-	  } else {
-		const selectedGor = document.getElementById("filterGorJadwal")?.value;
-		if (selectedGor) document.getElementById('fGor').value = selectedGor;
-	  }
-	  document.getElementById('page-input').scrollIntoView({ behavior: 'smooth' });
-	  showToast("Silakan lengkapi data booking", "info");
-	}
-
+		// Arahkan ke halaman input dengan data terisi
+		showPage('input');
+		
+		// Set tanggal
+		const parts = tanggal.split('-');
+		document.getElementById('fTanggal').value = parseInt(parts[2]);
+		document.getElementById('fBulan').value = MONTHS[parseInt(parts[1]) - 1];
+		document.getElementById('fTahun').value = parts[0];
+		
+		// Set jam
+		document.getElementById('fJamAwal').value = `${jam.toString().padStart(2, '0')}:00`;
+		document.getElementById('fJamSelesai').value = `${(jam + 1).toString().padStart(2, '0')}:00`;
+		document.getElementById('fJam').value = 1;
+		
+		// Set GOR jika dipilih dari filter
+		if (gor) {
+			document.getElementById('fGor').value = gor;
+		} else {
+			// Jika tidak ada parameter gor, coba ambil dari filter yang aktif
+			const selectedGor = document.getElementById("filterGorJadwal")?.value;
+			if (selectedGor) {
+				document.getElementById('fGor').value = selectedGor;
+			}
+		}
+		
+		// Scroll ke form
+		document.getElementById('page-input').scrollIntoView({ behavior: 'smooth' });
+		
+		showToast("Silakan lengkapi data booking", "info");
+	}	
+	// Fungsi untuk navigasi bulan (tetap sama)
 	function ubahBulan(arah) {
-	  const inputTanggal = document.getElementById("tanggalAwal");
-	  const currentDate = new Date(inputTanggal.value);
-	  if (arah === 'prev') {
-		currentDate.setMonth(currentDate.getMonth() - 1);
-	  } else {
-		currentDate.setMonth(currentDate.getMonth() + 1);
-	  }
-	  const tahun = currentDate.getFullYear();
-	  const bulan = (currentDate.getMonth() + 1).toString().padStart(2, '0');
-	  const hari = '01';
-	  inputTanggal.value = `${tahun}-${bulan}-${hari}`;
-	  cekJadwal();
+		const inputTanggal = document.getElementById("tanggalAwal");
+		const currentDate = new Date(inputTanggal.value);
+		
+		if (arah === 'prev') {
+			currentDate.setMonth(currentDate.getMonth() - 1);
+		} else {
+			currentDate.setMonth(currentDate.getMonth() + 1);
+		}
+		
+		const tahun = currentDate.getFullYear();
+		const bulan = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+		const hari = '01';
+		
+		inputTanggal.value = `${tahun}-${bulan}-${hari}`;
+		cekJadwal();
 	}
 
+
+	// Fungsi tambahan untuk detail booking
+	
 	function showBookingDetail(bookingId) {
-	  const booking = userData.find(x => x.ID === bookingId);
-	  if (!booking) return;
-	  const modalHtml = `
-		<div id="detailBookingModal" class="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4" onclick="if(event.target===this) closeDetailModal()">
-		  <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl animate-fade-in-up">
-			<div class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-5 rounded-t-2xl">
-			  <div class="flex items-center justify-between">
-				<h3 class="text-white font-black text-lg flex items-center gap-2"><i class="fas fa-receipt"></i> DETAIL BOOKING</h3>
-				<button onclick="closeDetailModal()" class="text-white/80 hover:text-white"><i class="fas fa-times"></i></button>
-			  </div>
-			</div>
-			<div class="p-6 space-y-4">
-			  <div class="flex items-start gap-3 pb-3 border-b border-gray-100">
-				<div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center"><i class="fas fa-user text-indigo-600"></i></div>
-				<div class="flex-1"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PEMAKAI</p><p class="font-black text-gray-800 text-lg">${booking.NAMA}</p></div>
-			  </div>
-			  <div class="grid grid-cols-2 gap-3">
-				<div class="bg-gray-50 p-3 rounded-xl"><p class="text-[8px] font-black text-gray-400 uppercase mb-1">GOR</p><p class="font-bold text-indigo-600 text-sm">${booking.GOR}</p></div>
-				<div class="bg-gray-50 p-3 rounded-xl"><p class="text-[8px] font-black text-gray-400 uppercase mb-1">LAPANGAN</p><p class="font-bold text-emerald-600 text-sm">${booking.LAPANGAN}</p></div>
-			  </div>
-			  <div class="bg-indigo-50 p-4 rounded-xl">
-				<div class="grid grid-cols-2 gap-4">
-				  <div><p class="text-[8px] font-black text-indigo-400 uppercase mb-1">TANGGAL</p><p class="font-black text-gray-800">${booking.TANGGAL} ${booking.BULAN} ${booking.TAHUN}</p></div>
-				  <div><p class="text-[8px] font-black text-indigo-400 uppercase mb-1">WAKTU</p><p class="font-black text-gray-800">${formatTimeDirect(booking.JAM_AWAL)} - ${formatTimeDirect(booking.JAM_SELESAI)}</p></div>
+		const booking = userData.find(x => x.ID === bookingId);
+		if (!booking) return;
+		
+		// Buat modal detail yang lebih menarik
+		const modalHtml = `
+			<div id="detailBookingModal" class="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4" onclick="if(event.target === this) closeDetailModal()">
+				<div class="bg-white rounded-2xl max-w-md w-full shadow-2xl animate-fade-in-up">
+					<!-- Header dengan warna kontras -->
+					<div class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-5 rounded-t-2xl">
+						<div class="flex items-center justify-between">
+							<h3 class="text-white font-black text-lg flex items-center gap-2">
+								<i class="fas fa-receipt"></i>
+								DETAIL BOOKING
+							</h3>
+							<button onclick="closeDetailModal()" class="text-white/80 hover:text-white">
+								<i class="fas fa-times"></i>
+							</button>
+						</div>
+					</div>
+					
+					<!-- Content dengan background putih dan teks kontras -->
+					<div class="p-6 space-y-4">
+						<!-- Informasi Pemakai -->
+						<div class="flex items-start gap-3 pb-3 border-b border-gray-100">
+							<div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+								<i class="fas fa-user text-indigo-600"></i>
+							</div>
+							<div class="flex-1">
+								<p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PEMAKAI</p>
+								<p class="font-black text-gray-800 text-lg">${booking.NAMA}</p>
+							</div>
+						</div>
+						
+						<!-- Grid Info -->
+						<div class="grid grid-cols-2 gap-3">
+							<div class="bg-gray-50 p-3 rounded-xl">
+								<p class="text-[8px] font-black text-gray-400 uppercase mb-1">GOR</p>
+								<p class="font-bold text-indigo-600 text-sm">${booking.GOR}</p>
+							</div>
+							<div class="bg-gray-50 p-3 rounded-xl">
+								<p class="text-[8px] font-black text-gray-400 uppercase mb-1">LAPANGAN</p>
+								<p class="font-bold text-emerald-600 text-sm">${booking.LAPANGAN}</p>
+							</div>
+						</div>
+						
+						<!-- Tanggal & Waktu -->
+						<div class="bg-indigo-50 p-4 rounded-xl">
+							<div class="grid grid-cols-2 gap-4">
+								<div>
+									<p class="text-[8px] font-black text-indigo-400 uppercase mb-1">TANGGAL</p>
+									<p class="font-black text-gray-800">
+										${booking.TANGGAL} ${booking.BULAN} ${booking.TAHUN}
+									</p>
+								</div>
+								<div>
+									<p class="text-[8px] font-black text-indigo-400 uppercase mb-1">WAKTU</p>
+									<p class="font-black text-gray-800">
+										${formatTimeDirect(booking.JAM_AWAL)} - ${formatTimeDirect(booking.JAM_SELESAI)}
+									</p>
+								</div>
+							</div>
+						</div>
+						
+						<!-- Durasi & Nominal -->
+						<div class="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl">
+							<div>
+								<p class="text-[8px] font-black text-gray-400 uppercase">DURASI</p>
+								<p class="font-black text-amber-600 text-xl">${booking.JAM_DURASI} <span class="text-sm">jam</span></p>
+							</div>
+							<div class="text-right">
+								<p class="text-[8px] font-black text-gray-400 uppercase">NOMINAL</p>
+								<p class="font-black text-emerald-600 text-xl">Rp ${Number(booking.NOMINAL).toLocaleString('id-ID')}</p>
+							</div>
+						</div>
+						
+						<!-- Footer dengan peak info jika jam peak -->
+						${parseInt(booking.JAM_AWAL.split(':')[0]) >= 16 && parseInt(booking.JAM_AWAL.split(':')[0]) <= 21 ? `
+						<div class="bg-amber-50 p-3 rounded-xl flex items-center gap-2">
+							<i class="fas fa-bolt text-amber-500"></i>
+							<span class="text-[10px] font-bold text-amber-700">PEAK HOUR (16:00-21:00)</span>
+						</div>
+						` : ''}
+					</div>
+					
+					<!-- Footer button -->
+					<div class="p-4 border-t border-gray-100">
+						<button onclick="closeDetailModal()" 
+								class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl hover:bg-indigo-700 transition-all text-sm">
+							TUTUP
+						</button>
+					</div>
 				</div>
-			  </div>
-			  <div class="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl">
-				<div><p class="text-[8px] font-black text-gray-400 uppercase">DURASI</p><p class="font-black text-amber-600 text-xl">${booking.JAM_DURASI} <span class="text-sm">jam</span></p></div>
-				<div class="text-right"><p class="text-[8px] font-black text-gray-400 uppercase">NOMINAL</p><p class="font-black text-emerald-600 text-xl">Rp ${Number(booking.NOMINAL).toLocaleString('id-ID')}</p></div>
-			  </div>
-			  ${parseInt(booking.JAM_AWAL.split(':')[0]) >= 16 && parseInt(booking.JAM_AWAL.split(':')[0]) <= 21 ? `
-			  <div class="bg-amber-50 p-3 rounded-xl flex items-center gap-2"><i class="fas fa-bolt text-amber-500"></i><span class="text-[10px] font-bold text-amber-700">PEAK HOUR (16:00-21:00)</span></div>
-			  ` : ''}
 			</div>
-			<div class="p-4 border-t border-gray-100"><button onclick="closeDetailModal()" class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl hover:bg-indigo-700 transition-all text-sm">TUTUP</button></div>
-		  </div>
-		</div>
-	  `;
-	  const oldModal = document.getElementById('detailBookingModal');
-	  if (oldModal) oldModal.remove();
-	  document.body.insertAdjacentHTML('beforeend', modalHtml);
+		
+		`;
+		// Hapus modal lama jika ada
+		const oldModal = document.getElementById('detailBookingModal');
+		if (oldModal) oldModal.remove();
+		
+		// Tambahkan modal baru
+		document.body.insertAdjacentHTML('beforeend', modalHtml);
 	}
 
+	// Fungsi untuk menutup modal detail
 	function closeDetailModal() {
-	  const modal = document.getElementById('detailBookingModal');
-	  if (modal) modal.remove();
+		const modal = document.getElementById('detailBookingModal');
+		if (modal) modal.remove();
+
 	}
-
-	// ============================================
-	// EVENT LISTENERS
-	// ============================================
-	document.getElementById('btnConfirmDelete').onclick = async () => {
-	  if (!deleteTargetId) return;
-	  toggleLoader(true, "Menghapus data...");
-	  try {
-		await run('deleteData', deleteTargetId);
-		showToast("Data berhasil dihapus", "success");
-		await fetchData();
-	  } catch (e) {
-		showToast("Gagal menghapus data", "error");
-	  } finally {
-		toggleLoader(false);
-		closeDeleteConfirm();
-	  }
-	};
-
-	window.addEventListener('load', function() {
-	  if (!checkStoredSession()) {
-		document.getElementById('loginPage').classList.remove('hidden');
-	  }
-	});
-
-	window.addEventListener('online', () => {
-	  if (isUserAdmin) {
-		showGentleNotification('Koneksi tersambung kembali');
-		if (sessionId) checkForUpdates();
-	  }
-	});
-
-	window.addEventListener('offline', () => {
-	  if (isUserAdmin) {
-		showGentleNotification('Koneksi terputus', 'warning');
-	  }
-	});
-
-
-function cekTenis(newData, excludeId) {
-  // Cek apakah lapangan TENIS yang dipilih sudah dibooking
-  const conflictSendiri = checkDoubleBooking(newData, excludeId);
-  
-  if (conflictSendiri) {
-    return { 
-      valid: false, 
-      message: `Lapangan ${newData.jenisLapangan} sudah dibooking.` 
-    };
-  }
-  
-  // Cek lapangan TENIS pasangannya (A atau B)
-  const lapanganLain = newData.jenisLapangan === 'TENIS A' ? 'TENIS B' : 'TENIS A';
-  const dataLain = { 
-    ...newData, 
-    jenisLapangan: lapanganLain 
-  };
-  const conflictLain = checkDoubleBooking(dataLain, excludeId);
-  
-  if (conflictLain) {
-    return { 
-      valid: true, 
-      message: `Lapangan ${lapanganLain} sudah terbooking.`, 
-      info: true 
-    };
-  } else {
-    return { 
-      valid: true, 
-      message: `Lapangan ${lapanganLain} tersedia.`, 
-      info: true 
-    };
-  }
+	
+	// Perbaiki fungsi populateGorFilter untuk user non-admin
+function populateGorFilter() {
+    const selectGor = document.getElementById('filterGorJadwal');
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    if (!selectGor) return;
+    
+    let options = '<option value="">PILIH GOR</option>';
+    
+    // Jika user adalah admin, tampilkan semua GOR
+    if (isUserAdmin) {
+        GORS.forEach(gor => {
+            options += `<option value="${gor}">${gor}</option>`;
+        });
+    } else {
+        // Jika bukan admin, hanya tampilkan GOR miliknya
+        // Tapi tetap dengan opsi "PILIH GOR" di awal (user harus memilih)
+        options += `<option value="${currentUser}">${currentUser}</option>`;
+    }
+    
+    selectGor.innerHTML = options;
+    
+    // Hapus event listener lama (untuk menghindari duplikasi)
+    selectGor.removeEventListener('change', handleGorChange);
+    
+    // Tambahkan event listener baru
+    selectGor.addEventListener('change', handleGorChange);
+    
+    // Reset tombol Tampilkan (karena belum ada GOR yang dipilih)
+    if (btnTampilkan) {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+    }
 }
 
-function checkDoubleBooking(newData, excludeId = null) {
-  return userData.find(item => {
-    if (excludeId && item.ID === excludeId) return false;
-    if (item.GOR !== newData.gor) return false; // GOR harus sama
-    if (item.TANGGAL != newData.tanggal) return false;
-    if (item.BULAN !== newData.bulan) return false;
-    if (item.TAHUN != newData.tahun) return false;
-    
-    // CEK LAPANGAN - harus sama persis (termasuk jenis lapangan)
-    if (item.LAPANGAN !== newData.lapangan) return false;
-    
-    // CEK JENIS LAPANGAN - harus sama persis
-    if (item.JENIS_LAPANGAN !== newData.jenisLapangan) return false;
-    
-    // Cek overlap waktu
-    return isOverlap(item.JAM_AWAL, item.JAM_SELESAI, newData.jamAwal, newData.jamSelesai);
-  });
-}
-				</script>
-			</body>
 
-			</html>
+// Perbaiki fungsi enableGorFilter
+function enableGorFilter() {
+    const tanggalAwal = document.getElementById("tanggalAwal").value;
+    const filterGor = document.getElementById("filterGorJadwal");
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    
+    if (tanggalAwal) {
+        // Aktifkan dropdown GOR
+        filterGor.disabled = false;
+        filterGor.classList.remove("bg-gray-100", "opacity-50", "cursor-not-allowed");
+        filterGor.classList.add("bg-white", "opacity-100", "cursor-pointer");
+        
+        // Isi dropdown GOR
+        populateGorFilter();
+    } else {
+        // Nonaktifkan kembali jika tanggal dihapus
+        filterGor.disabled = true;
+        filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
+        filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
+        
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        
+        // Reset container jadwal
+        const jadwalContainer = document.getElementById("jadwalContainer");
+        if (jadwalContainer) {
+            jadwalContainer.innerHTML = `
+                <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                    <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
+                    <p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
+                </div>
+            `;
+        }
+    }
+}
+
+function populateGorFilterAfterDate() {
+    const selectGor = document.getElementById('filterGorJadwal');
+    if (!selectGor) return;
+    
+    let options = '<option value="">PILIH GOR</option>';
+    
+    // Jika user adalah admin, tampilkan semua GOR
+    if (isUserAdmin) {
+        GORS.forEach(gor => {
+            options += `<option value="${gor}">${gor}</option>`;
+        });
+    } else {
+        // Jika bukan admin, hanya tampilkan GOR miliknya
+        options += `<option value="${currentUser}">${currentUser}</option>`;
+    }
+    
+    selectGor.innerHTML = options;
+    
+    // Tambahkan event listener untuk mengaktifkan tombol Tampilkan
+    selectGor.addEventListener('change', function() {
+        const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+        if (this.value) {
+            btnTampilkan.disabled = false;
+            btnTampilkan.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+            btnTampilkan.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+        } else {
+            btnTampilkan.disabled = true;
+            btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+            btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+        }
+    });
+}
+
+// Tambahkan fungsi ini untuk mereset filter jadwal
+function resetJadwalFilters() {
+    const inputTanggal = document.getElementById("tanggalAwal");
+    const filterGor = document.getElementById("filterGorJadwal");
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    const jadwalContainer = document.getElementById("jadwalContainer");
+    
+    // Reset input tanggal ke kosong
+    if (inputTanggal) {
+        inputTanggal.value = "";
+    }
+    
+    // Reset dropdown GOR ke keadaan awal (disabled)
+    if (filterGor) {
+        filterGor.disabled = true;
+        filterGor.innerHTML = '<option value="">PILIH GOR</option>';
+        filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
+        filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
+    }
+    
+    // Reset tombol tampilkan
+    if (btnTampilkan) {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+    }
+    
+    // Reset container jadwal ke placeholder
+    if (jadwalContainer) {
+        jadwalContainer.innerHTML = `
+            <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
+                <p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
+            </div>
+        `;
+    }
+}
+
+
+// Fungsi handler untuk event change
+function handleGorChange() {
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    const selectedValue = this.value;
+    
+    if (selectedValue) {
+        btnTampilkan.disabled = false;
+        btnTampilkan.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btnTampilkan.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    } else {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    }
+}
+
+		</script>
+	</body>
+
+	</html>
+
+
+
+
 
