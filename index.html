@@ -1305,8 +1305,8 @@ async function submitForm(e, type) {
         currentUser: currentUser
     };
     
-    // CEK KETERSEDIAAN KHUSUS UNTUK STADION (dan bukan mode edit)
-    if (gorValue === 'STADION' && !data.id) {
+    // CEK KETERSEDIAAN KHUSUS UNTUK STADION (termasuk saat edit)
+    if (gorValue === 'STADION') {
         toggleLoader(true, "Memeriksa ketersediaan...");
         
         try {
@@ -1316,7 +1316,8 @@ async function submitForm(e, type) {
                 data.tahun,
                 data.jamAwal,
                 data.jamSelesai,
-                data.jenisLapangan
+                data.jenisLapangan,
+                data.id  // ID data yang sedang diedit (kosong jika baru)
             );
             
             if (!cek.tersedia) {
@@ -1520,18 +1521,21 @@ function showKonflikModal(pesan) {
  *      Jika B juga penuh → tolak: "Semua lapangan TENIS jam XX:00 sudah penuh."
  *    - Berlaku sebaliknya jika B yang dipilih.
  */
-async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai, jenisLapangan) {
+async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai, jenisLapangan, editId) {
     try {
         // Ambil data terbaru dari server
         const res = await run('getDataWithHash');
         const semuaData = res.data || [];
 
         // Filter hanya data STADION di tanggal yang sama
+        // Kecualikan data yang sedang diedit (agar tidak konflik dengan dirinya sendiri)
         const dataTanggal = semuaData.filter(d => {
-            return d.GOR === 'STADION' &&
-                   String(d.TANGGAL) === String(tanggal) &&
-                   d.BULAN === bulan &&
-                   String(d.TAHUN) === String(tahun);
+            if (d.GOR !== 'STADION') return false;
+            if (String(d.TANGGAL) !== String(tanggal)) return false;
+            if (d.BULAN !== bulan) return false;
+            if (String(d.TAHUN) !== String(tahun)) return false;
+            if (editId && String(d.ID) === String(editId)) return false; // skip data sendiri
+            return true;
         });
 
         // Helper: konversi SEMUA format jam ke menit (robust)
