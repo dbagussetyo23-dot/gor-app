@@ -1122,7 +1122,8 @@ async function submitForm(e, type) {
             if (!jenisLapanganSelect || !jenisLapanganSelect.value) {
                 showToast("Jenis lapangan harus dipilih!", "error");
                 window.isSubmitting = false;
-                return;
+                showToast(cek.pesan, 'error');
+				return;
             }
         }
     }
@@ -1161,16 +1162,6 @@ async function submitForm(e, type) {
             if (!cek.tersedia) {
                 toggleLoader(false);
                 window.isSubmitting = false;
-                
-                if (cek.alternatif) {
-                    if (confirm(cek.pesan + ' Gunakan ' + cek.alternatif + '?')) {
-                        document.getElementById(prefix + 'JenisLapangan').value = cek.alternatif;
-                        // Submit ulang dengan jenis lapangan baru
-                        setTimeout(() => submitForm(e, type), 100);
-                    }
-                } else {
-                    showToast(cek.pesan, 'error');
-                }
                 return;
             }
         } catch (e) {
@@ -1352,9 +1343,7 @@ async function submitForm(e, type) {
 			
 // Modifikasi fungsi submitForm untuk menambahkan jenisLapangan
 
-// Fungsi untuk cek ketersediaan lapangan STADION
 
-// Fungsi untuk cek ketersediaan lapangan STADION
 async function cekKetersediaanStadion(tanggal, bulan, tahun, jamMulai, jamSelesai, jenisLapangan) {
     try {
         const result = await run('getDataWithHash');
