@@ -919,13 +919,13 @@ async function confirmLogout() {
     
     // TAMBAHKAN EVENT LISTENER UNTUK GOR
     document.getElementById('fGor').addEventListener('change', function() {
-        const lapanganValue = document.getElementById('fLapangan').value;
-        if (this.value === 'STADION') {
-            handleLapanganChange(lapanganValue, 'main');
-        } else {
-            document.getElementById('boxJenisLapangan')?.classList.add('hidden');
-        }
-    });
+    const lapanganValue = document.getElementById('fLapangan').value;
+    if (this.value === 'STADION') {
+        handleLapanganChange(lapanganValue, 'main');
+    } else {
+        document.getElementById('boxJenisLapangan')?.classList.add('hidden');
+    }
+});
     
     document.getElementById('eGor').addEventListener('change', function() {
         const lapanganValue = document.getElementById('eLapangan').value;
@@ -1071,12 +1071,23 @@ const JENIS_LAPANGAN_CONFIG = {
     }
 };
 
-function handleLapanganChange(lapanganValue, formType) {
-    const prefix = formType === 'modal' ? 'e' : 'f';
-    const gorValue = document.getElementById(prefix + 'Gor').value;
-    const jenisLapanganBox = document.getElementById(prefix + 'boxJenisLapangan');
-    const jenisLapanganSelect = document.getElementById(prefix + 'JenisLapangan');
-    const lainyaBox = document.getElementById(prefix + 'boxLainya');
+
+			function handleLapanganChange(lapanganValue, formType) {
+    const prefix = formType === 'modal' ? 'e' : '';
+    const gorValue = document.getElementById((prefix || 'f') + 'Gor').value;
+    
+    // Untuk form utama, ID tanpa prefix
+    let jenisLapanganBox, jenisLapanganSelect, lainyaBox;
+    
+    if (formType === 'modal') {
+        jenisLapanganBox = document.getElementById('eboxJenisLapangan');
+        jenisLapanganSelect = document.getElementById('eJenisLapangan');
+        lainyaBox = document.getElementById('eboxLainya');
+    } else {
+        jenisLapanganBox = document.getElementById('boxJenisLapangan');
+        jenisLapanganSelect = document.getElementById('fJenisLapangan');
+        lainyaBox = document.getElementById('boxLainya');
+    }
     
     // Reset semua
     if (lainyaBox) lainyaBox.classList.add('hidden');
@@ -1122,7 +1133,7 @@ function handleLapanganChange(lapanganValue, formType) {
         }
     }
 }
-
+			
 // Modifikasi fungsi submitForm untuk menambahkan jenisLapangan
 async function submitForm(e, type) {
     e.preventDefault();
