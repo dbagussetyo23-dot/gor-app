@@ -273,7 +273,7 @@
             <div class="grid grid-cols-3 gap-2">
                 <select id="fTanggal" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
                 <select id="fBulan" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-                <input type="number" id="fTahun" value="2026" class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
+                <select id="fTahun" class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"><option value="">Pilih Tahun</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option></select>
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <select id="fGor" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
@@ -423,7 +423,7 @@
             <div class="grid grid-cols-3 gap-2">
                 <select id="eTanggal" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
                 <select id="eBulan" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-                <input type="number" id="eTahun" class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
+                <select id="eTahun" class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"><option value="">Tahun</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option></select>
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <select id="eGor" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
@@ -990,6 +990,7 @@ function updateLapanganByGor(gorValue, formType) {
     
     if (gorValue === 'STADION') {
         // Hanya tampilkan lapangan STADION, tanpa opsi LAINYA
+        lapanganSelect.add(new Option('Pilih Olahraga', ''));
         SPORTS_STADION.forEach(s => lapanganSelect.add(new Option(s, s)));
         // Sembunyikan box lainya
         if (boxLainya) boxLainya.classList.add('hidden');
@@ -1003,6 +1004,7 @@ function updateLapanganByGor(gorValue, formType) {
         handleLapanganChange(lapanganSelect.value, formType);
     } else {
         // Tampilkan semua lapangan + LAINYA
+        lapanganSelect.add(new Option('Pilih Olahraga', ''));
         SPORTS.forEach(s => lapanganSelect.add(new Option(s, s)));
         lapanganSelect.add(new Option('LAINYA', 'LAINYA'));
         // Sembunyikan jenis lapangan (hanya untuk STADION)
@@ -1025,13 +1027,23 @@ function setupSelectors() {
         items.forEach(i => el.add(new Option(i, i)));
     };
     
-    fill('fTanggal', Array.from({length:31}, (_,i)=>i+1));
-    fill('fBulan', MONTHS);
-    fill('fGor', GORS);
+    // Helper: isi dengan placeholder di awal
+    const fillWithPlaceholder = (id, placeholder, items) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = '';
+        el.add(new Option(placeholder, ''));
+        items.forEach(i => el.add(new Option(i, i)));
+    };
+    
+    fillWithPlaceholder('fTanggal', 'Pilih Tanggal', Array.from({length:31}, (_,i)=>i+1));
+    fillWithPlaceholder('fBulan', 'Pilih Bulan', MONTHS);
+    fillWithPlaceholder('fGor', 'Pilih GOR', GORS);
     
     const ls = document.getElementById('fLapangan'); 
     if (ls) {
-        ls.innerHTML = ''; 
+        ls.innerHTML = '';
+        ls.add(new Option('Pilih Olahraga', ''));
         SPORTS.forEach(s => ls.add(new Option(s, s))); 
         ls.add(new Option("LAINYA", "LAINYA"));
     }
@@ -1040,13 +1052,14 @@ function setupSelectors() {
         updateLapanganByGor('STADION', 'main');
     }
     
-    fill('eTanggal', Array.from({length:31}, (_,i)=>i+1));
-    fill('eBulan', MONTHS);
-    fill('eGor', GORS);
+    fillWithPlaceholder('eTanggal', 'Tanggal', Array.from({length:31}, (_,i)=>i+1));
+    fillWithPlaceholder('eBulan', 'Bulan', MONTHS);
+    fillWithPlaceholder('eGor', 'Pilih GOR', GORS);
     
     const els = document.getElementById('eLapangan'); 
     if (els) {
-        els.innerHTML = ''; 
+        els.innerHTML = '';
+        els.add(new Option('Pilih Olahraga', ''));
         SPORTS.forEach(s => els.add(new Option(s, s))); 
         els.add(new Option("LAINYA", "LAINYA"));
     }
@@ -1085,6 +1098,8 @@ function setupSelectors() {
         if (fGor) {
             fGor.value = currentUser;
             fGor.disabled = true;
+            // Trigger filter lapangan sesuai GOR
+            updateLapanganByGor(currentUser, 'main');
         }
         
         const eGor = document.getElementById('eGor');
@@ -1325,16 +1340,21 @@ async function submitForm(e, type) {
             if (type === 'main') {
                 // Reset pilihan
                 const fGor = document.getElementById('fGor');
-                if (fGor && fGor.options.length > 0) {
-                    fGor.value = GORS[0];
+                if (fGor) {
+                    // Jika non-admin STADION, tetap STADION; lainnya reset ke placeholder
+                    if (!isUserAdmin && currentUser === 'STADION') {
+                        fGor.value = 'STADION';
+                    } else {
+                        fGor.value = '';
+                    }
                 }
                 
                 const fLapangan = document.getElementById('fLapangan');
-                if (fLapangan && fLapangan.options.length > 0) {
-                    fLapangan.value = SPORTS[0];
+                if (fLapangan) {
+                    fLapangan.value = '';
                 }
                 
-                document.getElementById('fTahun').value = 2026;
+                document.getElementById('fTahun').value = '';
                 
                 // Sembunyikan box
                 const boxJenis = document.getElementById('boxJenisLapangan');
