@@ -1353,6 +1353,8 @@ async function submitForm(e, type) {
 // Modifikasi fungsi submitForm untuk menambahkan jenisLapangan
 
 // Fungsi untuk cek ketersediaan lapangan STADION
+
+// Fungsi untuk cek ketersediaan lapangan STADION
 async function cekKetersediaanStadion(tanggal, bulan, tahun, jamMulai, jamSelesai, jenisLapangan) {
     try {
         const result = await run('getDataWithHash');
@@ -1375,41 +1377,42 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamMulai, jamSelesa
             const tenisA = dataStadion.filter(x => x.JENIS_LAPANGAN === 'LAP.TENIS A');
             const tenisB = dataStadion.filter(x => x.JENIS_LAPANGAN === 'LAP.TENIS B');
             
+            // KASUS 1: Booking LAP.TENIS A
             if (jenisLapangan === 'LAP.TENIS A') {
+                // Jika A sudah dibooking, TOLAK
                 if (tenisA.length > 0) {
-                    return { tersedia: false, pesan: '❌ LAP.TENIS A sudah dibooking untuk jam ' + jamMulai + '!' };
-                }
-                if (tenisB.length === 0) {
                     return { 
                         tersedia: false, 
-                        alternatif: 'LAP.TENIS B',
-                        pesan: '⚠️ LAP.TENIS B tersedia di jam ' + jamMulai + '. Gunakan itu?' 
+                        pesan: '❌ LAP.TENIS A sudah dibooking untuk jam ' + jamMulai + '!' 
                     };
                 }
+                
+                // Jika A tersedia, IZINKAN booking A (tidak perlu cek B)
+                return { tersedia: true };
             }
             
+            // KASUS 2: Booking LAP.TENIS B
             if (jenisLapangan === 'LAP.TENIS B') {
+                // Jika B sudah dibooking, TOLAK
                 if (tenisB.length > 0) {
-                    return { tersedia: false, pesan: '❌ LAP.TENIS B sudah dibooking untuk jam ' + jamMulai + '!' };
-                }
-                if (tenisA.length === 0) {
                     return { 
                         tersedia: false, 
-                        alternatif: 'LAP.TENIS A',
-                        pesan: '⚠️ LAP.TENIS A tersedia di jam ' + jamMulai + '. Gunakan itu?' 
+                        pesan: '❌ LAP.TENIS B sudah dibooking untuk jam ' + jamMulai + '!' 
                     };
                 }
-            }
-            
-            if (tenisA.length > 0 && tenisB.length > 0) {
-                return { tersedia: false, pesan: '❌ Kedua lapangan tenis (A dan B) sudah PENUH di jam ' + jamMulai + '!' };
+                
+                // Jika B tersedia, IZINKAN booking B
+                return { tersedia: true };
             }
         } 
         // Untuk lapangan non-tenis
         else {
             const cek = dataStadion.filter(x => x.JENIS_LAPANGAN === jenisLapangan);
             if (cek.length > 0) {
-                return { tersedia: false, pesan: '❌ ' + jenisLapangan + ' sudah dibooking di jam ' + jamMulai + '!' };
+                return { 
+                    tersedia: false, 
+                    pesan: '❌ ' + jenisLapangan + ' sudah dibooking di jam ' + jamMulai + '!' 
+                };
             }
         }
         
