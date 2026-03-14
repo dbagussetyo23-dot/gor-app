@@ -1003,6 +1003,7 @@
 		populateGorFilter();
 		initExcelFilters();
 		showPage('dashboard');
+		setTimeout(setupInitialForm, 2000);
 	}
 
 
@@ -1846,276 +1847,323 @@
 	// ============================================
 
 	// Handler ketika GOR berubah (UNTUK FORM INPUT)
-	function handleGorChange(type = 'main') {
-		console.log("handleGorChange called with type:", type);
-		const prefix = type === 'modal' ? 'e' : 'f';
-		const gorSelect = document.getElementById(prefix + 'Gor');
-		if (!gorSelect) return;
-		
-		const gor = gorSelect.value;
-		const lapanganSelect = document.getElementById(prefix + 'Lapangan');
-		
-		if (!lapanganSelect) {
-			console.error("Lapangan select not found!");
-			return;
-		}
-		
-		// Reset lapangan
-		lapanganSelect.innerHTML = '';
-		
-		if (gor === "STADION") {
-			// Opsi lapangan untuk STADION
-			const stadionLapangan = [
-				"SEPAK BOLA", "EVENT", "UPACARA", "ATLETIK", "TENIS", 
-				"BASKET", "SEPAK TAKRAW", "VOLLY", "SEPATU RODA", "BMX", "LAINYA"
-			];
-			stadionLapangan.forEach(lap => {
-				lapanganSelect.add(new Option(lap, lap));
-			});
-		} else {
-			// Untuk GOR lain, gunakan SPORTS biasa
-			SPORTS.forEach(s => lapanganSelect.add(new Option(s, s)));
-			lapanganSelect.add(new Option("LAINYA", "LAINYA"));
-		}
-		
-		// Trigger perubahan lapangan untuk mengupdate jenis lapangan
-		setTimeout(() => handleLapanganChange(type), 100);
-	}
-
-	// Handler ketika LAPANGAN berubah (UNTUK FORM INPUT)
-	function handleLapanganChange(type = 'main') {
-		console.log("handleLapanganChange called with type:", type, "gor:", document.getElementById((type === 'modal' ? 'e' : 'f') + 'Gor')?.value, "lapangan:", document.getElementById((type === 'modal' ? 'e' : 'f') + 'Lapangan')?.value);
-		
-		const prefix = type === 'modal' ? 'e' : 'f';
-		const gor = document.getElementById(prefix + 'Gor')?.value;
-		const lapangan = document.getElementById(prefix + 'Lapangan')?.value;
-		
-		const jenisContainer = document.getElementById((type === 'modal' ? 'e' : '') + 'jenisLapanganContainer');
-		const jenisSelect = document.getElementById((type === 'modal' ? 'e' : '') + 'JenisLapangan');
-		const boxLainya = document.getElementById((type === 'modal' ? 'e' : '') + 'boxLainya');
-		const boxJenisLainya = document.getElementById((type === 'modal' ? 'e' : '') + 'boxJenisLainya');
-		
-		// Reset semua
-		if (jenisSelect) jenisSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
-		if (boxLainya) boxLainya.classList.add('hidden');
-		if (boxJenisLainya) boxJenisLainya.classList.add('hidden');
-		if (jenisContainer) jenisContainer.classList.remove('hidden');
-		
-		// Jika GOR atau lapangan tidak ada, return
-		if (!gor || !lapangan) return;
-		
-		// JIKA GOR = STADION
-		if (gor === "STADION") {
-			if (lapangan === "SEPAK BOLA" || lapangan === "ATLETIK") {
-				if (jenisSelect) {
-					jenisSelect.innerHTML = '<option value="STADION UTAMA" selected>STADION UTAMA</option>';
-				}
-			} 
-			else if (lapangan === "BASKET") {
-				if (jenisSelect) {
-					jenisSelect.innerHTML = '<option value="LAPANGAN BASKET" selected>LAPANGAN BASKET</option>';
-				}
-			}
-			else if (lapangan === "SEPAK TAKRAW") {
-				if (jenisSelect) {
-					jenisSelect.innerHTML = '<option value="LAPANGAN SEPAK TAKRAW" selected>LAPANGAN SEPAK TAKRAW</option>';
-				}
-			}
-			else if (lapangan === "VOLLY") {
-				if (jenisSelect) {
-					jenisSelect.innerHTML = '<option value="LAPANGAN VOLLY" selected>LAPANGAN VOLLY</option>';
-				}
-			}
-			else if (lapangan === "SEPATU RODA") {
-				if (jenisSelect) {
-					jenisSelect.innerHTML = '<option value="SIRKUIT SEPATU RODA" selected>SIRKUIT SEPATU RODA</option>';
-				}
-			}
-			else if (lapangan === "BMX") {
-				if (jenisSelect) {
-					jenisSelect.innerHTML = '<option value="AREA BMX" selected>AREA BMX</option>';
-				}
-			}
-			else if (lapangan === "TENIS") {
-				if (jenisSelect) {
-					jenisSelect.innerHTML = `
-						<option value="">PILIH JENIS LAPANGAN</option>
-						<option value="LAP. TENIS A">LAP. TENIS A</option>
-						<option value="LAP. TENIS B">LAP. TENIS B</option>
-					`;
-				}
-			}
-			else if (lapangan === "LAINYA") {
-				if (jenisContainer) jenisContainer.classList.add('hidden');
-				if (boxLainya) boxLainya.classList.remove('hidden');
-				if (boxJenisLainya) boxJenisLainya.classList.remove('hidden');
-			}
-			else {
-				// Untuk EVENT, UPACARA, dll
-				if (jenisSelect) {
-					jenisSelect.innerHTML = `<option value="${lapangan}" selected>${lapangan}</option>`;
-				}
-			}
-		} 
-		// JIKA GOR BUKAN STADION
-		else if (gor && gor !== "STADION") {
-			if (lapangan === "LAINYA") {
-				if (jenisContainer) jenisContainer.classList.add('hidden');
-				if (boxLainya) boxLainya.classList.remove('hidden');
-				if (boxJenisLainya) boxJenisLainya.classList.remove('hidden');
-			} else {
-				// Untuk GOR lain, beri opsi jenis lapangan umum
-				if (jenisSelect) {
-					jenisSelect.innerHTML = `
-						<option value="">PILIH JENIS LAPANGAN</option>
-						<option value="LAPANGAN A">LAPANGAN A</option>
-						<option value="LAPANGAN B">LAPANGAN B</option>
-						<option value="LAPANGAN C">LAPANGAN C</option>
-						<option value="LAPANGAN UTAMA">LAPANGAN UTAMA</option>
-					`;
-				}
-			}
-		}
-	}
-
-	// Fungsi hitung durasi otomatis
-	function hitungDurasi(type = 'main') {
-		const prefix = type === 'modal' ? 'e' : 'f';
-		const jamAwal = document.getElementById(prefix + 'JamAwal')?.value;
-		const jamSelesai = document.getElementById(prefix + 'JamSelesai')?.value;
-		const jamInput = document.getElementById(prefix + 'Jam');
-		
-		if (jamAwal && jamSelesai && jamInput) {
-			const [jam1, menit1] = jamAwal.split(':').map(Number);
-			const [jam2, menit2] = jamSelesai.split(':').map(Number);
-			
-			let durasi = (jam2 + menit2/60) - (jam1 + menit1/60);
-			if (durasi < 0) durasi += 24; // Cross midnight
-			
-			jamInput.value = durasi.toFixed(1);
-		}
-	}
-
 	// ============================================
-	// FUNGSI UNTUK JADWAL (FILTER GOR)
-	// ============================================
+// FUNGSI UNTUK FORM INPUT (MAIN DAN MODAL)
+// ============================================
 
-	// Fungsi untuk filter GOR di halaman jadwal (BUKAN untuk form input)
-	function handleGorFilterChange() {
-		console.log("handleGorFilterChange called");
-		const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-		const selectedValue = this.value;
-		
-		if (selectedValue) {
-			btnTampilkan.disabled = false;
-			btnTampilkan.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-			btnTampilkan.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
-		} else {
-			btnTampilkan.disabled = true;
-			btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-			btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
-		}
-	}
+// Handler ketika GOR berubah (UNTUK FORM INPUT)
+function handleGorChange(type = 'main') {
+    console.log("handleGorChange called with type:", type);
+    const prefix = type === 'modal' ? 'e' : 'f';
+    const gorSelect = document.getElementById(prefix + 'Gor');
+    if (!gorSelect) return;
+    
+    const gor = gorSelect.value;
+    const lapanganSelect = document.getElementById(prefix + 'Lapangan');
+    
+    if (!lapanganSelect) {
+        console.error("Lapangan select not found!");
+        return;
+    }
+    
+    // Reset lapangan
+    lapanganSelect.innerHTML = '';
+    
+    if (gor === "STADION") {
+        // Opsi lapangan untuk STADION
+        const stadionLapangan = [
+            "SEPAK BOLA", "EVENT", "UPACARA", "ATLETIK", "TENIS", 
+            "BASKET", "SEPAK TAKRAW", "VOLLY", "SEPATU RODA", "BMX", "LAINYA"
+        ];
+        stadionLapangan.forEach(lap => {
+            lapanganSelect.add(new Option(lap, lap));
+        });
+    } else {
+        // Untuk GOR lain, gunakan SPORTS biasa
+        SPORTS.forEach(s => lapanganSelect.add(new Option(s, s)));
+        lapanganSelect.add(new Option("LAINYA", "LAINYA"));
+    }
+    
+    // Trigger perubahan lapangan untuk mengupdate jenis lapangan
+    setTimeout(() => handleLapanganChange(type), 200);
+}
 
-	// Populate filter GOR di halaman jadwal
-	function populateGorFilter() {
-		console.log("populateGorFilter called");
-		const selectGor = document.getElementById('filterGorJadwal');
-		const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-		if (!selectGor) return;
-		
-		let options = '<option value="">PILIH GOR</option>';
-		
-		if (isUserAdmin) {
-			GORS.forEach(gor => {
-				options += `<option value="${gor}">${gor}</option>`;
-			});
-		} else {
-			options += `<option value="${currentUser}">${currentUser}</option>`;
-		}
-		
-		selectGor.innerHTML = options;
-		
-		// Hapus event listener lama
-		selectGor.removeEventListener('change', handleGorFilterChange);
-		// Tambahkan event listener baru
-		selectGor.addEventListener('change', handleGorFilterChange);
-		
-		if (btnTampilkan) {
-			btnTampilkan.disabled = true;
-			btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
-			btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-		}
-	}
+// Handler ketika LAPANGAN berubah (UNTUK FORM INPUT)
+function handleLapanganChange(type = 'main') {
+    console.log("handleLapanganChange called");
+    
+    const prefix = type === 'modal' ? 'e' : 'f';
+    const gor = document.getElementById(prefix + 'Gor')?.value;
+    const lapangan = document.getElementById(prefix + 'Lapangan')?.value;
+    
+    console.log("GOR:", gor, "Lapangan:", lapangan);
+    
+    const jenisContainer = document.getElementById((type === 'modal' ? 'e' : '') + 'jenisLapanganContainer');
+    const jenisSelect = document.getElementById((type === 'modal' ? 'e' : '') + 'JenisLapangan');
+    const boxLainya = document.getElementById((type === 'modal' ? 'e' : '') + 'boxLainya');
+    const boxJenisLainya = document.getElementById((type === 'modal' ? 'e' : '') + 'boxJenisLainya');
+    
+    // Reset semua
+    if (jenisSelect) {
+        jenisSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
+        jenisSelect.disabled = false;
+    }
+    if (boxLainya) boxLainya.classList.add('hidden');
+    if (boxJenisLainya) boxJenisLainya.classList.add('hidden');
+    if (jenisContainer) jenisContainer.classList.remove('hidden');
+    
+    // Jika GOR atau lapangan tidak ada, return
+    if (!gor || !lapangan) return;
+    
+    // CEK UNTUK STADION
+    if (gor === "STADION") {
+        if (lapangan === "SEPAK BOLA" || lapangan === "ATLETIK") {
+            // OTOMATIS STADION UTAMA
+            if (jenisSelect) {
+                jenisSelect.innerHTML = '<option value="STADION UTAMA" selected>STADION UTAMA</option>';
+                jenisSelect.disabled = true; // Tidak bisa diubah
+            }
+        } 
+        else if (lapangan === "BASKET") {
+            if (jenisSelect) {
+                jenisSelect.innerHTML = '<option value="LAPANGAN BASKET" selected>LAPANGAN BASKET</option>';
+                jenisSelect.disabled = true;
+            }
+        }
+        else if (lapangan === "SEPAK TAKRAW") {
+            if (jenisSelect) {
+                jenisSelect.innerHTML = '<option value="LAPANGAN SEPAK TAKRAW" selected>LAPANGAN SEPAK TAKRAW</option>';
+                jenisSelect.disabled = true;
+            }
+        }
+        else if (lapangan === "VOLLY") {
+            if (jenisSelect) {
+                jenisSelect.innerHTML = '<option value="LAPANGAN VOLLY" selected>LAPANGAN VOLLY</option>';
+                jenisSelect.disabled = true;
+            }
+        }
+        else if (lapangan === "SEPATU RODA") {
+            if (jenisSelect) {
+                jenisSelect.innerHTML = '<option value="SIRKUIT SEPATU RODA" selected>SIRKUIT SEPATU RODA</option>';
+                jenisSelect.disabled = true;
+            }
+        }
+        else if (lapangan === "BMX") {
+            if (jenisSelect) {
+                jenisSelect.innerHTML = '<option value="AREA BMX" selected>AREA BMX</option>';
+                jenisSelect.disabled = true;
+            }
+        }
+        else if (lapangan === "TENIS") {
+            // TENIS: user harus memilih A atau B
+            if (jenisSelect) {
+                jenisSelect.innerHTML = `
+                    <option value="">PILIH JENIS LAPANGAN</option>
+                    <option value="LAP. TENIS A">LAP. TENIS A</option>
+                    <option value="LAP. TENIS B">LAP. TENIS B</option>
+                `;
+                jenisSelect.disabled = false;
+            }
+        }
+        else if (lapangan === "LAINYA") {
+            // LAINYA: user harus mengisi manual
+            if (jenisContainer) jenisContainer.classList.add('hidden');
+            if (boxLainya) boxLainya.classList.remove('hidden');
+            if (boxJenisLainya) boxJenisLainya.classList.remove('hidden');
+        }
+        else {
+            // Untuk EVENT, UPACARA, dll (tidak ada mapping khusus)
+            if (jenisSelect) {
+                jenisSelect.innerHTML = `<option value="${lapangan}" selected>${lapangan}</option>`;
+                jenisSelect.disabled = true;
+            }
+        }
+    } 
+    // JIKA GOR BUKAN STADION
+    else if (gor && gor !== "STADION") {
+        if (lapangan === "LAINYA") {
+            if (jenisContainer) jenisContainer.classList.add('hidden');
+            if (boxLainya) boxLainya.classList.remove('hidden');
+            if (boxJenisLainya) boxJenisLainya.classList.remove('hidden');
+        } else {
+            // Untuk GOR lain, user bisa memilih jenis lapangan
+            if (jenisSelect) {
+                jenisSelect.innerHTML = `
+                    <option value="">PILIH JENIS LAPANGAN</option>
+                    <option value="LAPANGAN A">LAPANGAN A</option>
+                    <option value="LAPANGAN B">LAPANGAN B</option>
+                    <option value="LAPANGAN C">LAPANGAN C</option>
+                    <option value="LAPANGAN UTAMA">LAPANGAN UTAMA</option>
+                `;
+                jenisSelect.disabled = false;
+            }
+        }
+    }
+}
 
-	// Enable filter GOR setelah tanggal dipilih
-	function enableGorFilter() {
-		const tanggalAwal = document.getElementById("tanggalAwal").value;
-		const filterGor = document.getElementById("filterGorJadwal");
-		const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-		
-		if (tanggalAwal) {
-			filterGor.disabled = false;
-			filterGor.classList.remove("bg-gray-100", "opacity-50", "cursor-not-allowed");
-			filterGor.classList.add("bg-white", "opacity-100", "cursor-pointer");
-			
-			populateGorFilter();
-		} else {
-			filterGor.disabled = true;
-			filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
-			filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
-			
-			btnTampilkan.disabled = true;
-			btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
-			btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-			
-			const jadwalTableContainer = document.getElementById("jadwalTableContainer");
-			if (jadwalTableContainer) {
-				jadwalTableContainer.innerHTML = `
-					<div class="bg-gray-50 rounded-2xl p-8 text-center">
-						<i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
-						<p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
-						<p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
-					</div>
-				`;
-			}
-		}
-	}
+// Fungsi hitung durasi otomatis
+function hitungDurasi(type = 'main') {
+    const prefix = type === 'modal' ? 'e' : 'f';
+    const jamAwal = document.getElementById(prefix + 'JamAwal')?.value;
+    const jamSelesai = document.getElementById(prefix + 'JamSelesai')?.value;
+    const jamInput = document.getElementById(prefix + 'Jam');
+    
+    if (jamAwal && jamSelesai && jamInput) {
+        const [jam1, menit1] = jamAwal.split(':').map(Number);
+        const [jam2, menit2] = jamSelesai.split(':').map(Number);
+        
+        let durasi = (jam2 + menit2/60) - (jam1 + menit1/60);
+        if (durasi < 0) durasi += 24; // Cross midnight
+        
+        jamInput.value = durasi.toFixed(1);
+    }
+}
 
-	// Reset filter jadwal
-	function resetJadwalFilters() {
-		const inputTanggal = document.getElementById("tanggalAwal");
-		const filterGor = document.getElementById("filterGorJadwal");
-		const btnTampilkan = document.getElementById("btnTampilkanJadwal");
-		const jadwalTableContainer = document.getElementById("jadwalTableContainer");
-		
-		if (inputTanggal) {
-			inputTanggal.value = "";
-		}
-		
-		if (filterGor) {
-			filterGor.disabled = true;
-			filterGor.innerHTML = '<option value="">PILIH GOR</option>';
-			filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
-			filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
-		}
-		
-		if (btnTampilkan) {
-			btnTampilkan.disabled = true;
-			btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
-			btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-		}
-		
-		if (jadwalTableContainer) {
-			jadwalTableContainer.innerHTML = `
-				<div class="bg-gray-50 rounded-2xl p-8 text-center">
-					<i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
-					<p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
-					<p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
-				</div>
-			`;
-		}
-	}
+// ============================================
+// FUNGSI UNTUK JADWAL (FILTER GOR)
+// ============================================
+
+// Fungsi untuk filter GOR di halaman jadwal
+function handleGorFilterChange() {
+    console.log("handleGorFilterChange called");
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    const selectedValue = this.value;
+    
+    if (selectedValue) {
+        btnTampilkan.disabled = false;
+        btnTampilkan.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btnTampilkan.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    } else {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    }
+}
+
+// Populate filter GOR di halaman jadwal
+function populateGorFilter() {
+    console.log("populateGorFilter called");
+    const selectGor = document.getElementById('filterGorJadwal');
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    if (!selectGor) return;
+    
+    let options = '<option value="">PILIH GOR</option>';
+    
+    if (isUserAdmin) {
+        GORS.forEach(gor => {
+            options += `<option value="${gor}">${gor}</option>`;
+        });
+    } else {
+        options += `<option value="${currentUser}">${currentUser}</option>`;
+    }
+    
+    selectGor.innerHTML = options;
+    
+    // Hapus event listener lama
+    selectGor.removeEventListener('change', handleGorFilterChange);
+    // Tambahkan event listener baru
+    selectGor.addEventListener('change', handleGorFilterChange);
+    
+    if (btnTampilkan) {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+    }
+}
+
+// Enable filter GOR setelah tanggal dipilih
+function enableGorFilter() {
+    const tanggalAwal = document.getElementById("tanggalAwal").value;
+    const filterGor = document.getElementById("filterGorJadwal");
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    
+    if (tanggalAwal) {
+        filterGor.disabled = false;
+        filterGor.classList.remove("bg-gray-100", "opacity-50", "cursor-not-allowed");
+        filterGor.classList.add("bg-white", "opacity-100", "cursor-pointer");
+        
+        populateGorFilter();
+    } else {
+        filterGor.disabled = true;
+        filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
+        filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
+        
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        
+        const jadwalTableContainer = document.getElementById("jadwalTableContainer");
+        if (jadwalTableContainer) {
+            jadwalTableContainer.innerHTML = `
+                <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                    <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
+                    <p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// Reset filter jadwal
+function resetJadwalFilters() {
+    const inputTanggal = document.getElementById("tanggalAwal");
+    const filterGor = document.getElementById("filterGorJadwal");
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    const jadwalTableContainer = document.getElementById("jadwalTableContainer");
+    
+    if (inputTanggal) {
+        inputTanggal.value = "";
+    }
+    
+    if (filterGor) {
+        filterGor.disabled = true;
+        filterGor.innerHTML = '<option value="">PILIH GOR</option>';
+        filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
+        filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
+    }
+    
+    if (btnTampilkan) {
+        btnTampilkan.disabled = true;
+        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+    }
+    
+    if (jadwalTableContainer) {
+        jadwalTableContainer.innerHTML = `
+            <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                <i class="fas fa-calendar-alt text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-400 font-bold text-sm">Silakan pilih tanggal dan GOR terlebih dahulu</p>
+                <p class="text-gray-300 text-xs mt-1">Kemudian klik tombol TAMPILKAN</p>
+            </div>
+        `;
+    }
+}
+
+// ============================================
+// FUNGSI SETUP ULANG (PASTIKAN SELECTOR TERISI)
+// ============================================
+
+// Panggil fungsi ini setelah login untuk memastikan semua terisi
+function setupInitialForm() {
+    console.log("setupInitialForm called");
+    
+    // Trigger perubahan untuk form utama
+    setTimeout(() => {
+        const fGor = document.getElementById('fGor');
+        if (fGor && fGor.value) {
+            handleGorChange('main');
+        }
+    }, 1000);
+    
+    // Trigger perubahan untuk modal
+    setTimeout(() => {
+        const eGor = document.getElementById('eGor');
+        if (eGor && eGor.value) {
+            handleGorChange('modal');
+        }
+    }, 1500);
+}
 
 			</script>
 		</body>
