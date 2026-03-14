@@ -508,6 +508,8 @@
 			const MONTHS = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
 			const GORS = ["STADION", "GOR UTAMA", "GOR KOTA", "GOR KANOR", "GOR KALITIDU", "SPORT CENTER", "GOR SUMBEREJO", "GOR KEDUNGADEM", "GOR KEDEWAN", "GOR TAMBAKREJO"];
 			const SPORTS = ["BADMINTON", "BASKET", "BOLA TANGAN", "FUTSAL", "GYM", "PENCAK SILAT", "PUSH BIKE", "SENAM", "VOLLY", "PANAHAN", "SEPAK TAKRAW", "TENIS", "BMX","SEPAK BOLA", "SEPATU RODA"];
+			// Lapangan yang tersedia khusus di STADION
+			const SPORTS_STADION = ["SEPAK BOLA", "TENIS", "VOLLY", "SEPAK TAKRAW", "BASKET", "SEPATU RODA", "BMX"];
 			const YEARS = ["2024", "2025", "2026"];
 
 			// STATE GLOBAL
@@ -533,7 +535,7 @@
 			// ============================================
 			// UTILITY FUNCTIONS
 			// ============================================
-			const API_URL = "https://script.google.com/macros/s/AKfycbztMJVqq9bkpwX_HCDFWElmq3e3XkUmEmNKoIAdzXuZ3VvHEp0KxWu6ccoWjglKDojwpQ/exec";
+			const API_URL = "https://script.google.com/macros/s/AKfycbwbn3QiYQSDWaxkQw1jQ2lB7wEbojU509cV4sMlUovRNDr6oRibcPcEEZ6WtRS_aNplpg/exec";
 	async function run(action, ...params) {
 
 	  const form = new FormData();
@@ -974,7 +976,48 @@ async function confirmLogout() {
 			// UI SETUP
 			// ============================================
 			
-			function setupSelectors() {
+			// Update dropdown lapangan berdasarkan GOR yang dipilih
+function updateLapanganByGor(gorValue, formType) {
+    const prefix = formType === 'modal' ? 'e' : 'f';
+    const lapanganSelect = document.getElementById(prefix + 'Lapangan');
+    const boxLainya = document.getElementById(formType === 'modal' ? 'eboxLainya' : 'boxLainya');
+    const boxJenis = document.getElementById(formType === 'modal' ? 'eboxJenisLapangan' : 'boxJenisLapangan');
+    
+    if (!lapanganSelect) return;
+    
+    const currentVal = lapanganSelect.value;
+    lapanganSelect.innerHTML = '';
+    
+    if (gorValue === 'STADION') {
+        // Hanya tampilkan lapangan STADION, tanpa opsi LAINYA
+        SPORTS_STADION.forEach(s => lapanganSelect.add(new Option(s, s)));
+        // Sembunyikan box lainya
+        if (boxLainya) boxLainya.classList.add('hidden');
+        // Pertahankan pilihan jika masih valid, atau reset ke pertama
+        if (SPORTS_STADION.includes(currentVal)) {
+            lapanganSelect.value = currentVal;
+        } else {
+            lapanganSelect.value = SPORTS_STADION[0];
+        }
+        // Trigger handleLapanganChange untuk tampilkan jenis lapangan
+        handleLapanganChange(lapanganSelect.value, formType);
+    } else {
+        // Tampilkan semua lapangan + LAINYA
+        SPORTS.forEach(s => lapanganSelect.add(new Option(s, s)));
+        lapanganSelect.add(new Option('LAINYA', 'LAINYA'));
+        // Sembunyikan jenis lapangan (hanya untuk STADION)
+        if (boxJenis) boxJenis.classList.add('hidden');
+        if (boxLainya) boxLainya.classList.add('hidden');
+        // Pertahankan pilihan jika masih valid
+        if (SPORTS.includes(currentVal)) {
+            lapanganSelect.value = currentVal;
+        } else {
+            lapanganSelect.value = SPORTS[0];
+        }
+    }
+}
+
+function setupSelectors() {
     const fill = (id, items) => {
         const el = document.getElementById(id); 
         if (!el) return;
@@ -992,6 +1035,10 @@ async function confirmLogout() {
         SPORTS.forEach(s => ls.add(new Option(s, s))); 
         ls.add(new Option("LAINYA", "LAINYA"));
     }
+    // Jika user adalah STADION, langsung filter lapangan
+    if (!isUserAdmin && currentUser === 'STADION') {
+        updateLapanganByGor('STADION', 'main');
+    }
     
     fill('eTanggal', Array.from({length:31}, (_,i)=>i+1));
     fill('eBulan', MONTHS);
@@ -1002,6 +1049,10 @@ async function confirmLogout() {
         els.innerHTML = ''; 
         SPORTS.forEach(s => els.add(new Option(s, s))); 
         els.add(new Option("LAINYA", "LAINYA"));
+    }
+    // Jika user adalah STADION, langsung filter lapangan modal
+    if (!isUserAdmin && currentUser === 'STADION') {
+        updateLapanganByGor('STADION', 'modal');
     }
     
     const hbs = document.getElementById('histBulan'); 
@@ -1018,21 +1069,11 @@ async function confirmLogout() {
     
     // TAMBAHKAN EVENT LISTENER UNTUK GOR
     document.getElementById('fGor').addEventListener('change', function() {
-    const lapanganValue = document.getElementById('fLapangan').value;
-    if (this.value === 'STADION') {
-        handleLapanganChange(lapanganValue, 'main');
-    } else {
-        document.getElementById('boxJenisLapangan')?.classList.add('hidden');
-    }
+    updateLapanganByGor(this.value, 'main');
 });
     
     document.getElementById('eGor').addEventListener('change', function() {
-        const lapanganValue = document.getElementById('eLapangan').value;
-        if (this.value === 'STADION') {
-            handleLapanganChange(lapanganValue, 'modal');
-        } else {
-           document.getElementById('eboxJenisLapangan')?.classList.add('hidden');
-        }
+        updateLapanganByGor(this.value, 'modal');
     });
     
     if (!isUserAdmin) {
@@ -1645,7 +1686,10 @@ function openEditModal(id) {
     document.getElementById('eTahun').value = d.TAHUN;
     document.getElementById('eGor').value = d.GOR;
     
-    if (SPORTS.includes(d.LAPANGAN)) { 
+    // Update dropdown lapangan sesuai GOR terlebih dahulu
+    updateLapanganByGor(d.GOR, 'modal');
+    
+    if (SPORTS.includes(d.LAPANGAN) || SPORTS_STADION.includes(d.LAPANGAN)) { 
         document.getElementById('eLapangan').value = d.LAPANGAN; 
         
         // Trigger change untuk menampilkan jenis lapangan
