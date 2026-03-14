@@ -921,17 +921,53 @@ async function confirmLogout() {
 				toggleLoader(true, "Sinkronisasi...");
 				try { 
 					const result = await run('getDataWithHash');
-					userData = result.data;
+					// Sanitasi semua JAM_AWAL/JAM_SELESAI sebelum dipakai render
+					userData = (result.data || []).map(d => {
+						return {
+							...d,
+							JAM_AWAL: safeFormatJam(d.JAM_AWAL),
+							JAM_SELESAI: safeFormatJam(d.JAM_SELESAI)
+						};
+					});
 					currentHash = result.hash;
 					lastUpdate = result.lastUpdate;
 					
-					updateDashboard(); 
-					renderHistory(); 
+					try { updateDashboard(); } catch(e2) { console.warn('updateDashboard error:', e2); }
+					try { renderHistory(); } catch(e3) { console.warn('renderHistory error:', e3); }
 					toggleLoader(false); 
 				} catch (e) { 
 					console.error("Fetch data error:", e);
 					toggleLoader(false); 
 				}
+			}
+			
+			// Sanitasi nilai jam ke string HH:mm (frontend version)
+			function safeFormatJam(val) {
+				try {
+					if (val === null || val === undefined || val === '' || val === '-') return '-';
+					if (typeof val === 'number') {
+						if (val >= 0 && val < 1) {
+							const tot = Math.round(val * 24 * 60);
+							return String(Math.floor(tot/60)).padStart(2,'0') + ':' + String(tot%60).padStart(2,'0');
+						}
+						return String(Math.floor(val)).padStart(2,'0') + ':00';
+					}
+					if (typeof val === 'string') {
+						const s = val.trim();
+						if (s.includes('T')) {
+							const p = s.split('T')[1].split(':');
+							return p[0].padStart(2,'0') + ':' + p[1].padStart(2,'0');
+						}
+						if (s.includes(':')) {
+							const p = s.split(':');
+							return p[0].padStart(2,'0') + ':' + p[1].padStart(2,'0');
+						}
+					}
+					if (val instanceof Date) {
+						return String(val.getHours()).padStart(2,'0') + ':' + String(val.getMinutes()).padStart(2,'0');
+					}
+					return String(val);
+				} catch(e) { return '-'; }
 			}
 
 			// ============================================
@@ -1281,7 +1317,6 @@ async function submitForm(e, type) {
                 document.getElementById('fNominal').value = '';
             }
             
-            await fetchData();
             showToast(result.message, "success");
             
         } else {
@@ -1293,6 +1328,13 @@ async function submitForm(e, type) {
     } finally {
         toggleLoader(false);
         window.isSubmitting = false;
+    }
+    
+    // fetchData dipisah agar error render tidak dikira error save
+    try {
+        await fetchData();
+    } catch (fe) {
+        console.warn("fetchData after save warning (data sudah tersimpan):", fe);
     }
 }
 			function handleLapanganChange(lapanganValue, formType) {
