@@ -1072,6 +1072,153 @@ const JENIS_LAPANGAN_CONFIG = {
 };
 
 
+// Modifikasi fungsi submitForm untuk menambahkan jenisLapangan dan cek ketersediaan
+async function submitForm(e, type) {
+    e.preventDefault();
+    
+    if (window.isSubmitting) return;
+    window.isSubmitting = true;
+    
+    const prefix = type === 'modal' ? 'e' : 'f';
+    
+    // Validasi semua kolom harus diisi
+    const requiredFields = [
+        prefix + 'Nama', 
+        prefix + 'Tanggal', 
+        prefix + 'Bulan', 
+        prefix + 'Tahun', 
+        prefix + 'Gor', 
+        prefix + 'Lapangan',
+        prefix + 'JamAwal',
+        prefix + 'JamSelesai',
+        prefix + 'Jam',
+        prefix + 'Nominal'
+    ];
+    
+    for (let fieldId of requiredFields) {
+        const field = document.getElementById(fieldId);
+        if (!field || !field.value) {
+            showToast("Semua kolom harus diisi!", "error");
+            window.isSubmitting = false;
+            return;
+        }
+    }
+    
+    const gorValue = document.getElementById(prefix + 'Gor').value;
+    const lapanganValue = document.getElementById(prefix + 'Lapangan').value;
+    
+    // Validasi khusus untuk STADION
+    if (gorValue === 'STADION') {
+        if (lapanganValue === 'LAINYA') {
+            const lapanganLainya = document.getElementById(prefix + 'LapanganLainya');
+            if (!lapanganLainya || !lapanganLainya.value) {
+                showToast("Nama lapangan lainnya harus diisi!", "error");
+                window.isSubmitting = false;
+                return;
+            }
+        } else {
+            const jenisLapanganSelect = document.getElementById(prefix + 'JenisLapangan');
+            if (!jenisLapanganSelect || !jenisLapanganSelect.value) {
+                showToast("Jenis lapangan harus dipilih!", "error");
+                window.isSubmitting = false;
+                return;
+            }
+        }
+    }
+    
+    const data = {
+        id: type === 'modal' ? document.getElementById('eId').value : "",
+        nama: document.getElementById(prefix + 'Nama').value.toUpperCase(),
+        tanggal: document.getElementById(prefix + 'Tanggal').value,
+        bulan: document.getElementById(prefix + 'Bulan').value,
+        tahun: document.getElementById(prefix + 'Tahun').value,
+        gor: gorValue,
+        lapangan: lapanganValue,
+        lapanganLainnya: document.getElementById(prefix + 'LapanganLainya')?.value || '',
+        jenisLapangan: document.getElementById(prefix + 'JenisLapangan')?.value || '',
+        jamAwal: document.getElementById(prefix + 'JamAwal').value,
+        jamSelesai: document.getElementById(prefix + 'JamSelesai').value,
+        jamDurasi: document.getElementById(prefix + 'Jam').value,
+        nominal: document.getElementById(prefix + 'Nominal').value,
+        currentUser: currentUser
+    };
+    
+    // CEK KETERSEDIAAN KHUSUS UNTUK STADION (dan bukan mode edit)
+    if (gorValue === 'STADION' && !data.id) {
+        toggleLoader(true, "Memeriksa ketersediaan...");
+        
+        try {
+            const cek = await cekKetersediaanStadion(
+                data.tanggal,
+                data.bulan,
+                data.tahun,
+                data.jamAwal,
+                data.jamSelesai,
+                data.jenisLapangan
+            );
+            
+            if (!cek.tersedia) {
+                toggleLoader(false);
+                window.isSubmitting = false;
+                
+                if (cek.alternatif) {
+                    if (confirm(cek.pesan + ' Gunakan ' + cek.alternatif + '?')) {
+                        document.getElementById(prefix + 'JenisLapangan').value = cek.alternatif;
+                        // Submit ulang dengan jenis lapangan baru
+                        setTimeout(() => submitForm(e, type), 100);
+                    }
+                } else {
+                    showToast(cek.pesan, 'error');
+                }
+                return;
+            }
+        } catch (e) {
+            console.error("Error cek ketersediaan:", e);
+            // Lanjutkan jika error
+        }
+    }
+    
+    toggleLoader(true, "Menyimpan...");
+    
+    try {
+        const result = await run('saveData', data);
+        
+        if (result.success) {
+            if (type === 'modal') closeEditModal();
+            document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
+            
+            // Reset tampilan jenis lapangan
+            if (document.getElementById(prefix + 'boxJenisLapangan')) {
+                document.getElementById(prefix + 'boxJenisLapangan').classList.add('hidden');
+            }
+            if (document.getElementById(prefix + 'boxLainya')) {
+                document.getElementById(prefix + 'boxLainya').classList.add('hidden');
+            }
+            
+            await fetchData();
+            showToast(result.message, "success");
+        } else {
+            showToast(result.message, "error");
+            
+            // Jika ada saran lapangan lain (untuk tenis)
+            if (result.lapanganTersedia) {
+                setTimeout(() => {
+                    if (confirm(`Lapangan ${result.lapanganTersedia} tersedia. Gunakan lapangan tersebut?`)) {
+                        document.getElementById(prefix + 'JenisLapangan').value = result.lapanganTersedia;
+                    }
+                }, 100);
+            }
+        }
+    } catch (e) {
+        console.error("Error save:", e);
+        showToast("Gagal menyimpan data: " + e.message, "error");
+    } finally {
+        toggleLoader(false);
+        window.isSubmitting = false;
+    }
+}
+
+
 			function handleLapanganChange(lapanganValue, formType) {
     const prefix = formType === 'modal' ? 'e' : '';
     const gorValue = document.getElementById((prefix || 'f') + 'Gor').value;
@@ -1986,70 +2133,6 @@ function handleGorChange() {
     }
 }
 
-
-// Fungsi untuk cek ketersediaan lapangan STADION
-async function cekKetersediaanStadion(tanggal, bulan, tahun, jamMulai, jamSelesai, jenisLapangan) {
-    try {
-        const result = await run('getDataWithHash');
-        const data = result.data || [];
-        
-        // Filter data untuk STADION
-        const dataStadion = data.filter(x => 
-            x.GOR === 'STADION' &&
-            String(x.TANGGAL) === String(tanggal) &&
-            x.BULAN === bulan &&
-            String(x.TAHUN) === String(tahun) &&
-            x.JAM_AWAL === jamMulai &&
-            x.JAM_SELESAI === jamSelesai
-        );
-        
-        // Cek khusus TENIS
-        if (jenisLapangan.includes('LAP.TENIS')) {
-            const tenisA = dataStadion.filter(x => x.JENIS_LAPANGAN === 'LAP.TENIS A');
-            const tenisB = dataStadion.filter(x => x.JENIS_LAPANGAN === 'LAP.TENIS B');
-            
-            if (jenisLapangan === 'LAP.TENIS A' && tenisA.length > 0) {
-                return { tersedia: false, pesan: 'LAP.TENIS A sudah dibooking' };
-            }
-            if (jenisLapangan === 'LAP.TENIS B' && tenisB.length > 0) {
-                return { tersedia: false, pesan: 'LAP.TENIS B sudah dibooking' };
-            }
-            
-            // Cek ketersediaan lapangan lain
-            if (jenisLapangan === 'LAP.TENIS A' && tenisB.length === 0) {
-                return { 
-                    tersedia: false, 
-                    alternatif: 'LAP.TENIS B',
-                    pesan: 'LAP.TENIS B tersedia, gunakan itu?' 
-                };
-            }
-            if (jenisLapangan === 'LAP.TENIS B' && tenisA.length === 0) {
-                return { 
-                    tersedia: false, 
-                    alternatif: 'LAP.TENIS A',
-                    pesan: 'LAP.TENIS A tersedia, gunakan itu?' 
-                };
-            }
-            
-            if (tenisA.length > 0 && tenisB.length > 0) {
-                return { tersedia: false, pesan: 'Kedua lapangan tenis sudah penuh di jam ini!' };
-            }
-        } 
-        // Untuk lapangan non-tenis
-        else {
-            const cek = dataStadion.filter(x => x.JENIS_LAPANGAN === jenisLapangan);
-            if (cek.length > 0) {
-                return { tersedia: false, pesan: jenisLapangan + ' sudah dibooking di jam ini!' };
-            }
-        }
-        
-        return { tersedia: true };
-        
-    } catch (e) {
-        console.error("Error cek ketersediaan:", e);
-        return { tersedia: true }; // Default boleh booking jika error
-    }
-}
 
 
 		</script>
