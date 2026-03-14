@@ -601,17 +601,30 @@ function parseJamToHour(val) {
 }
 
 function formatTimeDirect(val) {
-		if (!val) return "-";
+		if (val === null || val === undefined || val === '' || val === '-') return "-";
+		// Number: Excel serial time (0.0-1.0)
+		if (typeof val === 'number') {
+			if (val >= 0 && val < 1) {
+				const totalMenit = Math.round(val * 24 * 60);
+				const h = Math.floor(totalMenit / 60).toString().padStart(2, '0');
+				const m = (totalMenit % 60).toString().padStart(2, '0');
+				return h + ':' + m;
+			}
+			return val.toString().padStart(2,'0') + ':00';
+		}
+		// ISO string
 		if (typeof val === 'string' && val.includes('T')) {
 			const timePart = val.split('T')[1];
 			const hms = timePart.split(':');
 			return hms[0].padStart(2, '0') + ':' + hms[1].padStart(2, '0');
 		}
+		// Date object
 		if (val instanceof Date) {
 			const h = val.getHours().toString().padStart(2, '0');
 			const m = val.getMinutes().toString().padStart(2, '0');
-			return `${h}:${m}`;
+			return h + ':' + m;
 		}
+		// Plain string HH:mm or H:mm
 		if (typeof val === 'string' && val.includes(':')) {
 			const p = val.split(':');
 			return p[0].padStart(2, '0') + ':' + p[1].padStart(2, '0');
@@ -1482,8 +1495,14 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai
             return dataTanggal.some(d => {
                 if (!d.JENIS_LAPANGAN) return false;
                 if (d.JENIS_LAPANGAN.trim() !== jenis.trim()) return false;
-
-                return isOverlap(jamAwal, jamSelesai, d.JAM_AWAL, d.JAM_SELESAI);
+                const s1 = toMenit(jamAwal), e1 = toMenit(jamSelesai);
+                const s2 = toMenit(d.JAM_AWAL), e2 = toMenit(d.JAM_SELESAI);
+                const overlap = (s1 >= 0 && e1 >= 0 && s2 >= 0 && e2 >= 0) && (s1 < e2 && s2 < e1);
+                console.log('[CEK] Input:', jamAwal,'-',jamSelesai,'(',s1,'-',e1,')',
+                            '| DB:', d.JAM_AWAL,'-',d.JAM_SELESAI,'(',s2,'-',e2,')',
+                            '| Jenis match:', d.JENIS_LAPANGAN.trim(),'===',jenis.trim(),
+                            '| Overlap:', overlap);
+                return overlap;
             });
         }
 
