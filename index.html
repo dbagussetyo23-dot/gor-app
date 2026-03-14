@@ -568,7 +568,39 @@
 				setTimeout(() => toast.classList.add('hidden'), 3000);
 			}
 
-			function formatTimeDirect(val) {
+			// Helper global: konversi JAM (berbagai format) ke angka jam (0-23)
+function parseJamToHour(val) {
+    try {
+        if (val === null || val === undefined || val === '' || val === '-') return 0;
+        // Number: bisa Excel serial (0.0-1.0) atau sudah jam
+        if (typeof val === 'number') {
+            if (val >= 0 && val < 1) return Math.floor(val * 24);
+            return Math.floor(val);
+        }
+        if (typeof val === 'string') {
+            const s = val.trim();
+            // ISO string
+            if (s.includes('T')) {
+                const h = parseInt(s.split('T')[1].split(':')[0]);
+                return isNaN(h) ? 0 : h;
+            }
+            // HH:mm atau H:mm
+            if (s.includes(':')) {
+                const h = parseInt(s.split(':')[0]);
+                return isNaN(h) ? 0 : h;
+            }
+            // Desimal string
+            const num = parseFloat(s);
+            if (!isNaN(num) && num >= 0 && num < 1) return Math.floor(num * 24);
+        }
+        if (typeof val === 'object' && val !== null) {
+            return new Date(val).getHours();
+        }
+        return 0;
+    } catch(e) { return 0; }
+}
+
+function formatTimeDirect(val) {
 		if (!val) return "-";
 		if (typeof val === 'string' && val.includes('T')) {
 			const timePart = val.split('T')[1];
@@ -1167,12 +1199,6 @@ async function submitForm(e, type) {
         toggleLoader(true, "Memeriksa ketersediaan...");
         
         try {
-            console.log('[SUBMIT] Cek ketersediaan:', {
-                tanggal: data.tanggal, bulan: data.bulan, tahun: data.tahun,
-                jamAwal: data.jamAwal, jamSelesai: data.jamSelesai,
-                jenisLapangan: data.jenisLapangan,
-                typeJamAwal: typeof data.jamAwal, typeJamSelesai: typeof data.jamSelesai
-            });
             const cek = await cekKetersediaanStadion(
                 data.tanggal,
                 data.bulan,
@@ -1457,16 +1483,7 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai
                 if (!d.JENIS_LAPANGAN) return false;
                 if (d.JENIS_LAPANGAN.trim() !== jenis.trim()) return false;
 
-                // Debug: log format JAM dari DB agar mudah diagnosa
-                console.log('[CEK JADWAL] DB JAM_AWAL:', d.JAM_AWAL, typeof d.JAM_AWAL,
-                            '| JAM_SELESAI:', d.JAM_SELESAI, typeof d.JAM_SELESAI,
-                            '| Input:', jamAwal, jamSelesai);
-
-                const hasil = isOverlap(jamAwal, jamSelesai, d.JAM_AWAL, d.JAM_SELESAI);
-                console.log('[CEK JADWAL] Overlap result:', hasil,
-                    '| s1:', toMenit(jamAwal), 'e1:', toMenit(jamSelesai),
-                    '| s2:', toMenit(d.JAM_AWAL), 'e2:', toMenit(d.JAM_SELESAI));
-                return hasil;
+                return isOverlap(jamAwal, jamSelesai, d.JAM_AWAL, d.JAM_SELESAI);
             });
         }
 
@@ -1876,8 +1893,8 @@ function openEditModal(id) {
                     
                     if (tglDb.getTime() !== tgl.getTime()) return false;
                     
-                    const jamMulai = parseInt(x.JAM_AWAL.split(':')[0]);
-                    const jamSelesai = parseInt(x.JAM_SELESAI.split(':')[0]) || jamMulai + 1;
+                    const jamMulai = parseJamToHour(x.JAM_AWAL);
+                    const jamSelesai = parseJamToHour(x.JAM_SELESAI) || jamMulai + 1;
                     
                     return jam >= jamMulai && jam < jamSelesai;
                 });
@@ -1887,7 +1904,7 @@ function openEditModal(id) {
                     dailyBookings++;
                     
                     const booking = bookings[0];
-                    const isFirstHour = jam === parseInt(bookings[0].JAM_AWAL.split(':')[0]);
+                    const isFirstHour = jam === parseJamToHour(bookings[0].JAM_AWAL);
                     
                     if (isFirstHour) {
                         html += `<td class="border border-gray-100 p-0 relative group cursor-pointer transition-all bg-gradient-to-br from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600" 
@@ -2110,7 +2127,7 @@ function openEditModal(id) {
 						</div>
 						
 						<!-- Footer dengan peak info jika jam peak -->
-						${parseInt(booking.JAM_AWAL.split(':')[0]) >= 16 && parseInt(booking.JAM_AWAL.split(':')[0]) <= 21 ? `
+						${parseJamToHour(booking.JAM_AWAL) >= 16 && parseJamToHour(booking.JAM_AWAL) <= 21 ? `
 						<div class="bg-amber-50 p-3 rounded-xl flex items-center gap-2">
 							<i class="fas fa-bolt text-amber-500"></i>
 							<span class="text-[10px] font-bold text-amber-700">PEAK HOUR (16:00-21:00)</span>
