@@ -515,24 +515,38 @@
 			// ============================================
 			// UTILITY FUNCTIONS
 			// ============================================
-			const API_URL = "https://script.google.com/macros/s/AKfycbylFEwIpWn1U_PyITo283DJ25c3p4cA_9C724SMDCTGoLvFKHw9PcN2XvUWP5lNxtJTiw/exec";
+			// Dengan URL deployment Anda yang sebenarnya (yang muncul saat deploy)
+const API_URL = "https://script.google.com/macros/s/AKfycbylFEwIpWn1U_PyITo283DJ25c3p4cA_9C724SMDCTGoLvFKHw9PcN2XvUWP5lNxtJTiw/exec";
 	
 			
-			async function run(action, ...params) {
+	async function run(action, ...params) {
+    toggleLoader(true, "Menghubungi server...");
+    
+    try {
+        const form = new FormData();
+        form.append("data", JSON.stringify({
+            action: action,
+            params: params
+        }));
 
-	  const form = new FormData();
-	  form.append("data", JSON.stringify({
-		action: action,
-		params: params
-	  }));
+        const res = await fetch(API_URL, {
+            method: "POST",
+            body: form
+        });
 
-	  const res = await fetch(API_URL, {
-		method: "POST",
-		body: form
-	  });
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
 
-	  return await res.json();
-	}
+        const result = await res.json();
+        toggleLoader(false);
+        return result;
+    } catch (err) {
+        toggleLoader(false);
+        console.error("API call error:", err);
+        throw err;
+    }
+}
 
 			function toggleLoader(show, text = "Memproses...") {
 				document.getElementById('loader').style.display = show ? 'flex' : 'none';
@@ -620,7 +634,7 @@
 			
 			
 // Modifikasi fungsi handleLogin untuk memanggil resetJadwalFilters
-async function handleLogin(e) {
+			async function handleLogin(e) {
     e.preventDefault();
     const u = document.getElementById('user').value.trim().toUpperCase();
     const p = document.getElementById('pass').value.trim();
@@ -628,6 +642,7 @@ async function handleLogin(e) {
     toggleLoader(true, "Verifikasi...");
 
     try {
+        // Perbaiki cara panggil API - gunakan array params
         const res = await run('checkLogin', u, p);
 
         if (res.success) {
@@ -641,20 +656,12 @@ async function handleLogin(e) {
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('displayUser').innerText = isUserAdmin ? "ADMIN" : currentUser;
             
-            // Tampilkan elemen khusus admin jika user adalah admin
             toggleAdminElements();
-
             setupSelectors();
-            
-            // TAMBAHKAN INI - Reset filter jadwal
             resetJadwalFilters();
-            
-            // TAMBAHKAN INI - panggil ulang untuk memastikan filter GOR terisi
             populateGorFilter();
-            
             await fetchData();
             
-            // Hanya jalankan heartbeat dan polling untuk ADMIN
             if (isUserAdmin) {
                 startHeartbeat();
                 startPolling();
@@ -663,14 +670,14 @@ async function handleLogin(e) {
             showToast("Login berhasil", "success");
         } else {
             toggleLoader(false);
-            showToast("Username atau password salah!", "error");
+            showToast(res.message || "Username atau Password salah!", "error");
         }
     } catch (err) {
+        console.error("Login error:", err);
         toggleLoader(false);
-        showToast("Gagal koneksi ke server", "error");
+        showToast("Gagal koneksi ke server: " + err.message, "error");
     }
 }
-
 					
 			// Fungsi untuk menampilkan/menyembunyikan elemen khusus admin
 			function toggleAdminElements() {
