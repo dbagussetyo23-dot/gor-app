@@ -1386,14 +1386,33 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai
                    String(d.TAHUN) === String(tahun);
         });
 
+        // Helper: konversi berbagai format jam ke menit (robust)
+        function toMenit(val) {
+            if (!val) return -1;
+            // Sudah string HH:mm
+            if (typeof val === 'string' && val.includes(':')) {
+                // Bisa format HH:mm atau ISO string dengan T
+                const part = val.includes('T') ? val.split('T')[1] : val;
+                const [h, m] = part.split(':').map(Number);
+                if (!isNaN(h) && !isNaN(m)) return h * 60 + m;
+            }
+            // Date object
+            if (val instanceof Date || (typeof val === 'object' && val !== null)) {
+                try {
+                    const d = new Date(val);
+                    return d.getHours() * 60 + d.getMinutes();
+                } catch(e) {}
+            }
+            // Number (menit langsung)
+            if (typeof val === 'number') return val;
+            return -1;
+        }
+
         // Helper: cek apakah dua rentang waktu overlap
         function isOverlap(awal1, selesai1, awal2, selesai2) {
-            const toMin = t => {
-                const [h, m] = t.split(':').map(Number);
-                return h * 60 + m;
-            };
-            const s1 = toMin(awal1), e1 = toMin(selesai1);
-            const s2 = toMin(awal2), e2 = toMin(selesai2);
+            const s1 = toMenit(awal1), e1 = toMenit(selesai1);
+            const s2 = toMenit(awal2), e2 = toMenit(selesai2);
+            if (s1 < 0 || e1 < 0 || s2 < 0 || e2 < 0) return false;
             return s1 < e2 && s2 < e1;
         }
 
@@ -1402,9 +1421,7 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai
             return dataTanggal.some(d => {
                 if (!d.JENIS_LAPANGAN) return false;
                 if (d.JENIS_LAPANGAN.trim() !== jenis.trim()) return false;
-                const jamDb_awal = formatTimeDirect(d.JAM_AWAL);
-                const jamDb_selesai = formatTimeDirect(d.JAM_SELESAI);
-                return isOverlap(jamAwal, jamSelesai, jamDb_awal, jamDb_selesai);
+                return isOverlap(jamAwal, jamSelesai, d.JAM_AWAL, d.JAM_SELESAI);
             });
         }
 
