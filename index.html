@@ -1295,40 +1295,6 @@ function openEditModal(id) {
 			}
 
 			// ============================================
-			// EDIT MODAL
-			// ============================================
-			function openEditModal(id) {
-				const d = userData.find(i => i.ID === id);
-				if (!d) return;
-				
-				document.getElementById('eId').value = d.ID;
-				document.getElementById('eNama').value = d.NAMA;
-				document.getElementById('eTanggal').value = d.TANGGAL;
-				document.getElementById('eBulan').value = d.BULAN;
-				document.getElementById('eTahun').value = d.TAHUN;
-				document.getElementById('eGor').value = d.GOR;
-				
-				if (SPORTS.includes(d.LAPANGAN)) { 
-					document.getElementById('eLapangan').value = d.LAPANGAN; 
-					toggleLainya('', 'modal'); 
-				} else { 
-					document.getElementById('eLapangan').value = 'LAINYA'; 
-					toggleLainya('LAINYA', 'modal'); 
-					document.getElementById('eLapanganLainya').value = d.LAPANGAN; 
-				}
-				
-				document.getElementById('eJamAwal').value = formatTimeDirect(d.JAM_AWAL);
-				document.getElementById('eJamSelesai').value = formatTimeDirect(d.JAM_SELESAI);
-				document.getElementById('eJam').value = d.JAM_DURASI;
-				document.getElementById('eNominal').value = d.NOMINAL;
-				document.getElementById('editModal').style.display = 'flex';
-			}
-
-			function closeEditModal() { 
-				document.getElementById('editModal').style.display = 'none'; 
-			}
-
-			// ============================================
 			// RENDER FUNCTIONS
 			// ============================================
 			function renderHistory() {
