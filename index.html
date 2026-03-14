@@ -1,4 +1,4 @@
-	<!DOCTYPE html>
+<!DOCTYPE html>
 	<html lang="id">
 	<head>
 		<meta charset="UTF-8">
@@ -459,7 +459,25 @@
 			</div>
 		</div>
 
-		<!-- CONFIRM DELETE MODAL -->
+		
+<!-- KONFLIK MODAL (untuk notif jadwal bentrok / tenis alternatif) -->
+<div id="konflikModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl animate-fade-in-up">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-rose-500"></i>
+            </div>
+            <h3 class="text-base font-black text-gray-800">Jadwal Tidak Tersedia</h3>
+        </div>
+        <p id="konflikPesan" class="text-sm text-gray-600 font-medium mb-5 whitespace-pre-line leading-relaxed"></p>
+        <button onclick="document.getElementById('konflikModal').classList.add('hidden')"
+                class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl hover:bg-indigo-700 transition-all text-sm">
+            MENGERTI
+        </button>
+    </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
 		<div id="confirmDeleteModal" class="fixed inset-0 bg-black/50 hidden z-[9999] flex items-center justify-center">
 			<div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
 				<h3 class="text-lg font-black mb-2 text-gray-800">Hapus Data?</h3>
@@ -515,7 +533,7 @@
 			// ============================================
 			// UTILITY FUNCTIONS
 			// ============================================
-			const API_URL = "https://script.google.com/macros/s/AKfycbztMJVqq9bkpwX_HCDFWElmq3e3XkUmEmNKoIAdzXuZ3VvHEp0KxWu6ccoWjglKDojwpQ/exec";
+			const API_URL = "https://script.google.com/macros/s/AKfycbwbn3QiYQSDWaxkQw1jQ2lB7wEbojU509cV4sMlUovRNDr6oRibcPcEEZ6WtRS_aNplpg/exec";
 	async function run(action, ...params) {
 
 	  const form = new FormData();
@@ -1161,7 +1179,8 @@ async function submitForm(e, type) {
             if (!cek.tersedia) {
                 toggleLoader(false);
                 window.isSubmitting = false;
-                showToast(cek.pesan, 'error');
+                // Tampilkan notif konflik dengan modal khusus
+                showKonflikModal(cek.pesan);
                 return;
             }
         } catch (e) {
@@ -1330,7 +1349,111 @@ async function submitForm(e, type) {
     }
 }
 			
-// Modifikasi fungsi submitForm untuk menambahkan jenisLapangan
+
+function showKonflikModal(pesan) {
+    document.getElementById('konflikPesan').innerText = pesan;
+    document.getElementById('konflikModal').classList.remove('hidden');
+}
+
+// ============================================
+// FUNGSI CEK KETERSEDIAAN STADION
+// ============================================
+
+/**
+ * Cek ketersediaan lapangan di STADION.
+ *
+ * Aturan:
+ * 1. Lapangan NON-TENIS (Volly, Basket, dll): hanya boleh 1 penyewa
+ *    di jenis_lapangan + tanggal + jam yang sama → TOLAK jika sudah ada.
+ *
+ * 2. Lapangan TENIS (LAP.TENIS A / LAP.TENIS B):
+ *    - Jika A dipilih dan A penuh di jam itu → cek B.
+ *      Jika B tersedia → notif: "LAP.TENIS A sudah penuh, LAP.TENIS B masih tersedia!"
+ *      Jika B juga penuh → tolak: "Semua lapangan TENIS jam XX:00 sudah penuh."
+ *    - Berlaku sebaliknya jika B yang dipilih.
+ */
+async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai, jenisLapangan) {
+    try {
+        // Ambil data terbaru dari server
+        const res = await run('getDataWithHash');
+        const semuaData = res.data || [];
+
+        // Filter hanya data STADION di tanggal yang sama
+        const dataTanggal = semuaData.filter(d => {
+            return d.GOR === 'STADION' &&
+                   String(d.TANGGAL) === String(tanggal) &&
+                   d.BULAN === bulan &&
+                   String(d.TAHUN) === String(tahun);
+        });
+
+        // Helper: cek apakah dua rentang waktu overlap
+        function isOverlap(awal1, selesai1, awal2, selesai2) {
+            const toMin = t => {
+                const [h, m] = t.split(':').map(Number);
+                return h * 60 + m;
+            };
+            const s1 = toMin(awal1), e1 = toMin(selesai1);
+            const s2 = toMin(awal2), e2 = toMin(selesai2);
+            return s1 < e2 && s2 < e1;
+        }
+
+        // Helper: cari booking yang konflik untuk jenis lapangan tertentu
+        function adaKonflik(jenis) {
+            return dataTanggal.some(d => {
+                if (!d.JENIS_LAPANGAN) return false;
+                if (d.JENIS_LAPANGAN.trim() !== jenis.trim()) return false;
+                const jamDb_awal = formatTimeDirect(d.JAM_AWAL);
+                const jamDb_selesai = formatTimeDirect(d.JAM_SELESAI);
+                return isOverlap(jamAwal, jamSelesai, jamDb_awal, jamDb_selesai);
+            });
+        }
+
+        // ── KASUS TENIS ──────────────────────────────────────────
+        if (jenisLapangan === 'LAP.TENIS A' || jenisLapangan === 'LAP.TENIS B') {
+            const lapDipilih = jenisLapangan;
+            const lapLain = jenisLapangan === 'LAP.TENIS A' ? 'LAP.TENIS B' : 'LAP.TENIS A';
+
+            const dipilihPenuh = adaKonflik(lapDipilih);
+            const lainPenuh    = adaKonflik(lapLain);
+
+            if (!dipilihPenuh) {
+                // Lapangan yang dipilih kosong → lanjut simpan
+                return { tersedia: true };
+            }
+
+            // Lapangan yang dipilih sudah penuh
+            if (!lainPenuh) {
+                // Lapangan lain masih tersedia → beri notifikasi tapi TETAP TOLAK,
+                // user harus ganti pilihan ke lapangan yang kosong.
+                return {
+                    tersedia: false,
+                    pesan: `⚠️ ${lapDipilih} sudah terisi di jam tersebut.\n✅ ${lapLain} masih tersedia! Silakan pilih ${lapLain}.`
+                };
+            }
+
+            // Kedua lapangan penuh
+            return {
+                tersedia: false,
+                pesan: `🚫 Semua lapangan TENIS sudah penuh di jam ${jamAwal} – ${jamSelesai}.`
+            };
+        }
+
+        // ── KASUS NON-TENIS ──────────────────────────────────────
+        if (adaKonflik(jenisLapangan)) {
+            return {
+                tersedia: false,
+                pesan: `🚫 ${jenisLapangan} sudah dipesan pada tanggal ${tanggal} ${bulan} ${tahun} jam ${jamAwal} – ${jamSelesai}.`
+            };
+        }
+
+        return { tersedia: true };
+
+    } catch (e) {
+        console.error("cekKetersediaanStadion error:", e);
+        // Jika gagal cek, biarkan lanjut (jangan blokir karena error jaringan)
+        return { tersedia: true };
+    }
+}
 
 // ============================================
 // FUNGSI DEBUG UNTUK CEK DATA
@@ -2128,6 +2251,3 @@ function handleGorChange() {
 	</body>
 
 	</html>
-
-
-
