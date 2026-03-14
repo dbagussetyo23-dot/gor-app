@@ -359,10 +359,26 @@
                 
                 <!-- FILTER GOR - AWALNYA DISABLED -->
                 <div class="relative min-w-[180px]">
-                    <select id="filterGorJadwal" class="w-full px-5 py-3 rounded-xl border border-gray-200 bg-gray-100 font-bold text-sm outline-none opacity-50 cursor-not-allowed" disabled>
+                    <select id="filterGorJadwal" onchange="handleGorJadwalChange()" class="w-full px-5 py-3 rounded-xl border border-gray-200 bg-gray-100 font-bold text-sm outline-none opacity-50 cursor-not-allowed" disabled>
                         <option value="">PILIH GOR</option>
                     </select>
                     <i class="fas fa-map-marker-alt absolute right-4 top-1/2 -translate-y-1/2 text-indigo-300 text-sm"></i>
+                </div>
+
+                <!-- FILTER JENIS LAPANGAN - hanya muncul saat pilih STADION -->
+                <div class="relative min-w-[200px] hidden" id="boxFilterJenisLapangan">
+                    <select id="filterJenisLapanganJadwal" onchange="handleJenisLapanganJadwalChange()" class="w-full px-5 py-3 rounded-xl border border-gray-200 bg-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">PILIH JENIS LAPANGAN</option>
+                        <option value="STADION UTAMA">STADION UTAMA</option>
+                        <option value="LAPANGAN BASKET">LAPANGAN BASKET</option>
+                        <option value="LAPANGAN TAKRAW">LAPANGAN TAKRAW</option>
+                        <option value="LAPANGAN VOLLY">LAPANGAN VOLLY</option>
+                        <option value="LINTASAN SEPATU RODA">LINTASAN SEPATU RODA</option>
+                        <option value="AREA BMX">AREA BMX</option>
+                        <option value="LAPANGAN TENIS">LAPANGAN TENIS</option>
+                        <option value="HALAMAN STADION">HALAMAN STADION</option>
+                    </select>
+                    <i class="fas fa-layer-group absolute right-4 top-1/2 -translate-y-1/2 text-indigo-300 text-sm pointer-events-none"></i>
                 </div>
                 
                 <button onclick="cekJadwal()" id="btnTampilkanJadwal"
@@ -1969,186 +1985,203 @@ function closeEditModal() {
 		async function cekJadwal() {
     const tanggalAwal = document.getElementById("tanggalAwal").value;
     const selectedGor = document.getElementById("filterGorJadwal").value;
-    
-    if (!tanggalAwal) {
-        showToast("Pilih tanggal terlebih dahulu", "error");
-        return;
-    }
-    
-    if (!selectedGor) {
-        showToast("Pilih GOR terlebih dahulu", "error");
-        return;
+    const selectedJenis = document.getElementById("filterJenisLapanganJadwal")?.value || '';
+
+    if (!tanggalAwal) { showToast("Pilih tanggal terlebih dahulu", "error"); return; }
+    if (!selectedGor) { showToast("Pilih GOR terlebih dahulu", "error"); return; }
+    if (selectedGor === 'STADION' && !selectedJenis) {
+        showToast("Pilih jenis lapangan terlebih dahulu", "error"); return;
     }
 
-    toggleLoader(true, `Memuat jadwal ${selectedGor}...`);
-    
+    toggleLoader(true, `Memuat jadwal...`);
+
     try {
         const res = await run('getDataWithHash');
-        let data = res.data || [];
+        let semuaData = (res.data || []).map(d => ({
+            ...d,
+            JAM_AWAL: safeFormatJam(d.JAM_AWAL),
+            JAM_SELESAI: safeFormatJam(d.JAM_SELESAI)
+        }));
 
-        // FILTER LANGSUNG DENGAN SELECTEDGOR
-        data = data.filter(x => x.GOR === selectedGor);
-
-        // Parse tanggal awal
         const [tahun, bulan] = tanggalAwal.split('-').map(Number);
-        
-        // Hitung jumlah hari dalam bulan
         const daysInMonth = new Date(tahun, bulan, 0).getDate();
-
-        // Jam operasional GOR: 08:00 - 22:00
         const JAM_MULAI = 8;
-        const JAM_SELESAI = 22;
+        const JAM_SELESAI_OP = 22;
 
-        // TITLE UNTUK MENAMPILKAN FILTER AKTIF
+        // Tentukan lapangan yang akan ditampilkan
+        // Untuk TENIS: 2 sub-lapangan (A dan B)
+        // Untuk lainnya: 1 lapangan berdasarkan JENIS_LAPANGAN
+        const isTenis = selectedGor === 'STADION' && selectedJenis === 'LAPANGAN TENIS';
+        const isStadion = selectedGor === 'STADION';
+
+        // Mapping jenis lapangan jadwal -> JENIS_LAPANGAN di DB
+        const JENIS_DB_MAP = {
+            'STADION UTAMA':       'STADION UTAMA',
+            'LAPANGAN BASKET':     'LAPANGAN BASKET',
+            'LAPANGAN TAKRAW':     'LAPANGAN SEPAK TAKRAW',
+            'LAPANGAN VOLLY':      'LAPANGAN VOLLY',
+            'LINTASAN SEPATU RODA':'LINTASAN SEPATU RODA',
+            'AREA BMX':            'AREA BMX',
+            'LAPANGAN TENIS':      ['LAP.TENIS A', 'LAP.TENIS B'],
+            'HALAMAN STADION':     'HALAMAN STADION',
+        };
+
+        // Filter data
+        let dataFiltered;
+        if (isStadion) {
+            const dbJenis = JENIS_DB_MAP[selectedJenis];
+            if (Array.isArray(dbJenis)) {
+                dataFiltered = semuaData.filter(x => x.GOR === 'STADION' && dbJenis.includes(x.JENIS_LAPANGAN));
+            } else {
+                dataFiltered = semuaData.filter(x => x.GOR === 'STADION' && x.JENIS_LAPANGAN === dbJenis);
+            }
+        } else {
+            dataFiltered = semuaData.filter(x => x.GOR === selectedGor);
+        }
+
+        // Label tampilan
+        const labelJenis = isStadion ? selectedJenis : selectedGor;
         const filterInfo = `<div class="mb-4 p-3 bg-indigo-50 rounded-xl flex items-center gap-2">
             <i class="fas fa-filter text-indigo-600"></i>
-            <span class="text-xs font-bold text-indigo-700">Menampilkan jadwal: <span class="bg-indigo-200 px-2 py-1 rounded">${selectedGor}</span> - Bulan: ${MONTHS[bulan-1]} ${tahun}</span>
+            <span class="text-xs font-bold text-indigo-700">
+                Jadwal: <span class="bg-indigo-200 px-2 py-1 rounded">${selectedGor}${isStadion ? ' → ' + selectedJenis : ''}</span>
+                &nbsp;Bulan: ${MONTHS[bulan-1]} ${tahun}
+            </span>
         </div>`;
 
-        let html = filterInfo + `
-        <div class="w-full">
+        // Helper: cari booking di tanggal+jam tertentu (+ opsional filter jenis spesifik)
+        function getBookings(tgl, jam, jenisSpesifik) {
+            return dataFiltered.filter(x => {
+                const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
+                tglDb.setHours(0,0,0,0);
+                if (tglDb.getTime() !== tgl.getTime()) return false;
+                const jA = parseJamToHour(x.JAM_AWAL);
+                const jS = parseJamToHour(x.JAM_SELESAI) || jA + 1;
+                if (!(jam >= jA && jam < jS)) return false;
+                if (jenisSpesifik && x.JENIS_LAPANGAN !== jenisSpesifik) return false;
+                return true;
+            });
+        }
+
+        // Bangun tabel
+        let html = filterInfo + `<div class="w-full">
             <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100">
                 <div class="overflow-x-auto">
                     <table class="w-full border-collapse">
-                        <thead>
-                            <tr>
-                                <th class="p-2 text-left font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500 sticky left-0 z-20" style="min-width: 70px; max-width: 70px;">
-                                    <div class="flex items-center gap-1">
-                                        <i class="fas fa-calendar text-[10px]"></i>
-                                        <span class="text-[11px]">TGL</span>
-                                    </div>
-                                </th>`;
+                        <thead><tr>
+                            <th class="p-2 text-left font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-r border-indigo-500 sticky left-0 z-20" style="min-width:80px">
+                                <div class="flex items-center gap-1"><i class="fas fa-calendar text-[10px]"></i><span class="text-[11px]">TGL</span></div>
+                            </th>`;
 
         // Header jam
-        for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
-            let jamDisplay = jam.toString().padStart(2, '0');
-            let isPeakHour = (jam >= 16 && jam <= 21);
-            
-            html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white ${isPeakHour ? 'bg-opacity-90' : ''}" style="min-width: 32px; max-width: 32px;">
-                        <div class="flex flex-col items-center">
-                            <span class="text-[10px]">${jamDisplay}</span>
-                            <span class="text-[6px] opacity-50">${isPeakHour ? 'PK' : ''}</span>
-                        </div>
-                    </th>`;
+        for (let jam = JAM_MULAI; jam <= JAM_SELESAI_OP; jam++) {
+            const pk = jam >= 16 && jam <= 21;
+            html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width:${isTenis?60:32}px">
+                <div class="flex flex-col items-center">
+                    <span class="text-[10px]">${String(jam).padStart(2,'0')}</span>
+                    ${isTenis ? '<span class="text-[7px] opacity-60 font-bold">A&nbsp;|&nbsp;B</span>' : `<span class="text-[6px] opacity-50">${pk?'PK':''}</span>`}
+                </div></th>`;
         }
+        html += `<th class="p-2 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width:60px"><span class="text-[11px]">TOTAL</span></th>
+        </tr></thead><tbody>`;
 
-        // Kolom TOTAL
-        html += `<th class="p-2 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width: 70px; max-width: 70px;">
-            <span class="text-[12px] font-black">TOTAL</span>
-        </th>`;
-        html += `</tr></thead><tbody>`;
+        let totalBookings = 0, totalSesi = 0;
 
-        // Hitung total booking
-        let totalBookings = 0;
-        let totalSesiBulan = 0;
-
-        // Generate semua hari dalam bulan
         for (let d = 1; d <= daysInMonth; d++) {
-            const tgl = new Date(tahun, bulan - 1, d);
-            tgl.setHours(0, 0, 0, 0);
-            
-            const dayName = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'][tgl.getDay()];
-            
-            // Format tanggal untuk display
-            const tanggalStr = `${tahun}-${bulan.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
-            
-            // Cek apakah hari ini
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const tgl = new Date(tahun, bulan-1, d);
+            tgl.setHours(0,0,0,0);
+            const dayName = ['MIN','SEN','SEL','RAB','KAM','JUM','SAB'][tgl.getDay()];
+            const tanggalStr = `${tahun}-${String(bulan).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const today = new Date(); today.setHours(0,0,0,0);
             const isToday = tgl.getTime() === today.getTime();
-            
+            const isWeekend = tgl.getDay() === 0 || tgl.getDay() === 6;
             let dailyBookings = 0;
-            
-            html += `<tr class="${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} hover:bg-indigo-50/20 transition-colors">`;
-            
-            // Kolom Tanggal
-            html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} z-10 ${isToday ? 'bg-indigo-50' : ''}" style="min-width: 70px; max-width: 70px;">
-                        <div class="flex flex-col items-center leading-tight">
-                            <div class="flex items-center gap-1 w-full justify-between px-1">
-                                <span class="text-[12px] font-black ${tgl.getDay() === 0 || tgl.getDay() === 6 ? 'text-rose-500' : 'text-indigo-600'}">${dayName}</span>
-                                ${isToday ? '<span class="text-[8px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-black">INI</span>' : ''}
-                            </div>
-                            <span class="text-[14px] font-black text-gray-800">${d}/${bulan}</span>
+
+            html += `<tr class="${d%2===0?'bg-white':'bg-gray-50/30'} hover:bg-indigo-50/10">`;
+            html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d%2===0?'bg-white':'bg-gray-50/30'} z-10 ${isToday?'bg-indigo-50':''}" style="min-width:80px">
+                <div class="flex flex-col items-center leading-tight">
+                    <div class="flex items-center gap-1 w-full justify-between px-1">
+                        <span class="text-[11px] font-black ${isWeekend?'text-rose-500':'text-indigo-600'}">${dayName}</span>
+                        ${isToday?'<span class="text-[7px] bg-indigo-100 text-indigo-600 px-1 rounded font-black">INI</span>':''}
+                    </div>
+                    <span class="text-[13px] font-black text-gray-800">${d}/${bulan}</span>
+                </div></td>`;
+
+            for (let jam = JAM_MULAI; jam <= JAM_SELESAI_OP; jam++) {
+                if (isTenis) {
+                    // TENIS: 2 sub-kolom A dan B dalam 1 sel
+                    const bA = getBookings(tgl, jam, 'LAP.TENIS A');
+                    const bB = getBookings(tgl, jam, 'LAP.TENIS B');
+                    if (bA.length > 0) { totalBookings++; dailyBookings++; }
+                    if (bB.length > 0) { totalBookings++; dailyBookings++; }
+
+                    const renderSub = (bookings, label, jenisLap) => {
+                        if (bookings.length > 0) {
+                            const bk = bookings[0];
+                            const isFirst = jam === parseJamToHour(bk.JAM_AWAL);
+                            return `<div class="flex-1 rounded ${isFirst?'bg-rose-400':'bg-rose-300'} flex items-center justify-center cursor-pointer hover:bg-rose-500 transition-all group"
+                                onclick="showBookingDetail('${bk.ID}')">
+                                <span class="text-[7px] text-white font-black opacity-0 group-hover:opacity-100">${bk.NAMA.substring(0,2)}</span>
+                            </div>`;
+                        } else {
+                            return `<div class="flex-1 rounded bg-emerald-400 flex items-center justify-center cursor-pointer hover:bg-emerald-500 transition-all group"
+                                onclick="showAvailableSlotTenis('${tanggalStr}', ${jam}, '${jenisLap}')">
+                                <span class="text-[7px] text-white opacity-0 group-hover:opacity-100">+</span>
+                            </div>`;
+                        }
+                    };
+
+                    html += `<td class="border border-gray-100 p-0.5" style="min-width:60px;height:38px">
+                        <div class="flex gap-0.5 h-full">
+                            ${renderSub(bA,'A','LAP.TENIS A')}
+                            ${renderSub(bB,'B','LAP.TENIS B')}
                         </div>
                     </td>`;
-
-            // Cek setiap jam
-            for (let jam = JAM_MULAI; jam <= JAM_SELESAI; jam++) {
-                // Cari booking di jam ini
-                const bookings = data.filter(x => {
-                    const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
-                    tglDb.setHours(0, 0, 0, 0);
-                    
-                    if (tglDb.getTime() !== tgl.getTime()) return false;
-                    
-                    const jamMulai = parseJamToHour(x.JAM_AWAL);
-                    const jamSelesai = parseJamToHour(x.JAM_SELESAI) || jamMulai + 1;
-                    
-                    return jam >= jamMulai && jam < jamSelesai;
-                });
-
-                if (bookings.length > 0) {
-                    totalBookings++;
-                    dailyBookings++;
-                    
-                    const booking = bookings[0];
-                    const isFirstHour = jam === parseJamToHour(bookings[0].JAM_AWAL);
-                    
-                    if (isFirstHour) {
-                        html += `<td class="border border-gray-100 p-0 relative group cursor-pointer transition-all bg-gradient-to-br from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600" 
-                                    style="min-width: 32px; max-width: 32px; height: 38px;"
-                                    onclick="showBookingDetail('${booking.ID}')">
-                                    <div class="w-full h-full flex items-center justify-center">
-                                        <span class="text-[8px] text-white font-black opacity-0 group-hover:opacity-100 transition-opacity">
-                                            ${booking.NAMA.substring(0,2)}
-                                        </span>
-                                    </div>
-                                </td>`;
-                    } else {
-                        html += `<td class="border border-gray-100 bg-gradient-to-br from-rose-400 to-rose-500 bg-opacity-75" style="min-width: 32px; max-width: 32px; height: 38px;"></td>`;
-                    }
                 } else {
-                    let isPeakHour = (jam >= 16 && jam <= 21);
-                    let bgColor = isPeakHour ? 'from-emerald-300 to-emerald-400' : 'from-emerald-400 to-emerald-500';
-                    
-                    html += `<td class="border border-gray-100 bg-gradient-to-br ${bgColor} hover:from-emerald-500 hover:to-emerald-600 transition-all cursor-pointer group" 
-                                style="min-width: 32px; max-width: 32px; height: 38px;"
-                                onclick="showAvailableSlot('${tanggalStr}', ${jam}, '${selectedGor}')">
-                                <div class="w-full h-full flex items-center justify-center">
-                                    <i class="fas fa-plus text-white text-opacity-0 group-hover:text-opacity-50 text-[9px]"></i>
-                                </div>
-                            </td>`;
+                    // Lapangan biasa: 1 kolom
+                    const bookings = getBookings(tgl, jam, null);
+                    if (bookings.length > 0) {
+                        totalBookings++; dailyBookings++;
+                        const bk = bookings[0];
+                        const isFirst = jam === parseJamToHour(bk.JAM_AWAL);
+                        html += `<td class="border border-gray-100 p-0 cursor-pointer ${isFirst?'bg-gradient-to-br from-rose-400 to-rose-500':'bg-rose-300'} hover:bg-rose-500 transition-all group"
+                            style="min-width:32px;height:38px" onclick="showBookingDetail('${bk.ID}')">
+                            <div class="w-full h-full flex items-center justify-center">
+                                <span class="text-[8px] text-white font-black opacity-0 group-hover:opacity-100">${bk.NAMA.substring(0,2)}</span>
+                            </div></td>`;
+                    } else {
+                        const pk = jam >= 16 && jam <= 21;
+                        html += `<td class="border border-gray-100 ${pk?'bg-gradient-to-br from-emerald-300 to-emerald-400':'bg-gradient-to-br from-emerald-400 to-emerald-500'} hover:from-emerald-500 hover:to-emerald-600 transition-all cursor-pointer group"
+                            style="min-width:32px;height:38px"
+                            onclick="showAvailableSlot('${tanggalStr}', ${jam}, '${selectedGor}')">
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="fas fa-plus text-white text-opacity-0 group-hover:text-opacity-50 text-[9px]"></i>
+                            </div></td>`;
+                    }
                 }
             }
-            
-            // Kolom TOTAL
-            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-2 text-center" style="min-width: 70px; max-width: 70px;">
-                <div class="flex flex-col items-center">
-                    <span class="text-[18px] font-black text-indigo-600">${dailyBookings}</span>
-                    <span class="text-[9px] font-bold text-indigo-400 uppercase">JAM</span>
-                </div>
-            </td>`;
-            
-            html += `</tr>`;
-            totalSesiBulan += dailyBookings;
+
+            html += `<td class="border-t border-gray-100 bg-indigo-50/50 p-2 text-center" style="min-width:60px">
+                <span class="text-[16px] font-black text-indigo-600">${dailyBookings}</span>
+            </td></tr>`;
+            totalSesi += dailyBookings;
         }
 
         html += `</tbody></table></div></div></div>`;
-        
-        // Summary stats
-        const totalSlots = daysInMonth * (JAM_SELESAI - JAM_MULAI + 1);
-        const occupancyRate = totalSlots > 0 ? Math.round((totalBookings / totalSlots) * 100) : 0;
-        const bulanNama = MONTHS[bulan - 1];
-        
-        html += `
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-5 gap-2">
+
+        // Summary
+        const totalSlots = isTenis
+            ? daysInMonth * (JAM_SELESAI_OP - JAM_MULAI + 1) * 2
+            : daysInMonth * (JAM_SELESAI_OP - JAM_MULAI + 1);
+        const occ = totalSlots > 0 ? Math.round((totalBookings/totalSlots)*100) : 0;
+
+        html += `<div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-2">
             <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-3 rounded-xl col-span-2">
                 <div class="flex items-center justify-between">
                     <div>
-                        <div class="text-[9px] font-black text-indigo-400 uppercase">BULAN / GOR</div>
-                        <div class="text-lg font-black text-indigo-700">${bulanNama} ${tahun}</div>
-                        <div class="text-[10px] font-bold text-indigo-500">${selectedGor}</div>
-                        <div class="text-[8px] text-gray-500">${daysInMonth} hari operasional</div>
+                        <div class="text-[9px] font-black text-indigo-400 uppercase">LOKASI</div>
+                        <div class="text-base font-black text-indigo-700">${selectedGor}${isStadion?' › '+selectedJenis:''}</div>
+                        <div class="text-[8px] text-gray-500">${MONTHS[bulan-1]} ${tahun} · ${daysInMonth} hari</div>
                     </div>
                     <div class="flex gap-1">
                         <button onclick="ubahBulan('prev')" class="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-indigo-50">
@@ -2160,21 +2193,20 @@ function closeEditModal() {
                     </div>
                 </div>
             </div>
-            
             <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 rounded-xl">
-                <div class="text-[9px] font-black text-emerald-400 uppercase">JAM</div>
-                <div class="text-lg font-black text-emerald-700">${totalSesiBulan}</div>
-                <div class="text-[8px] text-emerald-600">${(totalSesiBulan/daysInMonth).toFixed(1)}/hari</div>
+                <div class="text-[9px] font-black text-emerald-400 uppercase">TOTAL JAM TERPAKAI</div>
+                <div class="text-lg font-black text-emerald-700">${totalSesi}</div>
+                <div class="text-[8px] text-emerald-600">${(totalSesi/daysInMonth).toFixed(1)}/hari</div>
             </div>
             <div class="bg-gradient-to-br from-rose-50 to-rose-100 p-3 rounded-xl">
                 <div class="text-[9px] font-black text-rose-400 uppercase">OKUPANSI</div>
-                <div class="text-lg font-black text-rose-700">${occupancyRate}%</div>
-                <div class="text-[8px] text-rose-600">${totalBookings}/${totalSlots}</div>
+                <div class="text-lg font-black text-rose-700">${occ}%</div>
+                <div class="text-[8px] text-rose-600">${totalBookings}/${totalSlots} slot</div>
             </div>
         </div>`;
 
         document.getElementById("jadwalContainer").innerHTML = html;
-        
+
     } catch (error) {
         console.error("Error loading jadwal:", error);
         showToast("Gagal memuat jadwal", "error");
@@ -2186,37 +2218,51 @@ function closeEditModal() {
 		
 	// Update fungsi showAvailableSlot untuk menerima parameter GOR
 	function showAvailableSlot(tanggal, jam, gor = '') {
-		// Arahkan ke halaman input dengan data terisi
 		showPage('input');
-		
-		// Set tanggal
 		const parts = tanggal.split('-');
 		document.getElementById('fTanggal').value = parseInt(parts[2]);
 		document.getElementById('fBulan').value = MONTHS[parseInt(parts[1]) - 1];
 		document.getElementById('fTahun').value = parts[0];
-		
-		// Set jam
-		document.getElementById('fJamAwal').value = `${jam.toString().padStart(2, '0')}:00`;
-		document.getElementById('fJamSelesai').value = `${(jam + 1).toString().padStart(2, '0')}:00`;
-		document.getElementById('fJam').value = 1;
-		
-		// Set GOR jika dipilih dari filter
-		if (gor) {
-			document.getElementById('fGor').value = gor;
-		} else {
-			// Jika tidak ada parameter gor, coba ambil dari filter yang aktif
-			const selectedGor = document.getElementById("filterGorJadwal")?.value;
-			if (selectedGor) {
-				document.getElementById('fGor').value = selectedGor;
-			}
+		const jamStr = jam.toString().padStart(2,'0');
+		const jamNextStr = (jam+1).toString().padStart(2,'0');
+		document.getElementById('fJamAwal').value = `${jamStr}:00`;
+		document.getElementById('fJamSelesai').value = `${jamNextStr}:00`;
+		hitungDurasi('main');
+		const gorVal = gor || document.getElementById("filterGorJadwal")?.value || '';
+		if (gorVal) {
+			document.getElementById('fGor').value = gorVal;
+			updateLapanganByGor(gorVal, 'main');
 		}
-		
-		// Scroll ke form
 		document.getElementById('page-input').scrollIntoView({ behavior: 'smooth' });
-		
 		showToast("Silakan lengkapi data booking", "info");
-	}	
-	// Fungsi untuk navigasi bulan (tetap sama)
+	}
+
+	// Khusus slot tenis - langsung set jenis lapangan A atau B
+	function showAvailableSlotTenis(tanggal, jam, jenisLap) {
+		showPage('input');
+		const parts = tanggal.split('-');
+		document.getElementById('fTanggal').value = parseInt(parts[2]);
+		document.getElementById('fBulan').value = MONTHS[parseInt(parts[1]) - 1];
+		document.getElementById('fTahun').value = parts[0];
+		const jamStr = jam.toString().padStart(2,'0');
+		const jamNextStr = (jam+1).toString().padStart(2,'0');
+		document.getElementById('fJamAwal').value = `${jamStr}:00`;
+		document.getElementById('fJamSelesai').value = `${jamNextStr}:00`;
+		hitungDurasi('main');
+		document.getElementById('fGor').value = 'STADION';
+		updateLapanganByGor('STADION', 'main');
+		setTimeout(() => {
+			document.getElementById('fLapangan').value = 'TENIS';
+			handleLapanganChange('TENIS', 'main');
+			setTimeout(() => {
+				document.getElementById('fJenisLapangan').value = jenisLap;
+			}, 150);
+		}, 150);
+		document.getElementById('page-input').scrollIntoView({ behavior: 'smooth' });
+		showToast(`Slot ${jenisLap} tersedia - silakan lengkapi data`, "info");
+	}
+
+
 	function ubahBulan(arah) {
 		const inputTanggal = document.getElementById("tanggalAwal");
 		const currentDate = new Date(inputTanggal.value);
@@ -2460,30 +2506,24 @@ function populateGorFilterAfterDate() {
 function resetJadwalFilters() {
     const inputTanggal = document.getElementById("tanggalAwal");
     const filterGor = document.getElementById("filterGorJadwal");
-    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+    const boxJenis = document.getElementById("boxFilterJenisLapangan");
+    const jenisSelect = document.getElementById("filterJenisLapanganJadwal");
     const jadwalContainer = document.getElementById("jadwalContainer");
-    
-    // Reset input tanggal ke kosong
-    if (inputTanggal) {
-        inputTanggal.value = "";
-    }
-    
-    // Reset dropdown GOR ke keadaan awal (disabled)
+
+    if (inputTanggal) inputTanggal.value = "";
+
     if (filterGor) {
         filterGor.disabled = true;
         filterGor.innerHTML = '<option value="">PILIH GOR</option>';
         filterGor.classList.add("bg-gray-100", "opacity-50", "cursor-not-allowed");
         filterGor.classList.remove("bg-white", "opacity-100", "cursor-pointer");
     }
-    
-    // Reset tombol tampilkan
-    if (btnTampilkan) {
-        btnTampilkan.disabled = true;
-        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
-        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-    }
-    
-    // Reset container jadwal ke placeholder
+
+    if (boxJenis) boxJenis.classList.add('hidden');
+    if (jenisSelect) jenisSelect.value = '';
+
+    setTampilkanBtn(false);
+
     if (jadwalContainer) {
         jadwalContainer.innerHTML = `
             <div class="bg-gray-50 rounded-2xl p-8 text-center">
@@ -2496,19 +2536,51 @@ function resetJadwalFilters() {
 }
 
 
-// Fungsi handler untuk event change
+// Handler GOR jadwal berubah
 function handleGorChange() {
-    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
     const selectedValue = this.value;
-    
-    if (selectedValue) {
-        btnTampilkan.disabled = false;
-        btnTampilkan.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-        btnTampilkan.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    handleGorJadwalChange();
+}
+
+function handleGorJadwalChange() {
+    const gorVal = document.getElementById('filterGorJadwal').value;
+    const boxJenis = document.getElementById('boxFilterJenisLapangan');
+    const jenisSelect = document.getElementById('filterJenisLapanganJadwal');
+    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
+
+    if (gorVal === 'STADION') {
+        // Tampilkan filter jenis lapangan
+        boxJenis.classList.remove('hidden');
+        jenisSelect.value = '';
+        // Disable tombol sampai jenis lapangan dipilih
+        setTampilkanBtn(false);
+    } else if (gorVal) {
+        // GOR non-STADION: sembunyikan jenis lapangan, langsung aktifkan tombol
+        boxJenis.classList.add('hidden');
+        jenisSelect.value = '';
+        setTampilkanBtn(true);
     } else {
-        btnTampilkan.disabled = true;
-        btnTampilkan.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
-        btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+        boxJenis.classList.add('hidden');
+        jenisSelect.value = '';
+        setTampilkanBtn(false);
+    }
+}
+
+function handleJenisLapanganJadwalChange() {
+    const jenisVal = document.getElementById('filterJenisLapanganJadwal').value;
+    setTampilkanBtn(!!jenisVal);
+}
+
+function setTampilkanBtn(enabled) {
+    const btn = document.getElementById("btnTampilkanJadwal");
+    if (enabled) {
+        btn.disabled = false;
+        btn.classList.remove("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btn.classList.add("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
+    } else {
+        btn.disabled = true;
+        btn.classList.add("bg-indigo-400", "opacity-50", "cursor-not-allowed");
+        btn.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
     }
 }
 
