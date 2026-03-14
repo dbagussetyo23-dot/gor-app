@@ -1694,56 +1694,78 @@ function debugCheckData() {
   return "Cek console untuk hasil debug";
 }
 
-// Modifikasi fungsi openEditModal untuk mengisi jenis lapangan
+// Buka modal edit dan isi semua field sesuai data
 function openEditModal(id) {
     const d = userData.find(i => i.ID === id);
     if (!d) return;
-    
+
+    // Isi field dasar
     document.getElementById('eId').value = d.ID;
     document.getElementById('eNama').value = d.NAMA;
+    document.getElementById('eNama').dispatchEvent(new Event('input'));
+
+    // Tanggal, bulan, tahun
     document.getElementById('eTanggal').value = d.TANGGAL;
     document.getElementById('eBulan').value = d.BULAN;
     document.getElementById('eTahun').value = d.TAHUN;
+
+    // GOR - set nilai lalu update lapangan dropdown
     document.getElementById('eGor').value = d.GOR;
-    
-    // Update dropdown lapangan sesuai GOR terlebih dahulu
     updateLapanganByGor(d.GOR, 'modal');
-    
-    if (SPORTS.includes(d.LAPANGAN) || SPORTS_STADION.includes(d.LAPANGAN)) { 
-        document.getElementById('eLapangan').value = d.LAPANGAN; 
-        
-        // Trigger change untuk menampilkan jenis lapangan
+
+    // Tentukan apakah lapangan ada di list atau LAINYA
+    const isStadionSport = SPORTS_STADION.includes(d.LAPANGAN);
+    const isGeneralSport = SPORTS.includes(d.LAPANGAN);
+    const isLainya = !isStadionSport && !isGeneralSport;
+
+    if (!isLainya) {
+        // Lapangan ada di list
+        document.getElementById('eLapangan').value = d.LAPANGAN;
+        // Sembunyikan box lainya
+        document.getElementById('eboxLainya').classList.add('hidden');
+        // Trigger jenis lapangan untuk STADION
         if (d.GOR === 'STADION') {
             handleLapanganChange(d.LAPANGAN, 'modal');
-            
-            // Set jenis lapangan setelah select muncul
             setTimeout(() => {
-                if (d.JENIS_LAPANGAN) {
-                    document.getElementById('eJenisLapangan').value = d.JENIS_LAPANGAN;
+                const eJenis = document.getElementById('eJenisLapangan');
+                if (eJenis && d.JENIS_LAPANGAN) {
+                    eJenis.value = d.JENIS_LAPANGAN;
                 }
-            }, 100);
+            }, 150);
+        } else {
+            document.getElementById('eboxJenisLapangan').classList.add('hidden');
         }
-        
-        toggleLainya('', 'modal'); 
-    } else { 
-        document.getElementById('eLapangan').value = 'LAINYA'; 
+    } else {
+        // Lapangan = LAINYA (freetext)
+        document.getElementById('eLapangan').value = 'LAINYA';
         handleLapanganChange('LAINYA', 'modal');
-        toggleLainya('LAINYA', 'modal'); 
-        document.getElementById('eLapanganLainya').value = d.LAPANGAN; 
-        
-        // Set jenis lapangan untuk LAINYA
+        document.getElementById('eboxLainya').classList.remove('hidden');
+        document.getElementById('eLapanganLainya').value = d.LAPANGAN;
         setTimeout(() => {
-            if (d.JENIS_LAPANGAN) {
-                document.getElementById('eJenisLapangan').value = d.JENIS_LAPANGAN;
+            const eJenis = document.getElementById('eJenisLapangan');
+            if (eJenis && d.JENIS_LAPANGAN) {
+                eJenis.value = d.JENIS_LAPANGAN;
             }
-        }, 100);
+        }, 150);
     }
-    
+
+    // Jam & nominal
     document.getElementById('eJamAwal').value = formatTimeDirect(d.JAM_AWAL);
     document.getElementById('eJamSelesai').value = formatTimeDirect(d.JAM_SELESAI);
     document.getElementById('eJam').value = d.JAM_DURASI;
     document.getElementById('eNominal').value = d.NOMINAL;
+
+    // Tampilkan modal
     document.getElementById('editModal').style.display = 'flex';
+}
+
+// Tutup modal edit
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    // Reset box tersembunyi
+    document.getElementById('eboxLainya').classList.add('hidden');
+    document.getElementById('eboxJenisLapangan').classList.add('hidden');
+    document.getElementById('eLapanganLainya').value = '';
 }
 
 
