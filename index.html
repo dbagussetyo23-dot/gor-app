@@ -1302,6 +1302,9 @@ function closeEditModal() {
 // ============================================
 // RENDER FUNCTIONS
 // ============================================
+// ============================================
+// RENDER FUNCTIONS (LANJUTAN)
+// ============================================
 function renderHistory() {
   const q = document.getElementById('histCari').value.toUpperCase();
   const b = document.getElementById('histBulan').value;
@@ -1391,28 +1394,32 @@ function renderChart(id, type, labels, data, color, fill=false, axis='x') {
 }
 
 // ============================================
-// SUBMIT FORM
-// ============================================
-// ============================================
-// SUBMIT FORM (LANJUTAN)
+// SUBMIT FORM (LENGKAP)
 // ============================================
 async function submitForm(e, type) {
   e.preventDefault();
   if (window.isSubmitting) return;
   window.isSubmitting = true;
+  
   const prefix = type === 'modal' ? 'e' : 'f';
+  
+  // Validasi semua field terisi
   const requiredFields = [
     prefix + 'Nama', prefix + 'Tanggal', prefix + 'Bulan', prefix + 'Tahun',
     prefix + 'Gor', prefix + 'Lapangan', prefix + 'JamAwal', 
     prefix + 'JamSelesai', prefix + 'Jam', prefix + 'Nominal'
   ];
+  
+  // Validasi jenis lapangan
   const jenisLapangan = document.getElementById(prefix + 'JenisLapangan')?.value;
   const jenisLapanganLainya = document.getElementById(prefix + 'JenisLapanganLainya')?.value;
+  
   if (!jenisLapangan && !jenisLapanganLainya) {
     showToast("Jenis lapangan harus diisi!", "error");
     window.isSubmitting = false;
     return;
   }
+  
   for (let fieldId of requiredFields) {
     const field = document.getElementById(fieldId);
     if (!field || !field.value) {
@@ -1421,12 +1428,15 @@ async function submitForm(e, type) {
       return;
     }
   }
+  
+  // Ambil nilai jenis lapangan
   let jenisLapanganValue = '';
   if (document.getElementById(prefix + 'JenisLapangan')?.value) {
     jenisLapanganValue = document.getElementById(prefix + 'JenisLapangan').value;
   } else if (document.getElementById(prefix + 'JenisLapanganLainya')?.value) {
     jenisLapanganValue = document.getElementById(prefix + 'JenisLapanganLainya').value;
   }
+  
   const data = {
     id: type === 'modal' ? document.getElementById('eId').value : "",
     nama: document.getElementById(prefix + 'Nama').value.toUpperCase(),
@@ -1444,11 +1454,14 @@ async function submitForm(e, type) {
     nominal: document.getElementById(prefix + 'Nominal').value,
     currentUser: currentUser
   };
+  
   console.log("Data to save:", data);
   toggleLoader(true, "Menyimpan...");
+  
   try {
     const result = await run('saveData', data);
     console.log("Save result:", result);
+    
     if (result.success) {
       if (type === 'modal') closeEditModal();
       document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
@@ -1475,7 +1488,7 @@ async function submitForm(e, type) {
 }
 
 // ============================================
-// JADWAL FUNCTIONS
+// JADWAL FUNCTIONS (LENGKAP)
 // ============================================
 async function cekJadwal() {
   const tanggalAwal = document.getElementById("tanggalAwal").value;
@@ -1741,7 +1754,8 @@ window.addEventListener('offline', () => {
     showGentleNotification('Koneksi terputus', 'warning');
   }
 });
-</script>
+
+			</script>
 		</body>
 
 		</html>
