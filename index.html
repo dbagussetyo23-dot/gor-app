@@ -264,42 +264,43 @@
 				</section>
 
 				<!-- INPUT DATA PAGE -->
-				<section id="page-input" class="hidden max-w-2xl mx-auto py-10">
-					<div class="glass-card p-8 rounded-3xl space-y-6">
-						<h2 class="text-2xl font-black text-center text-gray-800">Input Data</h2>
-						<form id="mainForm" onsubmit="submitForm(event, 'main')" class="space-y-4">
-							<input type="text" id="fNama" placeholder="NAMA PEMAKAI" required class="w-full px-5 py-4 rounded-xl bg-gray-50 border-none font-bold uppercase text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-							<div class="grid grid-cols-3 gap-2">
-								<select id="fTanggal" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-								<select id="fBulan" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-								<input type="number" id="fTahun" value="2026" class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
-							</div>
-							<div class="grid grid-cols-2 gap-2">
-								<select id="fGor" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
-								<select id="fLapangan" onchange="toggleLainya(this.value, 'main')" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-							</div>
-							<div class="grid grid-cols-2 gap-2">
-    <select id="fLapangan" onchange="updateJenisLapangan(this.value)" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-    
-    <select id="fJenisLapangan" required class="w-full px-4 py-4 rounded-xl bg-blue-50 border border-blue-100 font-bold text-sm outline-none">
-        <option value="">JENIS LAPANGAN</option>
-    </select>
-</div>
-
-<div id="boxLainya" class="hidden mt-2">
-    <input type="text" id="fLapanganLainya" placeholder="KETIK NAMA LAPANGAN BARU" class="w-full px-4 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
-</div>
-							<div id="boxLainya" class="hidden"><input type="text" id="fLapanganLainya" placeholder="NAMA LAPANGAN LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none"></div>
-							<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-								<input type="time" id="fJamAwal" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-								<input type="time" id="fJamSelesai" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-								<input type="number" id="fJam" step="0.1" placeholder="JAM" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-								<input type="number" id="fNominal" placeholder="NOMINAL" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-							</div>
-							<button type="submit" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-indigo-700">Simpan Data</button>
-						</form>
-					</div>
-				</section>
+				<!-- INPUT DATA PAGE -->
+<section id="page-input" class="hidden max-w-2xl mx-auto py-10">
+    <div class="glass-card p-8 rounded-3xl space-y-6">
+        <h2 class="text-2xl font-black text-center text-gray-800">Input Data</h2>
+        <form id="mainForm" onsubmit="submitForm(event, 'main')" class="space-y-4">
+            <input type="text" id="fNama" placeholder="NAMA PEMAKAI" required class="w-full px-5 py-4 rounded-xl bg-gray-50 border-none font-bold uppercase text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <div class="grid grid-cols-3 gap-2">
+                <select id="fTanggal" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+                <select id="fBulan" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+                <input type="number" id="fTahun" value="2026" class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <select id="fGor" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
+                <select id="fLapangan" onchange="handleLapanganChange(this.value, 'main')" required class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+            </div>
+            
+            <!-- KOLOM JENIS LAPANGAN BARU -->
+            <div id="boxJenisLapangan" class="hidden">
+                <select id="fJenisLapangan" class="w-full px-4 py-4 rounded-xl bg-amber-50 border border-amber-200 font-bold text-sm outline-none">
+                    <option value="">PILIH JENIS LAPANGAN</option>
+                </select>
+            </div>
+            
+            <div id="boxLainya" class="hidden">
+                <input type="text" id="fLapanganLainya" placeholder="NAMA LAPANGAN LAINNYA" class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <input type="time" id="fJamAwal" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="time" id="fJamSelesai" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="number" id="fJam" step="0.1" placeholder="JAM" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="number" id="fNominal" placeholder="NOMINAL" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-indigo-700">Simpan Data</button>
+        </form>
+    </div>
+</section>
 
 				<!-- RIWAYAT PAGE -->
 				<section id="page-history" class="hidden space-y-4">
@@ -411,34 +412,45 @@
 
 
 		<!-- EDIT MODAL -->
-		<div id="editModal">
-			<div class="max-w-xl w-full glass-card p-8 rounded-3xl relative">
-				<button onclick="closeEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
-				<h2 class="text-xl font-black mb-6 text-gray-800 uppercase tracking-tight">Edit Transaksi</h2>
-				<form id="editForm" onsubmit="submitForm(event, 'modal')" class="space-y-4">
-					<input type="hidden" id="eId">
-					<input type="text" id="eNama" placeholder="NAMA" required class="w-full px-5 py-3 rounded-xl bg-gray-50 font-bold uppercase text-sm outline-none">
-					<div class="grid grid-cols-3 gap-2">
-						<select id="eTanggal" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-						<select id="eBulan" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-						<input type="number" id="eTahun" class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
-					</div>
-					<div class="grid grid-cols-2 gap-2">
-						<select id="eGor" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
-						<select id="eLapangan" onchange="toggleLainya(this.value, 'modal')" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
-					</div>
-					<div id="eboxLainya" class="hidden"><input type="text" id="eLapanganLainya" placeholder="LAINYA" class="w-full px-5 py-3 rounded-xl bg-amber-50 font-bold uppercase text-sm outline-none"></div>
-					<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-						<input type="time" id="eJamAwal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-						<input type="time" id="eJamSelesai" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-						<input type="number" id="eJam" step="0.1" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-						<input type="number" id="eNominal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-					</div>
-					<button type="submit" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-emerald-700 transition-all">Update Data</button>
-				</form>
-			</div>
-		</div>
-
+		<!-- EDIT MODAL -->
+<div id="editModal">
+    <div class="max-w-xl w-full glass-card p-8 rounded-3xl relative">
+        <button onclick="closeEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        <h2 class="text-xl font-black mb-6 text-gray-800 uppercase tracking-tight">Edit Transaksi</h2>
+        <form id="editForm" onsubmit="submitForm(event, 'modal')" class="space-y-4">
+            <input type="hidden" id="eId">
+            <input type="text" id="eNama" placeholder="NAMA" required class="w-full px-5 py-3 rounded-xl bg-gray-50 font-bold uppercase text-sm outline-none">
+            <div class="grid grid-cols-3 gap-2">
+                <select id="eTanggal" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+                <select id="eBulan" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+                <input type="number" id="eTahun" class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-center text-sm outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <select id="eGor" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none disabled:opacity-50"></select>
+                <select id="eLapangan" onchange="handleLapanganChange(this.value, 'modal')" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+            </div>
+            
+            <!-- KOLOM JENIS LAPANGAN BARU UNTUK MODAL -->
+            <div id="eboxJenisLapangan" class="hidden">
+                <select id="eJenisLapangan" class="w-full px-3 py-3 rounded-xl bg-amber-50 border border-amber-200 font-bold text-sm outline-none">
+                    <option value="">PILIH JENIS LAPANGAN</option>
+                </select>
+            </div>
+            
+            <div id="eboxLainya" class="hidden">
+                <input type="text" id="eLapanganLainya" placeholder="LAINYA" class="w-full px-5 py-3 rounded-xl bg-amber-50 font-bold uppercase text-sm outline-none">
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <input type="time" id="eJamAwal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="time" id="eJamSelesai" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="number" id="eJam" step="0.1" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="number" id="eNominal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-emerald-700 transition-all">Update Data</button>
+        </form>
+    </div>
+</div>
 		<!-- TOAST NOTIFICATION -->
 		<div id="toast" class="fixed top-6 right-6 z-[9999] hidden">
 			<div id="toastBox" class="px-6 py-4 rounded-xl shadow-lg text-sm font-bold text-white flex items-center gap-3">
@@ -864,76 +876,94 @@ async function confirmLogout() {
 			// ============================================
 			
 			function setupSelectors() {
-		const fill = (id, items) => {
-			const el = document.getElementById(id); 
-			if (!el) return;
-			el.innerHTML = '';
-			items.forEach(i => el.add(new Option(i, i)));
-		};
-		
-		fill('fTanggal', Array.from({length:31}, (_,i)=>i+1));
-		fill('fBulan', MONTHS);
-		fill('fGor', GORS);
-		
-		const ls = document.getElementById('fLapangan'); 
-		if (ls) {
-			ls.innerHTML = ''; 
-			SPORTS.forEach(s => ls.add(new Option(s, s))); 
-			ls.add(new Option("LAINYA", "LAINYA"));
-		}
-		
-		fill('eTanggal', Array.from({length:31}, (_,i)=>i+1));
-		fill('eBulan', MONTHS);
-		fill('eGor', GORS);
-		
-		const els = document.getElementById('eLapangan'); 
-		if (els) {
-			els.innerHTML = ''; 
-			SPORTS.forEach(s => els.add(new Option(s, s))); 
-			els.add(new Option("LAINYA", "LAINYA"));
-		}
-		
-		const hbs = document.getElementById('histBulan'); 
-		if (hbs) {
-			hbs.innerHTML = '<option value="">SEMUA BULAN</option>'; 
-			MONTHS.forEach(m => hbs.add(new Option(m, m)));
-		}
-		
-		const hgs = document.getElementById('histGor'); 
-		if (hgs) {
-			hgs.innerHTML = '<option value="">SEMUA UNIT</option>'; 
-			GORS.forEach(g => hgs.add(new Option(g, g)));
-		}
-		
-		if (!isUserAdmin) {
-			dashSelectedGor = [currentUser];
-			const contGorDash = document.getElementById('contGorDash');
-			if (contGorDash) contGorDash.classList.add('hidden');
+    const fill = (id, items) => {
+        const el = document.getElementById(id); 
+        if (!el) return;
+        el.innerHTML = '';
+        items.forEach(i => el.add(new Option(i, i)));
+    };
+    
+    fill('fTanggal', Array.from({length:31}, (_,i)=>i+1));
+    fill('fBulan', MONTHS);
+    fill('fGor', GORS);
+    
+    const ls = document.getElementById('fLapangan'); 
+    if (ls) {
+        ls.innerHTML = ''; 
+        SPORTS.forEach(s => ls.add(new Option(s, s))); 
+        ls.add(new Option("LAINYA", "LAINYA"));
+    }
+    
+    fill('eTanggal', Array.from({length:31}, (_,i)=>i+1));
+    fill('eBulan', MONTHS);
+    fill('eGor', GORS);
+    
+    const els = document.getElementById('eLapangan'); 
+    if (els) {
+        els.innerHTML = ''; 
+        SPORTS.forEach(s => els.add(new Option(s, s))); 
+        els.add(new Option("LAINYA", "LAINYA"));
+    }
+    
+    const hbs = document.getElementById('histBulan'); 
+    if (hbs) {
+        hbs.innerHTML = '<option value="">SEMUA BULAN</option>'; 
+        MONTHS.forEach(m => hbs.add(new Option(m, m)));
+    }
+    
+    const hgs = document.getElementById('histGor'); 
+    if (hgs) {
+        hgs.innerHTML = '<option value="">SEMUA UNIT</option>'; 
+        GORS.forEach(g => hgs.add(new Option(g, g)));
+    }
+    
+    // TAMBAHKAN EVENT LISTENER UNTUK GOR
+    document.getElementById('fGor').addEventListener('change', function() {
+        const lapanganValue = document.getElementById('fLapangan').value;
+        if (this.value === 'STADION') {
+            handleLapanganChange(lapanganValue, 'main');
+        } else {
+            document.getElementById('boxJenisLapangan')?.classList.add('hidden');
+        }
+    });
+    
+    document.getElementById('eGor').addEventListener('change', function() {
+        const lapanganValue = document.getElementById('eLapangan').value;
+        if (this.value === 'STADION') {
+            handleLapanganChange(lapanganValue, 'modal');
+        } else {
+           document.getElementById('eboxJenisLapangan')?.classList.add('hidden');
+        }
+    });
+    
+    if (!isUserAdmin) {
+        dashSelectedGor = [currentUser];
+        const contGorDash = document.getElementById('contGorDash');
+        if (contGorDash) contGorDash.classList.add('hidden');
+        
+        const fGor = document.getElementById('fGor');
+        if (fGor) {
+            fGor.value = currentUser;
+            fGor.disabled = true;
+        }
+        
+        const eGor = document.getElementById('eGor');
+        if (eGor) {
+            eGor.value = currentUser;
+            eGor.disabled = true;
+        }
+        
+        if (hgs) {
+            hgs.value = currentUser;
+            hgs.disabled = true;
+        }
+    }
+    
+    populateGorFilter();
+    initExcelFilters();
+    showPage('dashboard');
+}
 			
-			const fGor = document.getElementById('fGor');
-			if (fGor) {
-				fGor.value = currentUser;
-				fGor.disabled = true;
-			}
-			
-			const eGor = document.getElementById('eGor');
-			if (eGor) {
-				eGor.value = currentUser;
-				eGor.disabled = true;
-			}
-			
-			if (hgs) {
-				hgs.value = currentUser;
-				hgs.disabled = true;
-			}
-		}
-		
-		// TAMBAHKAN INI - Panggil fungsi untuk mengisi filter GOR di halaman jadwal
-		populateGorFilter();
-		
-		initExcelFilters();
-		showPage('dashboard');
-	}
 			
 			function initExcelFilters() {
 				const build = (id, items, state, type) => {
@@ -1022,55 +1052,234 @@ async function confirmLogout() {
 				updateDashboard();
 			}
 
-			// ============================================
-			// FORM HANDLING
-			// ============================================
-			function toggleLainya(v, type) { 
-				const id = type === 'modal' ? 'eboxLainya' : 'boxLainya';
-				const el = document.getElementById(id);
-				if (el) el.classList.toggle('hidden', v !== 'LAINYA'); 
-			}
+// ============================================
+// FUNGSI UNTUK HANDLE LAPANGAN STADION
+// ============================================
 
-			async function submitForm(e, type) {
-				e.preventDefault();
-				
-				if (window.isSubmitting) return;
-				window.isSubmitting = true;
-				
-				const prefix = type === 'modal' ? 'e' : 'f';
-				const data = {
-					id: type === 'modal' ? document.getElementById('eId').value : "",
-					nama: document.getElementById(prefix + 'Nama').value.toUpperCase(),
-					tanggal: document.getElementById(prefix + 'Tanggal').value,
-					bulan: document.getElementById(prefix + 'Bulan').value,
-					tahun: document.getElementById(prefix + 'Tahun').value,
-					gor: document.getElementById(prefix + 'Gor').value,
-					lapangan: document.getElementById(prefix + 'Lapangan').value,
-					lapanganLainnya: document.getElementById(prefix + 'LapanganLainya')?.value || '',
-					jamAwal: document.getElementById(prefix + 'JamAwal').value,
-					jamSelesai: document.getElementById(prefix + 'JamSelesai').value,
-					jamDurasi: document.getElementById(prefix + 'Jam').value,
-					nominal: document.getElementById(prefix + 'Nominal').value,
-					currentUser: currentUser
-				};
-				
-				toggleLoader(true, "Menyimpan...");
-				
-				try {
-					await run('saveData', data);
-					
-					if (type === 'modal') closeEditModal();
-					document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
-					
-					await fetchData();
-					showToast("Data berhasil disimpan", "success");
-				} catch (e) {
-					showToast("Gagal menyimpan data", "error");
-				} finally {
-					toggleLoader(false);
-					window.isSubmitting = false;
-				}
-			}
+// Konfigurasi jenis lapangan berdasarkan pilihan
+const JENIS_LAPANGAN_CONFIG = {
+    "STADION": {
+        "SEPAK BOLA": ["STADION UTAMA"],
+        "ATLETIK": ["STADION UTAMA"],
+        "BASKET": ["LAPANGAN BASKET"],
+        "SEPAK TAKRAW": ["LAPANGAN SEPAK TAKRAW"],
+        "VOLLY": ["LAPANGAN VOLLY"],
+        "SEPATU RODA": ["SIRKUIT SEPATU RODA"],
+        "BMX": ["AREA BMX"],
+        "TENIS": ["LAP.TENIS A", "LAP.TENIS B"],
+        "LAINYA": ["STADION UTAMA", "LAPANGAN BASKET", "LAPANGAN SEPAK TAKRAW", "LAPANGAN VOLLY", "SIRKUIT SEPATU RODA", "AREA BMX", "LAP.TENIS A", "LAP.TENIS B"]
+    }
+};
+
+function handleLapanganChange(lapanganValue, formType) {
+    const prefix = formType === 'modal' ? 'e' : 'f';
+    const gorValue = document.getElementById(prefix + 'Gor').value;
+    const jenisLapanganBox = document.getElementById(prefix + 'boxJenisLapangan');
+    const jenisLapanganSelect = document.getElementById(prefix + 'JenisLapangan');
+    const lainyaBox = document.getElementById(prefix + 'boxLainya');
+    
+    // Reset semua
+    if (lainyaBox) lainyaBox.classList.add('hidden');
+    
+    // Jika GOR bukan STADION, sembunyikan box jenis lapangan
+    if (gorValue !== 'STADION') {
+        if (jenisLapanganBox) jenisLapanganBox.classList.add('hidden');
+        return;
+    }
+    
+    // Handle untuk GOR = STADION
+    if (gorValue === 'STADION') {
+        if (lapanganValue === 'LAINYA') {
+            // Tampilkan input Lainnya
+            if (lainyaBox) lainyaBox.classList.remove('hidden');
+            if (jenisLapanganBox) jenisLapanganBox.classList.add('hidden');
+        } 
+        else if (lapanganValue === 'TENIS') {
+            // Untuk TENIS, tampilkan pilihan LAP.TENIS A dan B
+            if (jenisLapanganBox) {
+                jenisLapanganBox.classList.remove('hidden');
+                jenisLapanganSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
+                
+                const jenisOptions = JENIS_LAPANGAN_CONFIG["STADION"]["TENIS"] || [];
+                jenisOptions.forEach(jenis => {
+                    jenisLapanganSelect.innerHTML += `<option value="${jenis}">${jenis}</option>`;
+                });
+            }
+            if (lainyaBox) lainyaBox.classList.add('hidden');
+        }
+        else {
+            // Untuk lapangan lain, set otomatis jenis lapangan
+            if (jenisLapanganBox) {
+                jenisLapanganBox.classList.remove('hidden');
+                jenisLapanganSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
+                
+                const jenisOtomatis = JENIS_LAPANGAN_CONFIG["STADION"][lapanganValue] || [];
+                if (jenisOtomatis.length > 0) {
+                    jenisLapanganSelect.innerHTML = `<option value="${jenisOtomatis[0]}">${jenisOtomatis[0]}</option>`;
+                }
+            }
+            if (lainyaBox) lainyaBox.classList.add('hidden');
+        }
+    }
+}
+
+// Modifikasi fungsi submitForm untuk menambahkan jenisLapangan
+async function submitForm(e, type) {
+    e.preventDefault();
+    
+    if (window.isSubmitting) return;
+    window.isSubmitting = true;
+    
+    const prefix = type === 'modal' ? 'e' : 'f';
+    
+    // Validasi semua kolom harus diisi
+    const requiredFields = [
+        prefix + 'Nama', 
+        prefix + 'Tanggal', 
+        prefix + 'Bulan', 
+        prefix + 'Tahun', 
+        prefix + 'Gor', 
+        prefix + 'Lapangan',
+        prefix + 'JamAwal',
+        prefix + 'JamSelesai',
+        prefix + 'Jam',
+        prefix + 'Nominal'
+    ];
+    
+    for (let fieldId of requiredFields) {
+        const field = document.getElementById(fieldId);
+        if (!field || !field.value) {
+            showToast("Semua kolom harus diisi!", "error");
+            window.isSubmitting = false;
+            return;
+        }
+    }
+    
+    const gorValue = document.getElementById(prefix + 'Gor').value;
+    const lapanganValue = document.getElementById(prefix + 'Lapangan').value;
+    
+    // Validasi khusus untuk STADION
+    if (gorValue === 'STADION') {
+        if (lapanganValue === 'LAINYA') {
+            const lapanganLainya = document.getElementById(prefix + 'LapanganLainya');
+            if (!lapanganLainya || !lapanganLainya.value) {
+                showToast("Nama lapangan lainnya harus diisi!", "error");
+                window.isSubmitting = false;
+                return;
+            }
+        } else {
+            const jenisLapanganSelect = document.getElementById(prefix + 'JenisLapangan');
+            if (!jenisLapanganSelect || !jenisLapanganSelect.value) {
+                showToast("Jenis lapangan harus dipilih!", "error");
+                window.isSubmitting = false;
+                return;
+            }
+        }
+    }
+    
+    const data = {
+        id: type === 'modal' ? document.getElementById('eId').value : "",
+        nama: document.getElementById(prefix + 'Nama').value.toUpperCase(),
+        tanggal: document.getElementById(prefix + 'Tanggal').value,
+        bulan: document.getElementById(prefix + 'Bulan').value,
+        tahun: document.getElementById(prefix + 'Tahun').value,
+        gor: gorValue,
+        lapangan: lapanganValue,
+        lapanganLainnya: document.getElementById(prefix + 'LapanganLainya')?.value || '',
+        jenisLapangan: document.getElementById(prefix + 'JenisLapangan')?.value || '',
+        jamAwal: document.getElementById(prefix + 'JamAwal').value,
+        jamSelesai: document.getElementById(prefix + 'JamSelesai').value,
+        jamDurasi: document.getElementById(prefix + 'Jam').value,
+        nominal: document.getElementById(prefix + 'Nominal').value,
+        currentUser: currentUser
+    };
+    
+    toggleLoader(true, "Menyimpan...");
+    
+    try {
+        const result = await run('saveData', data);
+        
+        if (result.success) {
+            if (type === 'modal') closeEditModal();
+            document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
+            
+            // Reset tampilan jenis lapangan
+            if (document.getElementById(prefix + 'boxJenisLapangan')) {
+                document.getElementById(prefix + 'boxJenisLapangan').classList.add('hidden');
+            }
+            
+            await fetchData();
+            showToast(result.message, "success");
+        } else {
+            // Tampilkan pesan error dari server
+            showToast(result.message, "error");
+            
+            // Jika ada saran lapangan lain (untuk tenis)
+            if (result.lapanganTersedia) {
+                setTimeout(() => {
+                    if (confirm(`Lapangan ${result.lapanganTersedia} tersedia. Gunakan lapangan tersebut?`)) {
+                        document.getElementById(prefix + 'JenisLapangan').value = result.lapanganTersedia;
+                    }
+                }, 100);
+            }
+        }
+    } catch (e) {
+        showToast("Gagal menyimpan data", "error");
+    } finally {
+        toggleLoader(false);
+        window.isSubmitting = false;
+    }
+}
+
+// Modifikasi fungsi openEditModal untuk mengisi jenis lapangan
+function openEditModal(id) {
+    const d = userData.find(i => i.ID === id);
+    if (!d) return;
+    
+    document.getElementById('eId').value = d.ID;
+    document.getElementById('eNama').value = d.NAMA;
+    document.getElementById('eTanggal').value = d.TANGGAL;
+    document.getElementById('eBulan').value = d.BULAN;
+    document.getElementById('eTahun').value = d.TAHUN;
+    document.getElementById('eGor').value = d.GOR;
+    
+    if (SPORTS.includes(d.LAPANGAN)) { 
+        document.getElementById('eLapangan').value = d.LAPANGAN; 
+        
+        // Trigger change untuk menampilkan jenis lapangan
+        if (d.GOR === 'STADION') {
+            handleLapanganChange(d.LAPANGAN, 'modal');
+            
+            // Set jenis lapangan setelah select muncul
+            setTimeout(() => {
+                if (d.JENIS_LAPANGAN) {
+                    document.getElementById('eJenisLapangan').value = d.JENIS_LAPANGAN;
+                }
+            }, 100);
+        }
+        
+        toggleLainya('', 'modal'); 
+    } else { 
+        document.getElementById('eLapangan').value = 'LAINYA'; 
+        handleLapanganChange('LAINYA', 'modal');
+        toggleLainya('LAINYA', 'modal'); 
+        document.getElementById('eLapanganLainya').value = d.LAPANGAN; 
+        
+        // Set jenis lapangan untuk LAINYA
+        setTimeout(() => {
+            if (d.JENIS_LAPANGAN) {
+                document.getElementById('eJenisLapangan').value = d.JENIS_LAPANGAN;
+            }
+        }, 100);
+    }
+    
+    document.getElementById('eJamAwal').value = formatTimeDirect(d.JAM_AWAL);
+    document.getElementById('eJamSelesai').value = formatTimeDirect(d.JAM_SELESAI);
+    document.getElementById('eJam').value = d.JAM_DURASI;
+    document.getElementById('eNominal').value = d.NOMINAL;
+    document.getElementById('editModal').style.display = 'flex';
+}
+
 
 			// ============================================
 			// DELETE HANDLING
@@ -1807,53 +2016,6 @@ function handleGorChange() {
         btnTampilkan.classList.remove("bg-indigo-600", "hover:bg-indigo-700", "opacity-100", "cursor-pointer");
     }
 }
-
-function updateJenisLapangan(lapanganValue) {
-    const gor = document.getElementById("fGor").value;
-    const fJenis = document.getElementById("fJenisLapangan");
-    const boxLainya = document.getElementById("boxLainya");
-    const lapangan = lapanganValue.toUpperCase();
-    
-    // Reset dropdown Jenis Lapangan
-    fJenis.innerHTML = '<option value="">PILIH JENIS</option>';
-    boxLainya.classList.add("hidden");
-
-    if (gor === "STADION") {
-        if (lapangan === "SEPAK BOLA" || lapangan === "ATLETIK") {
-            tambahOpsi(fJenis, "STADION UTAMA", true);
-        } else if (lapangan === "BASKET") {
-            tambahOpsi(fJenis, "LAPANGAN BASKET", true);
-        } else if (lapangan === "SEPAK TAKRAW") {
-            tambahOpsi(fJenis, "LAPANGAN SEPAK TAKRAW", true);
-        } else if (lapangan === "VOLLY") {
-            tambahOpsi(fJenis, "LAPANGAN VOLLY", true);
-        } else if (lapangan === "SEPATU RODA") {
-            tambahOpsi(fJenis, "SIRKUIT SEPATU RODA", true);
-        } else if (lapangan === "BMX") {
-            tambahOpsi(fJenis, "AREA BMX", true);
-        } else if (lapangan === "TENIS") {
-            tambahOpsi(fJenis, "LAP.TENIS A");
-            tambahOpsi(fJenis, "LAP.TENIS B");
-            alert("INFO: Cek ketersediaan Lapangan A dan B secara bergantian.");
-        } else if (lapangan === "LAINNYA") {
-            boxLainya.classList.remove("hidden");
-            ["STADION UTAMA", "LAPANGAN BASKET", "LAPANGAN VOLLY", "LAPANGAN TAKRAW"].forEach(opt => tambahOpsi(fJenis, opt));
-        }
-    }
-}
-
-function tambahOpsi(selectEl, text, selected = false) {
-    const opt = document.createElement("option");
-    opt.value = text;
-    opt.text = text;
-    opt.selected = selected;
-    selectEl.add(opt);
-}
-
-// Tambahkan fungsi auto-kapital saat user mengetik Nama
-document.getElementById("fNama").addEventListener("input", function() {
-    this.value = this.value.toUpperCase();
-});
 
 		</script>
 	</body>
