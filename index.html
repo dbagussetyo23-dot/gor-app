@@ -1073,6 +1073,7 @@ const JENIS_LAPANGAN_CONFIG = {
 
 
 // Modifikasi fungsi submitForm untuk menambahkan jenisLapangan dan cek ketersediaan
+// Modifikasi fungsi submitForm untuk menambahkan jenisLapangan dan cek ketersediaan
 async function submitForm(e, type) {
     e.preventDefault();
     
@@ -1185,18 +1186,58 @@ async function submitForm(e, type) {
         
         if (result.success) {
             if (type === 'modal') closeEditModal();
+            
+            // ============================================
+            // RESET FORM KE KEADAAN AWAL
+            // ============================================
+            
+            // Reset form (nilai input)
             document.getElementById(type === 'modal' ? 'editForm' : 'mainForm').reset();
             
-            // Reset tampilan jenis lapangan
-            if (document.getElementById(prefix + 'boxJenisLapangan')) {
-                document.getElementById(prefix + 'boxJenisLapangan').classList.add('hidden');
-            }
-            if (document.getElementById(prefix + 'boxLainya')) {
-                document.getElementById(prefix + 'boxLainya').classList.add('hidden');
+            // Reset khusus untuk form STADION (bukan modal)
+            if (type === 'main') {
+                // Reset pilihan GOR ke default (opsional, bisa di-set ke STADION atau nilai pertama)
+                const fGor = document.getElementById('fGor');
+                if (fGor && fGor.options.length > 0) {
+                    fGor.value = GORS[0]; // Set ke GOR pertama (STADION)
+                }
+                
+                // Reset pilihan Lapangan ke default
+                const fLapangan = document.getElementById('fLapangan');
+                if (fLapangan && fLapangan.options.length > 0) {
+                    fLapangan.value = SPORTS[0]; // Set ke olahraga pertama
+                }
+                
+                // Reset tahun ke 2026
+                document.getElementById('fTahun').value = 2026;
+                
+                // SEMBUNYIKAN semua box tambahan
+                const boxJenis = document.getElementById('boxJenisLapangan');
+                if (boxJenis) {
+                    boxJenis.classList.add('hidden');
+                    // Reset pilihan jenis lapangan
+                    const jenisSelect = document.getElementById('fJenisLapangan');
+                    if (jenisSelect) jenisSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
+                }
+                
+                const boxLainya = document.getElementById('boxLainya');
+                if (boxLainya) {
+                    boxLainya.classList.add('hidden');
+                    // Reset input lainya
+                    const lainyaInput = document.getElementById('fLapanganLainya');
+                    if (lainyaInput) lainyaInput.value = '';
+                }
+                
+                // Reset jam
+                document.getElementById('fJamAwal').value = '';
+                document.getElementById('fJamSelesai').value = '';
+                document.getElementById('fJam').value = '';
+                document.getElementById('fNominal').value = '';
             }
             
             await fetchData();
             showToast(result.message, "success");
+            
         } else {
             showToast(result.message, "error");
             
@@ -1217,7 +1258,6 @@ async function submitForm(e, type) {
         window.isSubmitting = false;
     }
 }
-
 
 			function handleLapanganChange(lapanganValue, formType) {
     const prefix = formType === 'modal' ? 'e' : '';
