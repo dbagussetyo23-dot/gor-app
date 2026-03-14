@@ -1076,7 +1076,7 @@ const JENIS_LAPANGAN_CONFIG = {
     const prefix = formType === 'modal' ? 'e' : '';
     const gorValue = document.getElementById((prefix || 'f') + 'Gor').value;
     
-    // Untuk form utama, ID tanpa prefix
+    // Referensi elemen
     let jenisLapanganBox, jenisLapanganSelect, lainyaBox;
     
     if (formType === 'modal') {
@@ -1091,45 +1091,74 @@ const JENIS_LAPANGAN_CONFIG = {
     
     // Reset semua
     if (lainyaBox) lainyaBox.classList.add('hidden');
+    if (jenisLapanganBox) jenisLapanganBox.classList.add('hidden');
     
-    // Jika GOR bukan STADION, sembunyikan box jenis lapangan
+    // Jika GOR bukan STADION, selesai
     if (gorValue !== 'STADION') {
-        if (jenisLapanganBox) jenisLapanganBox.classList.add('hidden');
         return;
     }
     
-    // Handle untuk GOR = STADION
+    // UNTUK STADION, JENIS LAPANGAN SELALU MUNCUL (kecuali untuk TENIS yang punya pilihan khusus)
     if (gorValue === 'STADION') {
+        
         if (lapanganValue === 'LAINYA') {
-            // Tampilkan input Lainnya
+            // Untuk LAINYA: text input UNTUK NAMA LAPANGAN muncul
             if (lainyaBox) lainyaBox.classList.remove('hidden');
-            if (jenisLapanganBox) jenisLapanganBox.classList.add('hidden');
-        } 
-        else if (lapanganValue === 'TENIS') {
-            // Untuk TENIS, tampilkan pilihan LAP.TENIS A dan B
+            
+            // JENIS LAPANGAN tetap muncul dengan semua pilihan
             if (jenisLapanganBox) {
                 jenisLapanganBox.classList.remove('hidden');
                 jenisLapanganSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
                 
-                const jenisOptions = JENIS_LAPANGAN_CONFIG["STADION"]["TENIS"] || [];
+                // Semua pilihan jenis lapangan untuk LAINYA
+                const semuaJenis = [
+                    "STADION UTAMA",
+                    "LAPANGAN BASKET", 
+                    "LAPANGAN SEPAK TAKRAW",
+                    "LAPANGAN VOLLY",
+                    "SIRKUIT SEPATU RODA",
+                    "AREA BMX",
+                    "LAP.TENIS A",
+                    "LAP.TENIS B"
+                ];
+                
+                semuaJenis.forEach(jenis => {
+                    jenisLapanganSelect.innerHTML += `<option value="${jenis}">${jenis}</option>`;
+                });
+            }
+        }
+        else if (lapanganValue === 'TENIS') {
+            // Untuk TENIS: pilihan khusus A dan B
+            if (jenisLapanganBox) {
+                jenisLapanganBox.classList.remove('hidden');
+                jenisLapanganSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
+                
+                const jenisOptions = ["LAP.TENIS A", "LAP.TENIS B"];
                 jenisOptions.forEach(jenis => {
                     jenisLapanganSelect.innerHTML += `<option value="${jenis}">${jenis}</option>`;
                 });
             }
-            if (lainyaBox) lainyaBox.classList.add('hidden');
         }
         else {
-            // Untuk lapangan lain, set otomatis jenis lapangan
+            // Untuk lapangan lain (SEPAK BOLA, BASKET, dll): jenis lapangan otomatis
             if (jenisLapanganBox) {
                 jenisLapanganBox.classList.remove('hidden');
                 jenisLapanganSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
                 
-                const jenisOtomatis = JENIS_LAPANGAN_CONFIG["STADION"][lapanganValue] || [];
-                if (jenisOtomatis.length > 0) {
-                    jenisLapanganSelect.innerHTML = `<option value="${jenisOtomatis[0]}">${jenisOtomatis[0]}</option>`;
-                }
+                // Mapping jenis lapangan otomatis
+                const jenisOtomatis = {
+                    "SEPAK BOLA": "STADION UTAMA",
+                    "ATLETIK": "STADION UTAMA",
+                    "BASKET": "LAPANGAN BASKET",
+                    "SEPAK TAKRAW": "LAPANGAN SEPAK TAKRAW",
+                    "VOLLY": "LAPANGAN VOLLY",
+                    "SEPATU RODA": "SIRKUIT SEPATU RODA",
+                    "BMX": "AREA BMX"
+                };
+                
+                const jenisValue = jenisOtomatis[lapanganValue] || "STADION UTAMA";
+                jenisLapanganSelect.innerHTML = `<option value="${jenisValue}">${jenisValue}</option>`;
             }
-            if (lainyaBox) lainyaBox.classList.add('hidden');
         }
     }
 }
