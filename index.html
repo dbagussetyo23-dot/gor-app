@@ -292,9 +292,9 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <input type="time" id="fJamAwal" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-                <input type="time" id="fJamSelesai" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-                <input type="number" id="fJam" step="0.1" placeholder="JAM" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="time" id="fJamAwal" onchange="hitungDurasi('main')" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="time" id="fJamSelesai" onchange="hitungDurasi('main')" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="number" id="fJam" step="0.5" placeholder="JAM" required readonly class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none cursor-not-allowed opacity-70">
                 <input type="number" id="fNominal" placeholder="NOMINAL" required class="w-full px-3 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none">
             </div>
             <button type="submit" class="w-full bg-indigo-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-indigo-700">Simpan Data</button>
@@ -442,9 +442,9 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <input type="time" id="eJamAwal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-                <input type="time" id="eJamSelesai" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
-                <input type="number" id="eJam" step="0.1" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="time" id="eJamAwal" onchange="hitungDurasi('modal')" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="time" id="eJamSelesai" onchange="hitungDurasi('modal')" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
+                <input type="number" id="eJam" step="0.5" required readonly class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none cursor-not-allowed opacity-70">
                 <input type="number" id="eNominal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
             </div>
             <button type="submit" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg uppercase text-sm hover:bg-emerald-700 transition-all">Update Data</button>
@@ -1226,6 +1226,43 @@ const JENIS_LAPANGAN_CONFIG = {
     }
 };
 
+
+// ============================================
+// FUNGSI HITUNG DURASI OTOMATIS & VALIDASI JAM
+// ============================================
+function hitungDurasi(formType) {
+    const prefix = formType === 'modal' ? 'e' : 'f';
+    const jamAwalEl   = document.getElementById(prefix + 'JamAwal');
+    const jamSelesaiEl = document.getElementById(prefix + 'JamSelesai');
+    const jamDurasiEl = document.getElementById(prefix + 'Jam');
+
+    const awal    = jamAwalEl.value;
+    const selesai = jamSelesaiEl.value;
+
+    // Belum diisi keduanya → reset durasi
+    if (!awal || !selesai) {
+        jamDurasiEl.value = '';
+        return;
+    }
+
+    const [hA, mA] = awal.split(':').map(Number);
+    const [hS, mS] = selesai.split(':').map(Number);
+    const menitAwal    = hA * 60 + mA;
+    const menitSelesai = hS * 60 + mS;
+
+    // Validasi: jam selesai harus lebih besar dari jam mulai
+    if (menitSelesai <= menitAwal) {
+        showToast('Jam selesai harus lebih besar dari jam mulai!', 'error');
+        jamSelesaiEl.value = '';
+        jamDurasiEl.value = '';
+        return;
+    }
+
+    // Hitung durasi dalam jam (desimal, presisi 1 angka)
+    const selisihMenit = menitSelesai - menitAwal;
+    const durasi = parseFloat((selisihMenit / 60).toFixed(1));
+    jamDurasiEl.value = durasi;
+}
 
 // Modifikasi fungsi submitForm untuk menambahkan jenisLapangan dan cek ketersediaan
 // Modifikasi fungsi submitForm untuk menambahkan jenisLapangan dan cek ketersediaan
