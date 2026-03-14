@@ -996,14 +996,16 @@
 		
 		// Trigger initial load untuk GOR
 		setTimeout(() => {
-			handleGorChange('main');
-			handleGorChange('modal');
-		}, 500);
-		
-		populateGorFilter();
-		initExcelFilters();
-		showPage('dashboard');
-		setTimeout(setupInitialForm, 2000);
+        handleGorChange('main');
+        handleGorChange('modal');
+    }, 500);
+    
+    populateGorFilter();
+    initExcelFilters();
+    showPage('dashboard');
+    
+    // TAMBAHKAN INI - Panggil setupInitialForm untuk memastikan form terisi
+    setTimeout(setupInitialForm, 2000);
 	}
 
 
@@ -1889,6 +1891,8 @@ function handleGorChange(type = 'main') {
 }
 
 // Handler ketika LAPANGAN berubah (UNTUK FORM INPUT)
+
+				// Handler ketika LAPANGAN berubah (UNTUK FORM INPUT)
 function handleLapanganChange(type = 'main') {
     console.log("handleLapanganChange called");
     
@@ -1907,6 +1911,7 @@ function handleLapanganChange(type = 'main') {
     if (jenisSelect) {
         jenisSelect.innerHTML = '<option value="">PILIH JENIS LAPANGAN</option>';
         jenisSelect.disabled = false;
+        jenisSelect.classList.remove('hidden');
     }
     if (boxLainya) boxLainya.classList.add('hidden');
     if (boxJenisLainya) boxJenisLainya.classList.add('hidden');
@@ -1915,64 +1920,69 @@ function handleLapanganChange(type = 'main') {
     // Jika GOR atau lapangan tidak ada, return
     if (!gor || !lapangan) return;
     
-    // CEK UNTUK STADION
+    // CEK UNTUK STADION - SESUAI PETUNJUK TEKNIS
     if (gor === "STADION") {
+        // KASUS 1: SEPAK BOLA atau ATLETIK -> STADION UTAMA
         if (lapangan === "SEPAK BOLA" || lapangan === "ATLETIK") {
-            // OTOMATIS STADION UTAMA
             if (jenisSelect) {
                 jenisSelect.innerHTML = '<option value="STADION UTAMA" selected>STADION UTAMA</option>';
-                jenisSelect.disabled = true; // Tidak bisa diubah
+                jenisSelect.disabled = true; // Tidak bisa diubah karena sudah otomatis
             }
         } 
+        // KASUS 2: BASKET -> LAPANGAN BASKET
         else if (lapangan === "BASKET") {
             if (jenisSelect) {
                 jenisSelect.innerHTML = '<option value="LAPANGAN BASKET" selected>LAPANGAN BASKET</option>';
                 jenisSelect.disabled = true;
             }
         }
+        // KASUS 3: SEPAK TAKRAW -> LAPANGAN SEPAK TAKRAW
         else if (lapangan === "SEPAK TAKRAW") {
             if (jenisSelect) {
                 jenisSelect.innerHTML = '<option value="LAPANGAN SEPAK TAKRAW" selected>LAPANGAN SEPAK TAKRAW</option>';
                 jenisSelect.disabled = true;
             }
         }
+        // KASUS 4: VOLLY -> LAPANGAN VOLLY
         else if (lapangan === "VOLLY") {
             if (jenisSelect) {
                 jenisSelect.innerHTML = '<option value="LAPANGAN VOLLY" selected>LAPANGAN VOLLY</option>';
                 jenisSelect.disabled = true;
             }
         }
+        // KASUS 5: SEPATU RODA -> SIRKUIT SEPATU RODA
         else if (lapangan === "SEPATU RODA") {
             if (jenisSelect) {
                 jenisSelect.innerHTML = '<option value="SIRKUIT SEPATU RODA" selected>SIRKUIT SEPATU RODA</option>';
                 jenisSelect.disabled = true;
             }
         }
+        // KASUS 6: BMX -> AREA BMX
         else if (lapangan === "BMX") {
             if (jenisSelect) {
                 jenisSelect.innerHTML = '<option value="AREA BMX" selected>AREA BMX</option>';
                 jenisSelect.disabled = true;
             }
         }
+        // KASUS 7: TENIS -> HARUS MEMILIH A atau B
         else if (lapangan === "TENIS") {
-            // TENIS: user harus memilih A atau B
             if (jenisSelect) {
                 jenisSelect.innerHTML = `
                     <option value="">PILIH JENIS LAPANGAN</option>
                     <option value="LAP. TENIS A">LAP. TENIS A</option>
                     <option value="LAP. TENIS B">LAP. TENIS B</option>
                 `;
-                jenisSelect.disabled = false;
+                jenisSelect.disabled = false; // Bisa dipilih
             }
         }
+        // KASUS 8: LAINYA -> MUNCUL INPUT MANUAL
         else if (lapangan === "LAINYA") {
-            // LAINYA: user harus mengisi manual
-            if (jenisContainer) jenisContainer.classList.add('hidden');
-            if (boxLainya) boxLainya.classList.remove('hidden');
-            if (boxJenisLainya) boxJenisLainya.classList.remove('hidden');
+            if (jenisContainer) jenisContainer.classList.add('hidden'); // Sembunyikan dropdown jenis
+            if (boxLainya) boxLainya.classList.remove('hidden'); // Tampilkan input lapangan lain
+            if (boxJenisLainya) boxJenisLainya.classList.remove('hidden'); // Tampilkan input jenis lain
         }
+        // KASUS 9: EVENT, UPACARA, dll (tidak ada mapping khusus)
         else {
-            // Untuk EVENT, UPACARA, dll (tidak ada mapping khusus)
             if (jenisSelect) {
                 jenisSelect.innerHTML = `<option value="${lapangan}" selected>${lapangan}</option>`;
                 jenisSelect.disabled = true;
@@ -2000,7 +2010,6 @@ function handleLapanganChange(type = 'main') {
         }
     }
 }
-
 // Fungsi hitung durasi otomatis
 function hitungDurasi(type = 'main') {
     const prefix = type === 'modal' ? 'e' : 'f';
@@ -2145,18 +2154,21 @@ function resetJadwalFilters() {
 // ============================================
 
 // Panggil fungsi ini setelah login untuk memastikan semua terisi
+
+				// Panggil fungsi ini setelah login untuk memastikan semua terisi
 function setupInitialForm() {
     console.log("setupInitialForm called");
     
-    // Trigger perubahan untuk form utama
+    // Trigger perubahan untuk form utama setelah semua selector terisi
     setTimeout(() => {
         const fGor = document.getElementById('fGor');
         if (fGor && fGor.value) {
+            console.log("Triggering initial handleGorChange for main");
             handleGorChange('main');
         }
     }, 1000);
     
-    // Trigger perubahan untuk modal
+    // Trigger untuk modal
     setTimeout(() => {
         const eGor = document.getElementById('eGor');
         if (eGor && eGor.value) {
@@ -2164,7 +2176,6 @@ function setupInitialForm() {
         }
     }, 1500);
 }
-
 			</script>
 		</body>
 
