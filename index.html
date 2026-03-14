@@ -515,38 +515,22 @@
 			// ============================================
 			// UTILITY FUNCTIONS
 			// ============================================
-			// Dengan URL deployment Anda yang sebenarnya (yang muncul saat deploy)
-const API_URL = "https://script.google.com/macros/s/AKfycbztMJVqq9bkpwX_HCDFWElmq3e3XkUmEmNKoIAdzXuZ3VvHEp0KxWu6ccoWjglKDojwpQ/exec";
-	
-			
+			const API_URL = "https://script.google.com/macros/s/AKfycbztMJVqq9bkpwX_HCDFWElmq3e3XkUmEmNKoIAdzXuZ3VvHEp0KxWu6ccoWjglKDojwpQ/exec";
 	async function run(action, ...params) {
-    toggleLoader(true, "Menghubungi server...");
-    
-    try {
-        const form = new FormData();
-        form.append("data", JSON.stringify({
-            action: action,
-            params: params
-        }));
 
-        const res = await fetch(API_URL, {
-            method: "POST",
-            body: form
-        });
+	  const form = new FormData();
+	  form.append("data", JSON.stringify({
+		action: action,
+		params: params
+	  }));
 
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
+	  const res = await fetch(API_URL, {
+		method: "POST",
+		body: form
+	  });
 
-        const result = await res.json();
-        toggleLoader(false);
-        return result;
-    } catch (err) {
-        toggleLoader(false);
-        console.error("API call error:", err);
-        throw err;
-    }
-}
+	  return await res.json();
+	}
 
 			function toggleLoader(show, text = "Memproses...") {
 				document.getElementById('loader').style.display = show ? 'flex' : 'none';
@@ -634,7 +618,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbztMJVqq9bkpwX_HCDFWElm
 			
 			
 // Modifikasi fungsi handleLogin untuk memanggil resetJadwalFilters
-			async function handleLogin(e) {
+async function handleLogin(e) {
     e.preventDefault();
     const u = document.getElementById('user').value.trim().toUpperCase();
     const p = document.getElementById('pass').value.trim();
@@ -642,7 +626,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbztMJVqq9bkpwX_HCDFWElm
     toggleLoader(true, "Verifikasi...");
 
     try {
-        // Perbaiki cara panggil API - gunakan array params
         const res = await run('checkLogin', u, p);
 
         if (res.success) {
@@ -656,12 +639,20 @@ const API_URL = "https://script.google.com/macros/s/AKfycbztMJVqq9bkpwX_HCDFWElm
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('displayUser').innerText = isUserAdmin ? "ADMIN" : currentUser;
             
+            // Tampilkan elemen khusus admin jika user adalah admin
             toggleAdminElements();
+
             setupSelectors();
+            
+            // TAMBAHKAN INI - Reset filter jadwal
             resetJadwalFilters();
+            
+            // TAMBAHKAN INI - panggil ulang untuk memastikan filter GOR terisi
             populateGorFilter();
+            
             await fetchData();
             
+            // Hanya jalankan heartbeat dan polling untuk ADMIN
             if (isUserAdmin) {
                 startHeartbeat();
                 startPolling();
@@ -670,14 +661,14 @@ const API_URL = "https://script.google.com/macros/s/AKfycbztMJVqq9bkpwX_HCDFWElm
             showToast("Login berhasil", "success");
         } else {
             toggleLoader(false);
-            showToast(res.message || "Username atau Password salah!", "error");
+            showToast("Username atau password salah!", "error");
         }
     } catch (err) {
-        console.error("Login error:", err);
         toggleLoader(false);
-        showToast("Gagal koneksi ke server: " + err.message, "error");
+        showToast("Gagal koneksi ke server", "error");
     }
 }
+
 					
 			// Fungsi untuk menampilkan/menyembunyikan elemen khusus admin
 			function toggleAdminElements() {
@@ -1083,10 +1074,6 @@ const JENIS_LAPANGAN_CONFIG = {
 
 // Modifikasi fungsi submitForm untuk menambahkan jenisLapangan dan cek ketersediaan
 // Modifikasi fungsi submitForm untuk menambahkan jenisLapangan dan cek ketersediaan
-
-
-
-// Modifikasi fungsi submitForm untuk menambahkan jenisLapangan dan cek ketersediaan
 async function submitForm(e, type) {
     e.preventDefault();
     
@@ -1244,7 +1231,7 @@ async function submitForm(e, type) {
         window.isSubmitting = false;
     }
 }
-	function handleLapanganChange(lapanganValue, formType) {
+			function handleLapanganChange(lapanganValue, formType) {
     const prefix = formType === 'modal' ? 'e' : '';
     const gorValue = document.getElementById((prefix || 'f') + 'Gor').value;
     
@@ -1346,135 +1333,42 @@ async function submitForm(e, type) {
 // Modifikasi fungsi submitForm untuk menambahkan jenisLapangan
 
 // ============================================
-// FUNGSI CEK KETERSEDIAAN STADION - FIX LOOP
+// FUNGSI DEBUG UNTUK CEK DATA
 // ============================================
 
-// Flag global untuk mencegah multiple request bersamaan
-let isCheckingAvailability = false;
-let lastCheckData = null; // Untuk cache hasil pengecekan terakhir
-
-async function cekKetersediaanStadion(tanggal, bulan, tahun, jamMulai, jamSelesai, jenisLapangan) {
-    // CEK FLAG: jika sedang dalam proses pengecekan, hentikan
-    if (isCheckingAvailability) {
-        console.log("⏳ Pengecekan sedang berlangsung, request ditolak.");
-        return { tersedia: false }; 
-    }
+function debugCheckData() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
+  
+  console.log("========== DEBUG DATA ==========");
+  console.log("Total baris: " + data.length);
+  
+  const headers = data[0];
+  const jenisIndex = headers.indexOf('JENIS_LAPANGAN');
+  
+  if (jenisIndex === -1) {
+    console.log("Kolom JENIS_LAPANGAN tidak ditemukan!");
+    return;
+  }
+  
+  console.log("Data JENIS_LAPANGAN:");
+  for (let i = 1; i < Math.min(data.length, 10); i++) {
+    let val = data[i][jenisIndex];
+    console.log(`Baris ${i+1}: "${val}" (length: ${val ? val.toString().length : 0})`);
     
-    // CEK CACHE: jika data yang dicek sama persis dengan sebelumnya, kembalikan hasil yang sama
-    const checkKey = `${tanggal}_${bulan}_${tahun}_${jamMulai}_${jamSelesai}_${jenisLapangan}`;
-    if (lastCheckData && lastCheckData.key === checkKey) {
-        console.log("📦 Menggunakan hasil pengecekan dari cache:", lastCheckData.result);
-        return lastCheckData.result;
+    // Tampilkan karakter tersembunyi
+    if (val) {
+      let chars = [];
+      for (let j = 0; j < val.toString().length; j++) {
+        chars.push(val.toString().charCodeAt(j));
+      }
+      console.log(`  Char codes: ${chars.join(', ')}`);
     }
-    
-    isCheckingAvailability = true; // Set flag bahwa pengecekan dimulai
-    
-    try {
-        console.log("🔍 Memeriksa ketersediaan untuk:", jenisLapangan, jamMulai);
-        
-        const result = await run('getDataWithHash');
-        const data = result.data || [];
-        
-        // Filter data untuk STADION dengan parameter yang sama
-        const dataStadion = data.filter(x => 
-            x.GOR === 'STADION' &&
-            String(x.TANGGAL) === String(tanggal) &&
-            x.BULAN === bulan &&
-            String(x.TAHUN) === String(tahun) &&
-            x.JAM_AWAL === jamMulai &&
-            x.JAM_SELESAI === jamSelesai
-        );
-        
-        console.log("📊 Data Stadion untuk cek:", dataStadion.length > 0 ? dataStadion : "Kosong");
-        console.log("🎾 Jenis lapangan yang dicek:", jenisLapangan);
-        
-        // NORMALISASI: hapus spasi berlebih
-        const jenisNormal = jenisLapangan.trim().replace(/\s+/g, ' ');
-        
-        // Cek khusus TENIS
-        if (jenisNormal.includes('LAP.TENIS')) {
-            // Normalisasi data existing juga
-            const tenisA = dataStadion.filter(x => {
-                const existingJenis = (x.JENIS_LAPANGAN || '').trim().replace(/\s+/g, ' ');
-                return existingJenis === 'LAP.TENIS A';
-            });
-            
-            const tenisB = dataStadion.filter(x => {
-                const existingJenis = (x.JENIS_LAPANGAN || '').trim().replace(/\s+/g, ' ');
-                return existingJenis === 'LAP.TENIS B';
-            });
-            
-            console.log("✅ Tenis A terdeteksi:", tenisA.length);
-            console.log("✅ Tenis B terdeteksi:", tenisB.length);
-            
-            // KASUS 1: Booking LAP.TENIS A
-            if (jenisNormal === 'LAP.TENIS A') {
-                if (tenisA.length > 0) {
-                    const result = { 
-                        tersedia: false, 
-                        pesan: '❌ LAP.TENIS A sudah dibooking untuk jam ' + jamMulai + '!' 
-                    };
-                    // Simpan ke cache
-                    lastCheckData = { key: checkKey, result: result };
-                    return result;
-                }
-                const result = { tersedia: true };
-                lastCheckData = { key: checkKey, result: result };
-                return result;
-            }
-            
-            // KASUS 2: Booking LAP.TENIS B
-            if (jenisNormal === 'LAP.TENIS B') {
-                if (tenisB.length > 0) {
-                    const result = { 
-                        tersedia: false, 
-                        pesan: '❌ LAP.TENIS B sudah dibooking untuk jam ' + jamMulai + '!' 
-                    };
-                    lastCheckData = { key: checkKey, result: result };
-                    return result;
-                }
-                const result = { tersedia: true };
-                lastCheckData = { key: checkKey, result: result };
-                return result;
-            }
-            
-            // KASUS 3: Jika jenis lapangan tidak dikenali
-            const result = { tersedia: false, pesan: '❌ Jenis lapangan tidak valid!' };
-            lastCheckData = { key: checkKey, result: result };
-            return result;
-        } 
-        
-        // Untuk lapangan non-tenis
-        else {
-            const cek = dataStadion.filter(x => {
-                const existingJenis = (x.JENIS_LAPANGAN || '').trim().replace(/\s+/g, ' ');
-                return existingJenis === jenisNormal;
-            });
-            
-            if (cek.length > 0) {
-                const result = { 
-                    tersedia: false, 
-                    pesan: '❌ ' + jenisLapangan + ' sudah dibooking di jam ' + jamMulai + '!' 
-                };
-                lastCheckData = { key: checkKey, result: result };
-                return result;
-            }
-        }
-        
-        const result = { tersedia: true };
-        lastCheckData = { key: checkKey, result: result };
-        return result;
-        
-    } catch (e) {
-        console.error("❌ Error cek ketersediaan:", e);
-        return { tersedia: true }; // Default boleh booking jika error
-    } finally {
-        // RESET FLAG: pengecekan selesai, baik sukses maupun error
-        isCheckingAvailability = false;
-        console.log("🔓 Flag pengecekan direset");
-    }
+  }
+  
+  return "Cek console untuk hasil debug";
 }
-
 
 // Modifikasi fungsi openEditModal untuk mengisi jenis lapangan
 function openEditModal(id) {
@@ -2234,7 +2128,6 @@ function handleGorChange() {
 	</body>
 
 	</html>
-
 
 
 
