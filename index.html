@@ -1,4 +1,4 @@
-	<!DOCTYPE html>
+<!DOCTYPE html>
 	<html lang="id">
 	<head>
 		<meta charset="UTF-8">
@@ -1167,6 +1167,12 @@ async function submitForm(e, type) {
         toggleLoader(true, "Memeriksa ketersediaan...");
         
         try {
+            console.log('[SUBMIT] Cek ketersediaan:', {
+                tanggal: data.tanggal, bulan: data.bulan, tahun: data.tahun,
+                jamAwal: data.jamAwal, jamSelesai: data.jamSelesai,
+                jenisLapangan: data.jenisLapangan,
+                typeJamAwal: typeof data.jamAwal, typeJamSelesai: typeof data.jamSelesai
+            });
             const cek = await cekKetersediaanStadion(
                 data.tanggal,
                 data.bulan,
@@ -1386,26 +1392,55 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai
                    String(d.TAHUN) === String(tahun);
         });
 
-        // Helper: konversi berbagai format jam ke menit (robust)
+        // Helper: konversi SEMUA format jam ke menit (robust)
         function toMenit(val) {
-            if (!val) return -1;
-            // Sudah string HH:mm
-            if (typeof val === 'string' && val.includes(':')) {
-                // Bisa format HH:mm atau ISO string dengan T
-                const part = val.includes('T') ? val.split('T')[1] : val;
-                const [h, m] = part.split(':').map(Number);
-                if (!isNaN(h) && !isNaN(m)) return h * 60 + m;
-            }
-            // Date object
-            if (val instanceof Date || (typeof val === 'object' && val !== null)) {
-                try {
+            try {
+                if (val === null || val === undefined || val === '' || val === '-') return -1;
+
+                // Number: bisa jadi Excel serial time (0.0 - 1.0) atau menit langsung
+                if (typeof val === 'number') {
+                    // Excel/Sheets serial time: nilai 0.0 = 00:00, 0.5 = 12:00, 1.0 = 24:00
+                    if (val >= 0 && val < 1) {
+                        return Math.round(val * 24 * 60);
+                    }
+                    // Sudah dalam menit
+                    return val;
+                }
+
+                // String
+                if (typeof val === 'string') {
+                    const s = val.trim();
+                    // ISO string: 2026-01-01T01:00:00.000Z
+                    if (s.includes('T')) {
+                        const timePart = s.split('T')[1];
+                        const [h, m] = timePart.split(':').map(Number);
+                        if (!isNaN(h) && !isNaN(m)) return h * 60 + m;
+                    }
+                    // HH:mm atau H:mm
+                    if (s.includes(':')) {
+                        const [h, m] = s.split(':').map(Number);
+                        if (!isNaN(h) && !isNaN(m)) return h * 60 + m;
+                    }
+                    // Coba parse sebagai number (Sheets kadang kirim string 0.041666...)
+                    const num = parseFloat(s);
+                    if (!isNaN(num) && num >= 0 && num < 1) {
+                        return Math.round(num * 24 * 60);
+                    }
+                }
+
+                // Date object
+                if (typeof val === 'object' && val !== null) {
                     const d = new Date(val);
-                    return d.getHours() * 60 + d.getMinutes();
-                } catch(e) {}
+                    if (!isNaN(d.getTime())) {
+                        return d.getHours() * 60 + d.getMinutes();
+                    }
+                }
+
+                return -1;
+            } catch(e) {
+                console.warn('toMenit error for value:', val, e);
+                return -1;
             }
-            // Number (menit langsung)
-            if (typeof val === 'number') return val;
-            return -1;
         }
 
         // Helper: cek apakah dua rentang waktu overlap
@@ -1421,7 +1456,17 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai
             return dataTanggal.some(d => {
                 if (!d.JENIS_LAPANGAN) return false;
                 if (d.JENIS_LAPANGAN.trim() !== jenis.trim()) return false;
-                return isOverlap(jamAwal, jamSelesai, d.JAM_AWAL, d.JAM_SELESAI);
+
+                // Debug: log format JAM dari DB agar mudah diagnosa
+                console.log('[CEK JADWAL] DB JAM_AWAL:', d.JAM_AWAL, typeof d.JAM_AWAL,
+                            '| JAM_SELESAI:', d.JAM_SELESAI, typeof d.JAM_SELESAI,
+                            '| Input:', jamAwal, jamSelesai);
+
+                const hasil = isOverlap(jamAwal, jamSelesai, d.JAM_AWAL, d.JAM_SELESAI);
+                console.log('[CEK JADWAL] Overlap result:', hasil,
+                    '| s1:', toMenit(jamAwal), 'e1:', toMenit(jamSelesai),
+                    '| s2:', toMenit(d.JAM_AWAL), 'e2:', toMenit(d.JAM_SELESAI));
+                return hasil;
             });
         }
 
@@ -2268,6 +2313,3 @@ function handleGorChange() {
 	</body>
 
 	</html>
-
-
-
