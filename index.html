@@ -455,16 +455,19 @@
                     <select id="eLapangan" required class="w-full px-3 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
                 </div>
                 
-                <!-- Input untuk olahraga lainya di modal -->
-				<div id="eboxOlahragaLainya" class="hidden">
-    <input type="text" id="eOlahragaLainya" placeholder="NAMA OLAHRAGA LAINNYA" class="w-full px-5 py-3 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
+               <!-- INPUT OLAHRAGA LAINNYA -->
+<div id="boxOlahragaLainya" class="hidden">
+<input type="text" id="fOlahragaLainya"
+placeholder="NAMA OLAHRAGA LAINNYA"
+class="w-full px-5 py-4 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
 </div>
                 
-                <!-- Input untuk lapangan lainya di modal -->
-                <div id="eboxLainya" class="hidden">
-                    <input type="text" id="eLapanganLainya" placeholder="NAMA LAPANGAN LAINNYA" class="w-full px-5 py-3 rounded-xl bg-amber-50 border border-amber-100 font-bold uppercase text-sm outline-none">
-                </div>
-                
+                <!-- LAPANGAN -->
+<div class="grid grid-cols-2 gap-2">
+<select id="fLapangan"
+required
+class="w-full px-4 py-4 rounded-xl bg-gray-50 font-bold text-sm outline-none"></select>
+</div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                     <input type="time" id="eJamAwal" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
                     <input type="time" id="eJamSelesai" required class="w-full px-2 py-3 rounded-xl bg-gray-50 font-bold text-sm outline-none">
@@ -634,50 +637,37 @@
         select.dispatchEvent(new Event('change'));
     }
 
-    function populateLapangan(olahraga, gor, prefix = 'f') {
-    const select = document.getElementById(prefix + 'Lapangan');
-    if (!select) return;
-    
-    const boxLainya = document.getElementById(prefix + 'boxLainya');
-    const inputLainya = document.getElementById(prefix + 'LapanganLainya');
-    
-    if (boxLainya) boxLainya.classList.add('hidden');
-    if (inputLainya) inputLainya.value = '';
-    
-    let options = '';
-    
-    if (gor === 'STADION') {
-        if (olahraga === 'TENIS') {
-            // Untuk TENIS, pilihan terbatas dan bisa dipilih
-            options = '<option value="TENIS A">TENIS A</option><option value="TENIS B">TENIS B</option>';
-            select.innerHTML = options;
-            select.disabled = false;
-        } else if (olahraga === 'LAINYA') {
-            // UNTUK OLAHRAGA LAINYA: tampilkan semua lapangan STADION, bisa dipilih bebas
-            options = LAPANGAN_STADION.map(l => `<option value="${l}">${l}</option>`).join('');
-            select.innerHTML = options;
-            select.disabled = false; // BISA DIPILIH BEBAS
-        } else {
-            const autoLapangan = mappingStadion[olahraga];
-            if (autoLapangan) {
-                // Auto-set lapangan, tidak bisa diubah
-                select.innerHTML = `<option value="${autoLapangan}" selected>${autoLapangan}</option>`;
-                select.disabled = true;
-            } else {
-                // Fallback ke umum
-                options = LAPANGAN_UMUM.map(l => `<option value="${l}">${l}</option>`).join('');
-                select.innerHTML = options;
-                select.disabled = false;
-            }
-        }
-    } else {
-        // Untuk GOR selain STADION, pilihan lapangan umum
-        options = LAPANGAN_UMUM.map(l => `<option value="${l}">${l}</option>`).join('');
-        select.innerHTML = options;
-        select.disabled = false;
-    }
+   
+   function populateLapangan(olahraga, gor, prefix = 'f') {
+
+const select = document.getElementById(prefix + 'Lapangan');
+
+let options = [];
+
+if (gor === 'STADION') {
+
+if (olahraga === 'LAINYA') {
+
+options = LAPANGAN_STADION.filter(l => l !== 'LAINYA');
+
+} else {
+
+options = LAPANGAN_STADION;
+
 }
 
+} else {
+
+options = LAPANGAN_UMUM.filter(l => l !== 'LAINYA');
+
+}
+
+select.innerHTML = options
+.map(l => `<option value="${l}">${l}</option>`)
+.join('');
+
+}
+   
    function toggleOlahragaLainya(val, prefix) {
     console.log('toggleOlahragaLainya called with val:', val, 'prefix:', prefix);
     
