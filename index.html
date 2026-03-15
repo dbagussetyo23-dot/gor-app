@@ -526,6 +526,13 @@
 			const SPORTS = ["BADMINTON", "BASKET", "BOLA TANGAN", "FUTSAL", "GYM", "PENCAK SILAT", "PUSH BIKE", "SENAM", "VOLLY", "PANAHAN", "SEPAK TAKRAW", "TENIS", "BMX","SEPAK BOLA", "SEPATU RODA"];
 			// Lapangan yang tersedia khusus di STADION
 			const SPORTS_STADION = ["SEPAK BOLA", "TENIS", "VOLLY", "SEPAK TAKRAW", "BASKET", "SEPATU RODA", "BMX"];
+			// GOR yang punya lapangan multi (hanya 1 cabang olahraga tapi banyak lapangan)
+			const GOR_MULTI_LAPANGAN = {
+				'GOR KOTA': {
+					olahraga: 'BADMINTON',
+					lapangan: ['Lapangan A', 'Lapangan B', 'Lapangan C', 'Lapangan D']
+				}
+			};
 			const YEARS = ["2024", "2025", "2026"];
 
 			// STATE GLOBAL
@@ -1019,6 +1026,24 @@ function updateLapanganByGor(gorValue, formType) {
         }
         // Trigger handleLapanganChange untuk tampilkan jenis lapangan
         handleLapanganChange(lapanganSelect.value, formType);
+    } else if (GOR_MULTI_LAPANGAN[gorValue]) {
+        // GOR dengan multi-lapangan (misal GOR KOTA: hanya BADMINTON, pilih lapangan A/B/C/D)
+        const cfg = GOR_MULTI_LAPANGAN[gorValue];
+        lapanganSelect.add(new Option('Pilih Olahraga', ''));
+        lapanganSelect.add(new Option(cfg.olahraga, cfg.olahraga));
+        if (boxJenis) {
+            // Gunakan boxJenis untuk memilih lapangan A/B/C/D
+            boxJenis.classList.remove('hidden');
+            const jenisSelect = document.getElementById(formType === 'modal' ? 'eJenisLapangan' : 'fJenisLapangan');
+            if (jenisSelect) {
+                jenisSelect.innerHTML = '<option value="">Pilih Lapangan</option>';
+                cfg.lapangan.forEach(lp => {
+                    jenisSelect.innerHTML += `<option value="${lp}">${lp}</option>`;
+                });
+            }
+        }
+        if (boxLainya) boxLainya.classList.add('hidden');
+        lapanganSelect.value = cfg.olahraga;
     } else {
         // Tampilkan semua lapangan + LAINYA
         lapanganSelect.add(new Option('Pilih Olahraga', ''));
@@ -1031,7 +1056,7 @@ function updateLapanganByGor(gorValue, formType) {
         if (SPORTS.includes(currentVal)) {
             lapanganSelect.value = currentVal;
         } else {
-            lapanganSelect.value = SPORTS[0];
+            lapanganSelect.value = '';
         }
     }
 }
@@ -1340,6 +1365,15 @@ async function submitForm(e, type) {
             }
         }
     }
+    // Validasi GOR multi-lapangan (GOR KOTA dll) - wajib pilih lapangan A/B/C/D
+    if (GOR_MULTI_LAPANGAN[gorValue]) {
+        const jenisLapanganSelect = document.getElementById(prefix + 'JenisLapangan');
+        if (!jenisLapanganSelect || !jenisLapanganSelect.value) {
+            showToast("Pilih lapangan (A/B/C/D) terlebih dahulu!", "error");
+            window.isSubmitting = false;
+            return;
+        }
+    }
     
     const data = {
         id: type === 'modal' ? document.getElementById('eId').value : "",
@@ -1358,8 +1392,8 @@ async function submitForm(e, type) {
         currentUser: currentUser
     };
     
-    // CEK KETERSEDIAAN KHUSUS UNTUK STADION (termasuk saat edit)
-    if (gorValue === 'STADION') {
+    // CEK KETERSEDIAAN KHUSUS UNTUK STADION & GOR MULTI-LAPANGAN (termasuk saat edit)
+    if (gorValue === 'STADION' || GOR_MULTI_LAPANGAN[gorValue]) {
         toggleLoader(true, "Memeriksa ketersediaan...");
         
         try {
@@ -1370,7 +1404,8 @@ async function submitForm(e, type) {
                 data.jamAwal,
                 data.jamSelesai,
                 data.jenisLapangan,
-                data.id  // ID data yang sedang diedit (kosong jika baru)
+                data.id,    // ID data yang sedang diedit (kosong jika baru)
+                gorValue    // GOR yang dipilih
             );
             
             if (!cek.tersedia) {
@@ -1574,20 +1609,20 @@ function showKonflikModal(pesan) {
  *      Jika B juga penuh → tolak: "Semua lapangan TENIS jam XX:00 sudah penuh."
  *    - Berlaku sebaliknya jika B yang dipilih.
  */
-async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai, jenisLapangan, editId) {
+async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai, jenisLapangan, editId, gorValue) {
     try {
         // Ambil data terbaru dari server
         const res = await run('getDataWithHash');
         const semuaData = res.data || [];
 
-        // Filter hanya data STADION di tanggal yang sama
+        // Filter data di GOR+tanggal yang sama (STADION atau GOR multi-lapangan)
         // Kecualikan data yang sedang diedit (agar tidak konflik dengan dirinya sendiri)
         const dataTanggal = semuaData.filter(d => {
-            if (d.GOR !== 'STADION') return false;
+            if (d.GOR !== gorValue) return false;
             if (String(d.TANGGAL) !== String(tanggal)) return false;
             if (d.BULAN !== bulan) return false;
             if (String(d.TAHUN) !== String(tahun)) return false;
-            if (editId && String(d.ID) === String(editId)) return false; // skip data sendiri
+            if (editId && String(d.ID) === String(editId)) return false;
             return true;
         });
 
@@ -1773,9 +1808,21 @@ function openEditModal(id) {
     // Tentukan apakah lapangan ada di list atau LAINYA
     const isStadionSport = SPORTS_STADION.includes(d.LAPANGAN);
     const isGeneralSport = SPORTS.includes(d.LAPANGAN);
-    const isLainya = !isStadionSport && !isGeneralSport;
+    const gorMultiEditCfg = GOR_MULTI_LAPANGAN[d.GOR];
+    const isMultiEdit = !!gorMultiEditCfg;
+    const isLainya = !isStadionSport && !isGeneralSport && !isMultiEdit;
 
-    if (!isLainya) {
+    if (isMultiEdit) {
+        // GOR KOTA: lapangan = olahraga (BADMINTON), jenis = A/B/C/D
+        document.getElementById('eLapangan').value = gorMultiEditCfg.olahraga;
+        document.getElementById('eboxLainya').classList.add('hidden');
+        setTimeout(() => {
+            const eJenis = document.getElementById('eJenisLapangan');
+            if (eJenis && d.JENIS_LAPANGAN) {
+                eJenis.value = d.JENIS_LAPANGAN;
+            }
+        }, 150);
+    } else if (!isLainya) {
         // Lapangan ada di list
         document.getElementById('eLapangan').value = d.LAPANGAN;
         // Sembunyikan box lainya
@@ -2008,22 +2055,22 @@ function closeEditModal() {
         const JAM_MULAI = 8;
         const JAM_SELESAI_OP = 22;
 
-        // Tentukan lapangan yang akan ditampilkan
-        // Untuk TENIS: 2 sub-lapangan (A dan B)
-        // Untuk lainnya: 1 lapangan berdasarkan JENIS_LAPANGAN
+        // Tentukan mode tampilan
         const isTenis = selectedGor === 'STADION' && selectedJenis === 'LAPANGAN TENIS';
         const isStadion = selectedGor === 'STADION';
+        const gorMultiCfg = GOR_MULTI_LAPANGAN[selectedGor]; // null jika bukan GOR multi
+        const isMultiLapangan = !!gorMultiCfg; // GOR KOTA dll
 
-        // Mapping jenis lapangan jadwal -> JENIS_LAPANGAN di DB
+        // Mapping jenis lapangan jadwal -> JENIS_LAPANGAN di DB (untuk STADION)
         const JENIS_DB_MAP = {
-            'STADION UTAMA':       'STADION UTAMA',
-            'LAPANGAN BASKET':     'LAPANGAN BASKET',
-            'LAPANGAN TAKRAW':     'LAPANGAN SEPAK TAKRAW',
-            'LAPANGAN VOLLY':      'LAPANGAN VOLLY',
-            'LINTASAN SEPATU RODA':'LINTASAN SEPATU RODA',
-            'AREA BMX':            'AREA BMX',
-            'LAPANGAN TENIS':      ['LAP.TENIS A', 'LAP.TENIS B'],
-            'HALAMAN STADION':     'HALAMAN STADION',
+            'STADION UTAMA':        'STADION UTAMA',
+            'LAPANGAN BASKET':      'LAPANGAN BASKET',
+            'LAPANGAN TAKRAW':      'LAPANGAN SEPAK TAKRAW',
+            'LAPANGAN VOLLY':       'LAPANGAN VOLLY',
+            'LINTASAN SEPATU RODA': 'LINTASAN SEPATU RODA',
+            'AREA BMX':             'AREA BMX',
+            'LAPANGAN TENIS':       ['LAP.TENIS A', 'LAP.TENIS B'],
+            'HALAMAN STADION':      'HALAMAN STADION',
         };
 
         // Filter data
@@ -2039,13 +2086,13 @@ function closeEditModal() {
             dataFiltered = semuaData.filter(x => x.GOR === selectedGor);
         }
 
-        // Label tampilan
-        const labelJenis = isStadion ? selectedJenis : selectedGor;
+        // Label
         const filterInfo = `<div class="mb-4 p-3 bg-indigo-50 rounded-xl flex items-center gap-2">
             <i class="fas fa-filter text-indigo-600"></i>
             <span class="text-xs font-bold text-indigo-700">
                 Jadwal: <span class="bg-indigo-200 px-2 py-1 rounded">${selectedGor}${isStadion ? ' → ' + selectedJenis : ''}</span>
                 &nbsp;Bulan: ${MONTHS[bulan-1]} ${tahun}
+                ${isMultiLapangan ? `<span class="ml-2 bg-amber-200 text-amber-800 px-2 py-0.5 rounded text-[10px]">4 LAPANGAN</span>` : ''}
             </span>
         </div>`;
 
@@ -2074,12 +2121,18 @@ function closeEditModal() {
                             </th>`;
 
         // Header jam
+        const colWidth = isTenis ? 60 : (isMultiLapangan ? 80 : 32);
+        const lapSubLabels = isMultiLapangan ? gorMultiCfg.lapangan.map(l => l.replace('Lapangan ','')) : [];
         for (let jam = JAM_MULAI; jam <= JAM_SELESAI_OP; jam++) {
             const pk = jam >= 16 && jam <= 21;
-            html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width:${isTenis?60:32}px">
+            let subLabel = '';
+            if (isTenis) subLabel = '<span class="text-[7px] opacity-60 font-bold">A&nbsp;|&nbsp;B</span>';
+            else if (isMultiLapangan) subLabel = `<span class="text-[7px] opacity-60 font-bold">${lapSubLabels.join('|')}</span>`;
+            else subLabel = `<span class="text-[6px] opacity-50">${pk?'PK':''}</span>`;
+            html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width:${colWidth}px">
                 <div class="flex flex-col items-center">
                     <span class="text-[10px]">${String(jam).padStart(2,'0')}</span>
-                    ${isTenis ? '<span class="text-[7px] opacity-60 font-bold">A&nbsp;|&nbsp;B</span>' : `<span class="text-[6px] opacity-50">${pk?'PK':''}</span>`}
+                    ${subLabel}
                 </div></th>`;
         }
         html += `<th class="p-2 font-black bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width:60px"><span class="text-[11px]">TOTAL</span></th>
@@ -2108,7 +2161,54 @@ function closeEditModal() {
                 </div></td>`;
 
             for (let jam = JAM_MULAI; jam <= JAM_SELESAI_OP; jam++) {
-                if (isTenis) {
+                if (isMultiLapangan) {
+                    // GOR KOTA: 4 sub-kolom Lapangan A/B/C/D dalam 1 sel
+                    const subLaps = gorMultiCfg.lapangan;
+                    let bookedCount = 0;
+                    subLaps.forEach(lp => {
+                        const bk = dataFiltered.filter(x => {
+                            const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
+                            tglDb.setHours(0,0,0,0);
+                            if (tglDb.getTime() !== tgl.getTime()) return false;
+                            const jA = parseJamToHour(x.JAM_AWAL);
+                            const jS = parseJamToHour(x.JAM_SELESAI) || jA+1;
+                            if (!(jam >= jA && jam < jS)) return false;
+                            return x.JENIS_LAPANGAN === lp;
+                        });
+                        if (bk.length > 0) { totalBookings++; dailyBookings++; bookedCount++; }
+                    });
+
+                    const renderSubLap = (lapNama) => {
+                        const bks = dataFiltered.filter(x => {
+                            const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
+                            tglDb.setHours(0,0,0,0);
+                            if (tglDb.getTime() !== tgl.getTime()) return false;
+                            const jA = parseJamToHour(x.JAM_AWAL);
+                            const jS = parseJamToHour(x.JAM_SELESAI) || jA+1;
+                            if (!(jam >= jA && jam < jS)) return false;
+                            return x.JENIS_LAPANGAN === lapNama;
+                        });
+                        const label = lapNama.replace('Lapangan ','');
+                        if (bks.length > 0) {
+                            const bk = bks[0];
+                            return `<div class="flex-1 rounded bg-rose-400 hover:bg-rose-500 flex items-center justify-center cursor-pointer group transition-all"
+                                onclick="showBookingDetail('${bk.ID}')">
+                                <span class="text-[8px] font-black text-white">${label}</span>
+                            </div>`;
+                        } else {
+                            return `<div class="flex-1 rounded bg-emerald-400 hover:bg-emerald-500 flex items-center justify-center cursor-pointer group transition-all"
+                                onclick="showAvailableSlotMulti('${tanggalStr}', ${jam}, '${selectedGor}', '${lapNama}')">
+                                <span class="text-[8px] font-black text-white">${label}</span>
+                            </div>`;
+                        }
+                    };
+
+                    html += `<td class="border border-gray-100 p-0.5" style="min-width:${colWidth}px;height:38px">
+                        <div class="flex gap-0.5 h-full">
+                            ${subLaps.map(lp => renderSubLap(lp)).join('')}
+                        </div>
+                    </td>`;
+                } else if (isTenis) {
                     // TENIS: 2 sub-kolom A dan B dalam 1 sel
                     const bA = getBookings(tgl, jam, 'LAP.TENIS A');
                     const bB = getBookings(tgl, jam, 'LAP.TENIS B');
@@ -2262,6 +2362,32 @@ function closeEditModal() {
 		showToast(`Slot ${jenisLap} tersedia - silakan lengkapi data`, "info");
 	}
 
+
+	// Slot kosong GOR multi-lapangan (GOR KOTA: Lapangan A/B/C/D)
+	function showAvailableSlotMulti(tanggal, jam, gor, lapNama) {
+		showPage('input');
+		const parts = tanggal.split('-');
+		document.getElementById('fTanggal').value = parseInt(parts[2]);
+		document.getElementById('fBulan').value = MONTHS[parseInt(parts[1]) - 1];
+		document.getElementById('fTahun').value = parts[0];
+		const jamStr = jam.toString().padStart(2,'0');
+		const jamNextStr = (jam+1).toString().padStart(2,'0');
+		document.getElementById('fJamAwal').value = `${jamStr}:00`;
+		document.getElementById('fJamSelesai').value = `${jamNextStr}:00`;
+		hitungDurasi('main');
+		document.getElementById('fGor').value = gor;
+		updateLapanganByGor(gor, 'main');
+		const cfg = GOR_MULTI_LAPANGAN[gor];
+		if (cfg) {
+			setTimeout(() => {
+				document.getElementById('fLapangan').value = cfg.olahraga;
+				const jenisEl = document.getElementById('fJenisLapangan');
+				if (jenisEl) jenisEl.value = lapNama;
+			}, 150);
+		}
+		document.getElementById('page-input').scrollIntoView({ behavior: 'smooth' });
+		showToast(`${lapNama} tersedia - silakan lengkapi data`, "info");
+	}
 
 	function ubahBulan(arah) {
 		const inputTanggal = document.getElementById("tanggalAwal");
@@ -2546,16 +2672,15 @@ function handleGorJadwalChange() {
     const gorVal = document.getElementById('filterGorJadwal').value;
     const boxJenis = document.getElementById('boxFilterJenisLapangan');
     const jenisSelect = document.getElementById('filterJenisLapanganJadwal');
-    const btnTampilkan = document.getElementById("btnTampilkanJadwal");
 
     if (gorVal === 'STADION') {
-        // Tampilkan filter jenis lapangan
+        // STADION: wajib pilih jenis lapangan dulu
         boxJenis.classList.remove('hidden');
         jenisSelect.value = '';
-        // Disable tombol sampai jenis lapangan dipilih
         setTampilkanBtn(false);
     } else if (gorVal) {
-        // GOR non-STADION: sembunyikan jenis lapangan, langsung aktifkan tombol
+        // GOR lain (termasuk GOR KOTA): tidak perlu filter jenis lapangan
+        // cekJadwal akan tampilkan semua lapangan
         boxJenis.classList.add('hidden');
         jenisSelect.value = '';
         setTampilkanBtn(true);
