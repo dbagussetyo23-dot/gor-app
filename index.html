@@ -1980,63 +1980,54 @@ Lapangan indoor hanya bisa dipakai 1 olahraga per waktu.`
 
         // ── KASUS GOR KANOR (INDOOR MULTIFUNGSI) ──────────────────
         if (gorValue === 'GOR KANOR') {
-            // Helper: cek overlap waktu di GOR KANOR tanggal ini (semua data)
-            function adaKonflikKanor(filterFn) {
-                return dataTanggal.filter(filterFn).some(d => {
-                    const s1 = toMenit(jamAwal), e1 = toMenit(jamSelesai);
-                    const s2 = toMenit(d.JAM_AWAL), e2 = toMenit(d.JAM_SELESAI);
-                    return (s1 >= 0 && e1 >= 0 && s2 >= 0 && e2 >= 0) && (s1 < e2 && s2 < e1);
-                });
+            // Helper: jam -> menit (robust: string HH:mm, ISO, Excel serial)
+            function jamKeM(val) {
+                if (!val && val !== 0) return -1;
+                if (typeof val === 'number') {
+                    if (val >= 0 && val < 1) return Math.round(val * 24 * 60);
+                    return val * 60;
+                }
+                if (typeof val === 'string') {
+                    const s = val.trim();
+                    if (s.includes('T')) { const p = s.split('T')[1].split(':'); return parseInt(p[0])*60 + parseInt(p[1]); }
+                    if (s.includes(':')) { const p = s.split(':'); return parseInt(p[0])*60 + parseInt(p[1]); }
+                    const n = parseFloat(s);
+                    if (!isNaN(n) && n < 1) return Math.round(n * 24 * 60);
+                }
+                return -1;
             }
 
+            // Cari semua booking yg overlap dengan jam input di hari ini
+            const _s1 = jamKeM(jamAwal), _e1 = jamKeM(jamSelesai);
+            const konflikSemua = dataTanggal.filter(d => {
+                const _s2 = jamKeM(d.JAM_AWAL), _e2 = jamKeM(d.JAM_SELESAI);
+                if (_s1 < 0 || _e1 < 0 || _s2 < 0 || _e2 < 0) return false;
+                return _s1 < _e2 && _s2 < _e1;
+            });
+
+            // Pisahkan Badminton vs Full GOR
+            const konflikBadminton = konflikSemua.filter(d => (d.LAPANGAN||'').toUpperCase().trim() === 'BADMINTON');
+            const konflikFullGor   = konflikSemua.filter(d => (d.LAPANGAN||'').toUpperCase().trim() !== 'BADMINTON');
             const isBadminton = jenisLapangan === 'LAP.BADMINTON A' || jenisLapangan === 'LAP.BADMINTON B';
 
             if (isBadminton) {
-                // BADMINTON: boleh main berbarengan di lapangan A & B
-                // Cek 1: apakah lapangan yang dipilih sudah diisi badminton?
+                // BADMINTON: tidak boleh masuk jika ada Full GOR
+                if (konflikFullGor.length > 0) {
+                    const ex = konflikFullGor[0];
+                    return { tersedia: false, pesan: 'GOR KANOR sudah dipakai ' + (ex.LAPANGAN||'olahraga lain') + ' pada jam ' + jamAwal + ' - ' + jamSelesai + '.\nSaat ada Futsal/Volly/Senam, GOR tidak bisa dipakai olahraga lain.' };
+                }
                 const lapLain = jenisLapangan === 'LAP.BADMINTON A' ? 'LAP.BADMINTON B' : 'LAP.BADMINTON A';
-                const lapDipilihPenuh = adaKonflikKanor(d => d.JENIS_LAPANGAN === jenisLapangan);
-                const lapLainPenuh   = adaKonflikKanor(d => d.JENIS_LAPANGAN === lapLain);
-
-                // Cek 2: apakah ada olahraga NON-Badminton yang pakai full GOR di jam itu?
-                const adaFullGor = adaKonflikKanor(d => d.LAPANGAN !== 'BADMINTON');
-
-                if (adaFullGor) {
-                    const existFull = dataTanggal.find(d => d.LAPANGAN !== 'BADMINTON');
-                    return {
-                        tersedia: false,
-                        pesan: `🚫 GOR KANOR sudah dipakai oleh ${existFull ? existFull.LAPANGAN : 'olahraga lain'} pada jam ${jamAwal} – ${jamSelesai}.\nSaat ada pemakaian Futsal/Volly/Senam, seluruh GOR tidak bisa dipakai olahraga lain.`
-                    };
-                }
-
+                const lapDipilihPenuh = konflikBadminton.some(d => d.JENIS_LAPANGAN === jenisLapangan);
+                const lapLainPenuh   = konflikBadminton.some(d => d.JENIS_LAPANGAN === lapLain);
                 if (!lapDipilihPenuh) return { tersedia: true };
-
-                if (!lapLainPenuh) {
-                    return {
-                        tersedia: false,
-                        pesan: `⚠️ ${jenisLapangan} sudah terisi di jam tersebut.\n✅ ${lapLain} masih tersedia! Silakan pilih ${lapLain}.`
-                    };
-                }
-
-                return {
-                    tersedia: false,
-                    pesan: `🚫 Kedua lapangan Badminton (A & B) sudah penuh di jam ${jamAwal} – ${jamSelesai}.`
-                };
+                if (!lapLainPenuh) return { tersedia: false, pesan: jenisLapangan + ' sudah terisi.\n' + lapLain + ' masih tersedia! Silakan pilih ' + lapLain + '.' };
+                return { tersedia: false, pesan: 'Kedua lapangan Badminton (A & B) sudah penuh di jam ' + jamAwal + ' - ' + jamSelesai + '.' };
             } else {
-                // FUTSAL / VOLLY / SENAM / LAINYA: pakai seluruh GOR
-                // Tidak boleh ada booking apapun di jam tersebut
-                const adaBookingApapun = adaKonflikKanor(d => true);
-                if (adaBookingApapun) {
-                    const existing = dataTanggal.find(d => {
-                        const s1 = toMenit(jamAwal), e1 = toMenit(jamSelesai);
-                        const s2 = toMenit(d.JAM_AWAL), e2 = toMenit(d.JAM_SELESAI);
-                        return (s1 >= 0 && e1 >= 0 && s2 >= 0 && e2 >= 0) && (s1 < e2 && s2 < e1);
-                    });
-                    const namaExist = existing ? existing.LAPANGAN + (existing.JENIS_LAPANGAN ? ' (' + existing.JENIS_LAPANGAN + ')' : '') : 'olahraga lain';
-                    return {
-                        tersedia: false,
-                        pesan: `🚫 GOR KANOR sudah terisi oleh ${namaExist} pada jam ${jamAwal} – ${jamSelesai}.\nFutsal, Volly, dan Senam membutuhkan seluruh area GOR.`
-                    };
+                // FUTSAL / VOLLY / SENAM / LAINYA: butuh seluruh GOR - TOLAK jika ada booking APAPUN
+                if (konflikSemua.length > 0) {
+                    const ex = konflikSemua[0];
+                    const namaEx = (ex.LAPANGAN||'olahraga lain') + (ex.JENIS_LAPANGAN ? ' (' + ex.JENIS_LAPANGAN + ')' : '');
+                    return { tersedia: false, pesan: 'GOR KANOR sudah terisi oleh ' + namaEx + ' pada jam ' + jamAwal + ' - ' + jamSelesai + '.\nFutsal, Volly, dan Senam membutuhkan seluruh area GOR.' };
                 }
                 return { tersedia: true };
             }
