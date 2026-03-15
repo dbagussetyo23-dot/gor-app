@@ -1107,6 +1107,8 @@ function handleLapanganChangeGorKanor(lapanganValue, formType) {
         // Futsal, Volly, Senam: pakai full GOR, tidak ada pilihan lapangan
         if (boxJenis) boxJenis.classList.add('hidden');
         if (boxLainya) boxLainya.classList.add('hidden');
+        // PENTING: reset nilai jenisLapangan agar tidak ikut terkirim
+        if (jenisSelect) { jenisSelect.value = ''; jenisSelect.innerHTML = '<option value=""></option>'; }
     }
 }
 
@@ -1592,6 +1594,11 @@ async function submitForm(e, type) {
         nominal: document.getElementById(prefix + 'Nominal').value,
         currentUser: currentUser
     };
+
+    // GOR KANOR: Futsal/Volly/Senam tidak punya lapangan — paksa jenisLapangan kosong
+    if (gorValue === 'GOR KANOR' && lapanganValue !== 'BADMINTON' && lapanganValue !== 'LAINYA') {
+        data.jenisLapangan = '';
+    }
     
     // CEK KETERSEDIAAN KHUSUS (termasuk saat edit)
     if (gorValue === 'STADION' || GOR_MULTI_LAPANGAN[gorValue] || gorValue === 'GOR UTAMA' || gorValue === 'SPORT CENTER' || gorValue === 'GOR KANOR') {
