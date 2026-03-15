@@ -2510,8 +2510,19 @@ function closeEditModal() {
 
             // subLaps harus didefinisikan SEBELUM rowH
             const subLaps = isMultiLapangan ? gorMultiCfg.lapangan : [];
-            // GOR KANOR: tinggi sel dinamis per-jam, tapi sticky TGL pakai 64px (tinggi maks 2-baris badminton)
-            const rowH = isMultiLapangan ? subLaps.length*32 : (isTenis ? 72 : isGorKanor ? 64 : 38);
+            // GOR KANOR: cek apakah ada badminton di hari ini (jika iya rowH=64, jika tidak=38)
+            let rowH;
+            if (isGorKanor) {
+                const adaBadmintonHariIni = dataFiltered.some(x => {
+                    if (String(x.TANGGAL) !== String(d)) return false;
+                    if (x.BULAN !== MONTHS[bulan-1]) return false;
+                    if (String(x.TAHUN) !== String(tahun)) return false;
+                    return (x.LAPANGAN||'').toUpperCase().trim() === 'BADMINTON';
+                });
+                rowH = adaBadmintonHariIni ? 64 : 38;
+            } else {
+                rowH = isMultiLapangan ? subLaps.length*32 : (isTenis ? 72 : 38);
+            }
 
             html += `<tr class="${d%2===0?'bg-white':'bg-gray-50/30'} hover:bg-indigo-50/10">`;
             html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d%2===0?'bg-white':'bg-gray-50/30'} z-10 ${isToday?'bg-indigo-50':''}" style="min-width:80px;height:${rowH}px">
@@ -2571,28 +2582,21 @@ function closeEditModal() {
                         </div>
                     </td>`;
                 } else if (isGorKanor) {
-                    // ── GOR KANOR ───────────────────────────────────────────────────
-                    // Helper: cek booking di tanggal+jam ini
-                    // Filter semua booking GOR KANOR di tanggal+jam ini
-                    // Gunakan string comparison yg sama persis dgn getBookings() yg sudah terbukti bekerja
+                    // ── GOR KANOR ──────────────────────────────────────────────────
+                    // Cari semua booking GOR KANOR di tanggal+jam ini (string compare, anti timezone bug)
                     const allBkJam = dataFiltered.filter(x => {
-                        // Cek tanggal - pakai string compare agar tidak ada issue timezone
                         if (String(x.TANGGAL) !== String(d)) return false;
                         if (x.BULAN !== MONTHS[bulan-1]) return false;
                         if (String(x.TAHUN) !== String(tahun)) return false;
-                        // Cek jam overlap
                         const jA = parseJamToHour(x.JAM_AWAL);
                         const jS = parseJamToHour(x.JAM_SELESAI) || jA + 1;
                         return (jam >= jA && jam < jS);
                     });
 
-                    // Pisah: Badminton A, Badminton B, Full GOR (selain Badminton)
+                    // Pisahkan: Badminton A, Badminton B, Full GOR (Futsal/Volly/Senam/Lainnya)
                     const bkBA   = allBkJam.filter(x => x.JENIS_LAPANGAN === 'LAP.BADMINTON A');
                     const bkBB   = allBkJam.filter(x => x.JENIS_LAPANGAN === 'LAP.BADMINTON B');
-                    const bkFull = allBkJam.filter(x => {
-                        const lap = (x.LAPANGAN || '').toUpperCase().trim();
-                        return lap !== 'BADMINTON';
-                    });
+                    const bkFull = allBkJam.filter(x => (x.LAPANGAN||'').toUpperCase().trim() !== 'BADMINTON');
 
                     const adaBadminton = bkBA.length > 0 || bkBB.length > 0;
                     const adaFull      = bkFull.length > 0;
@@ -2601,15 +2605,42 @@ function closeEditModal() {
                     if (bkBB.length > 0)   { totalBookings++; dailyBookings++; }
                     if (bkFull.length > 0) { totalBookings++; dailyBookings++; }
 
-                    const pkColor = jam >= 16 && jam <= 21
+                    const pkColorEmpty = jam >= 16 && jam <= 21
                         ? 'bg-emerald-300 hover:bg-emerald-400'
                         : 'bg-emerald-400 hover:bg-emerald-500';
 
-                    if (adaFull && !adaBadminton) {
-                        // ── Full GOR saja (Futsal/Volly/Senam) → 1 BARIS PENUH ─────
-                        const bkF = bkFull[0];
-                        const namaOlahraga = (bkF.LAPANGAN || 'FULL').toUpperCase().substring(0, 5);
+                    if (adaBadminton) {
+                        // ── Ada Badminton → 2 BARIS (LAP A + LAP B) ───────────────
+                        const renderBadRow = (bks, lapLabel, jenisLap) => {
+                            if (bks.length > 0) {
+                                // Terboking
+                                const bk = bks[0];
+                                return `<div class="flex-1 w-full rounded bg-rose-400 hover:bg-rose-500 flex items-center justify-center cursor-pointer transition-all"
+                                    onclick="showBookingDetail('${bk.ID}')"
+                                    title="${bk.NAMA} – LAP.BADMINTON ${lapLabel}">
+                                    <span class="text-[8px] font-black text-white">LAP ${lapLabel}</span>
+                                </div>`;
+                            }
+                            // Kosong → bisa booking badminton di lapangan ini
+                            return `<div class="flex-1 w-full rounded ${pkColorEmpty} flex items-center justify-center cursor-pointer transition-all group"
+                                onclick="showAvailableSlotKanor('${tanggalStr}', ${jam}, '${jenisLap}')"
+                                title="Tersedia – LAP.BADMINTON ${lapLabel}">
+                                <span class="text-[8px] font-black text-white opacity-0 group-hover:opacity-100">LAP ${lapLabel}</span>
+                            </div>`;
+                        };
+
                         html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:64px">
+                            <div class="flex flex-col gap-0.5 h-full">
+                                ${renderBadRow(bkBA, 'A', 'LAP.BADMINTON A')}
+                                ${renderBadRow(bkBB, 'B', 'LAP.BADMINTON B')}
+                            </div>
+                        </td>`;
+
+                    } else if (adaFull) {
+                        // ── Ada Futsal/Volly/Senam → 1 BARIS PENUH MERAH ──────────
+                        const bkF = bkFull[0];
+                        const namaOlahraga = (bkF.LAPANGAN || '').toUpperCase().substring(0, 5);
+                        html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:38px">
                             <div class="w-full h-full rounded bg-rose-500 hover:bg-rose-600 flex items-center justify-center cursor-pointer transition-all"
                                 onclick="showBookingDetail('${bkF.ID}')"
                                 title="${bkF.NAMA} – ${bkF.LAPANGAN}">
@@ -2618,28 +2649,13 @@ function closeEditModal() {
                         </td>`;
 
                     } else {
-                        // ── Badminton (A/B/kosong) → 2 BARIS VERTIKAL ──────────────
-                        const renderBadRow = (bks, lapLabel, jenisLap) => {
-                            if (bks.length > 0) {
-                                const bk = bks[0];
-                                return `<div class="flex-1 w-full rounded bg-rose-400 hover:bg-rose-500 flex items-center justify-center cursor-pointer transition-all"
-                                    onclick="showBookingDetail('${bk.ID}')"
-                                    title="${bk.NAMA} – ${lapLabel}">
-                                    <span class="text-[8px] font-black text-white">${lapLabel}</span>
-                                </div>`;
-                            }
-                            // Kosong → bisa booking badminton lapangan ini
-                            return `<div class="flex-1 w-full rounded ${pkColor} flex items-center justify-center cursor-pointer transition-all group"
-                                onclick="showAvailableSlotKanor('${tanggalStr}', ${jam}, '${jenisLap}')"
-                                title="Tersedia – ${lapLabel}">
-                                <span class="text-[8px] font-black text-white opacity-0 group-hover:opacity-100">${lapLabel}</span>
-                            </div>`;
-                        };
-
-                        html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:64px">
-                            <div class="flex flex-col gap-0.5 h-full">
-                                ${renderBadRow(bkBA, 'A', 'LAP.BADMINTON A')}
-                                ${renderBadRow(bkBB, 'B', 'LAP.BADMINTON B')}
+                        // ── Kosong → DEFAULT 1 BARIS HIJAU PENUH ─────────────────
+                        html += `<td class="border border-gray-100 ${pkColorEmpty} hover:opacity-80 transition-all cursor-pointer"
+                            style="min-width:44px;height:38px"
+                            onclick="showAvailableSlotKanor('${tanggalStr}', ${jam}, 'FULLGOR')"
+                            title="Tersedia – Klik untuk booking">
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="fas fa-plus text-white opacity-0 hover:opacity-50 text-[9px]"></i>
                             </div>
                         </td>`;
                     }
