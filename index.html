@@ -2121,13 +2121,13 @@ function closeEditModal() {
                             </th>`;
 
         // Header jam
-        const colWidth = isTenis ? 60 : (isMultiLapangan ? 80 : 32);
+        const colWidth = isTenis ? 40 : (isMultiLapangan ? 44 : 32);
         const lapSubLabels = isMultiLapangan ? gorMultiCfg.lapangan.map(l => l.replace('Lapangan ','')) : [];
         for (let jam = JAM_MULAI; jam <= JAM_SELESAI_OP; jam++) {
             const pk = jam >= 16 && jam <= 21;
             let subLabel = '';
-            if (isTenis) subLabel = '<span class="text-[7px] opacity-60 font-bold">A&nbsp;|&nbsp;B</span>';
-            else if (isMultiLapangan) subLabel = `<span class="text-[7px] opacity-60 font-bold">${lapSubLabels.join('|')}</span>`;
+            if (isTenis) subLabel = '<span class="text-[7px] opacity-60 font-bold">A/B</span>';
+            else if (isMultiLapangan) subLabel = '<span class="text-[7px] opacity-60 font-bold">A-D</span>';
             else subLabel = `<span class="text-[6px] opacity-50">${pk?'PK':''}</span>`;
             html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width:${colWidth}px">
                 <div class="flex flex-col items-center">
@@ -2151,8 +2151,9 @@ function closeEditModal() {
             let dailyBookings = 0;
 
             html += `<tr class="${d%2===0?'bg-white':'bg-gray-50/30'} hover:bg-indigo-50/10">`;
-            html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d%2===0?'bg-white':'bg-gray-50/30'} z-10 ${isToday?'bg-indigo-50':''}" style="min-width:80px">
-                <div class="flex flex-col items-center leading-tight">
+            const rowH = isMultiLapangan ? subLaps.length*32 : (isTenis ? 72 : 38);
+            html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d%2===0?'bg-white':'bg-gray-50/30'} z-10 ${isToday?'bg-indigo-50':''}" style="min-width:80px;height:${rowH}px">
+                <div class="flex flex-col items-center justify-center h-full leading-tight">
                     <div class="flex items-center gap-1 w-full justify-between px-1">
                         <span class="text-[11px] font-black ${isWeekend?'text-rose-500':'text-indigo-600'}">${dayName}</span>
                         ${isToday?'<span class="text-[7px] bg-indigo-100 text-indigo-600 px-1 rounded font-black">INI</span>':''}
@@ -2160,10 +2161,12 @@ function closeEditModal() {
                     <span class="text-[13px] font-black text-gray-800">${d}/${bulan}</span>
                 </div></td>`;
 
+            // Define subLaps at row level (used for rowH calculation)
+            const subLaps = isMultiLapangan ? gorMultiCfg.lapangan : [];
+
             for (let jam = JAM_MULAI; jam <= JAM_SELESAI_OP; jam++) {
                 if (isMultiLapangan) {
-                    // GOR KOTA: 4 sub-kolom Lapangan A/B/C/D dalam 1 sel
-                    const subLaps = gorMultiCfg.lapangan;
+                    // GOR KOTA: Lapangan A/B/C/D ditampilkan menurun
                     let bookedCount = 0;
                     subLaps.forEach(lp => {
                         const bk = dataFiltered.filter(x => {
@@ -2203,8 +2206,8 @@ function closeEditModal() {
                         }
                     };
 
-                    html += `<td class="border border-gray-100 p-0.5" style="min-width:${colWidth}px;height:38px">
-                        <div class="flex gap-0.5 h-full">
+                    html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:${subLaps.length * 32}px">
+                        <div class="flex flex-col gap-0.5 h-full">
                             ${subLaps.map(lp => renderSubLap(lp)).join('')}
                         </div>
                     </td>`;
@@ -2231,8 +2234,8 @@ function closeEditModal() {
                         }
                     };
 
-                    html += `<td class="border border-gray-100 p-0.5" style="min-width:60px;height:38px">
-                        <div class="flex gap-0.5 h-full">
+                    html += `<td class="border border-gray-100 p-0.5" style="min-width:40px;height:72px">
+                        <div class="flex flex-col gap-0.5 h-full">
                             ${renderSub(bA,'A','LAP.TENIS A')}
                             ${renderSub(bB,'B','LAP.TENIS B')}
                         </div>
