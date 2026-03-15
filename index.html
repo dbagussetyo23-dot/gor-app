@@ -2638,9 +2638,10 @@ function closeEditModal() {
 
                     } else if (adaFull) {
                         // ── Ada Futsal/Volly/Senam → 1 BARIS PENUH MERAH ──────────
+                        // Tinggi ikut rowH (bisa 38 atau 64 tergantung ada Badminton di hari itu)
                         const bkF = bkFull[0];
                         const namaOlahraga = (bkF.LAPANGAN || '').toUpperCase().substring(0, 5);
-                        html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:38px">
+                        html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:${rowH}px">
                             <div class="w-full h-full rounded bg-rose-500 hover:bg-rose-600 flex items-center justify-center cursor-pointer transition-all"
                                 onclick="showBookingDetail('${bkF.ID}')"
                                 title="${bkF.NAMA} – ${bkF.LAPANGAN}">
@@ -2650,8 +2651,9 @@ function closeEditModal() {
 
                     } else {
                         // ── Kosong → DEFAULT 1 BARIS HIJAU PENUH ─────────────────
+                        // Tinggi ikut rowH (bisa 38 atau 64 tergantung ada Badminton di hari itu)
                         html += `<td class="border border-gray-100 ${pkColorEmpty} hover:opacity-80 transition-all cursor-pointer"
-                            style="min-width:44px;height:38px"
+                            style="min-width:44px;height:${rowH}px"
                             onclick="showAvailableSlotKanor('${tanggalStr}', ${jam}, 'FULLGOR')"
                             title="Tersedia – Klik untuk booking">
                             <div class="w-full h-full flex items-center justify-center">
