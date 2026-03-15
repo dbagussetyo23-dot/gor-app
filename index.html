@@ -417,7 +417,7 @@
                 <!-- Info GOR KANOR - hanya tampil saat pilih GOR KANOR -->
                 <div id="infoGorKanor" class="hidden flex items-center gap-1 text-purple-600 bg-purple-50 px-2 py-1 rounded-lg">
                     <i class="fas fa-info-circle text-xs"></i>
-                    <span class="text-[9px] font-bold">A=Badminton A · B=Badminton B · •=Full GOR</span>
+                    <span class="text-[9px] font-bold">Badminton → 2 baris (Lap A & B) · Futsal/Volly/Senam → 1 baris penuh</span>
                 </div>
             </div>
         </div>
@@ -2478,14 +2478,14 @@ function closeEditModal() {
                             </th>`;
 
         // Header jam
-        const colWidth = isTenis ? 40 : (isMultiLapangan ? 44 : isGorKanor ? 56 : 32);
+        const colWidth = isTenis ? 40 : (isMultiLapangan ? 44 : isGorKanor ? 44 : 32);
         const lapSubLabels = isMultiLapangan ? gorMultiCfg.lapangan.map(l => l.replace('Lapangan ','')) : [];
         for (let jam = JAM_MULAI; jam <= JAM_SELESAI_OP; jam++) {
             const pk = jam >= 16 && jam <= 21;
             let subLabel = '';
             if (isTenis) subLabel = '<span class="text-[7px] opacity-60 font-bold">A/B</span>';
             else if (isMultiLapangan) subLabel = '<span class="text-[7px] opacity-60 font-bold">A-D</span>';
-            else if (isGorKanor) subLabel = '<span class="text-[6px] opacity-60 font-bold">A/B/•</span>';
+            else if (isGorKanor) subLabel = '<span class="text-[6px] opacity-60 font-bold">BDM</span>';
             else subLabel = `<span class="text-[6px] opacity-50">${pk?'PK':''}</span>`;
             html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width:${colWidth}px">
                 <div class="flex flex-col items-center">
@@ -2510,8 +2510,8 @@ function closeEditModal() {
 
             // subLaps harus didefinisikan SEBELUM rowH
             const subLaps = isMultiLapangan ? gorMultiCfg.lapangan : [];
-            // GOR KANOR: 3 baris (Lap A, Lap B, Full GOR olahraga)
-            const rowH = isMultiLapangan ? subLaps.length*32 : (isTenis ? 72 : isGorKanor ? 96 : 38);
+            // GOR KANOR: tinggi sel dinamis per-jam, tapi sticky TGL pakai 64px (tinggi maks 2-baris badminton)
+            const rowH = isMultiLapangan ? subLaps.length*32 : (isTenis ? 72 : isGorKanor ? 64 : 38);
 
             html += `<tr class="${d%2===0?'bg-white':'bg-gray-50/30'} hover:bg-indigo-50/10">`;
             html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d%2===0?'bg-white':'bg-gray-50/30'} z-10 ${isToday?'bg-indigo-50':''}" style="min-width:80px;height:${rowH}px">
@@ -2571,85 +2571,85 @@ function closeEditModal() {
                         </div>
                     </td>`;
                 } else if (isGorKanor) {
-                    // GOR KANOR: 3 baris — Lap.Badminton A, Lap.Badminton B, Full GOR (Futsal/Volly/Senam/Lainnya)
-                    const getKanorBookings = (jenisFilter) => dataFiltered.filter(x => {
+                    // ── GOR KANOR ───────────────────────────────────────────────────
+                    // Helper: ambil booking di tanggal+jam ini
+                    const getKanorBk = (jenisFilter) => dataFiltered.filter(x => {
                         const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
                         tglDb.setHours(0,0,0,0);
                         if (tglDb.getTime() !== tgl.getTime()) return false;
                         const jA = parseJamToHour(x.JAM_AWAL);
-                        const jS = parseJamToHour(x.JAM_SELESAI) || jA+1;
+                        const jS = parseJamToHour(x.JAM_SELESAI) || jA + 1;
                         if (!(jam >= jA && jam < jS)) return false;
-                        return jenisFilter ? x.JENIS_LAPANGAN === jenisFilter : (x.LAPANGAN !== 'BADMINTON');
+                        if (jenisFilter === 'BADMINTON_A') return x.JENIS_LAPANGAN === 'LAP.BADMINTON A';
+                        if (jenisFilter === 'BADMINTON_B') return x.JENIS_LAPANGAN === 'LAP.BADMINTON B';
+                        if (jenisFilter === 'FULL') return x.LAPANGAN !== 'BADMINTON';
+                        return true; // semua
                     });
 
-                    const bkBA = getKanorBookings('LAP.BADMINTON A');
-                    const bkBB = getKanorBookings('LAP.BADMINTON B');
-                    const bkFull = getKanorBookings(null); // Full GOR (Futsal, Volly, Senam, Lainnya)
+                    const bkBA   = getKanorBk('BADMINTON_A');
+                    const bkBB   = getKanorBk('BADMINTON_B');
+                    const bkFull = getKanorBk('FULL');
+                    const adaBadminton = bkBA.length > 0 || bkBB.length > 0;
+                    const adaFull      = bkFull.length > 0;
 
-                    if (bkBA.length > 0) { totalBookings++; dailyBookings++; }
-                    if (bkBB.length > 0) { totalBookings++; dailyBookings++; }
+                    if (bkBA.length > 0)   { totalBookings++; dailyBookings++; }
+                    if (bkBB.length > 0)   { totalBookings++; dailyBookings++; }
                     if (bkFull.length > 0) { totalBookings++; dailyBookings++; }
 
-                    // Apakah ada booking apapun di jam ini (untuk disable slot)
-                    const adaAnyBooking = bkBA.length > 0 || bkBB.length > 0 || bkFull.length > 0;
+                    const pkColor = jam >= 16 && jam <= 21
+                        ? 'bg-emerald-300 hover:bg-emerald-400'
+                        : 'bg-emerald-400 hover:bg-emerald-500';
 
-                    const renderKanorRow = (bookings, rowLabel, jenisLap, isFullGor) => {
-                        // Jika ada booking full-GOR, semua baris terkunci kecuali baris itu
-                        if (bkFull.length > 0 && !isFullGor) {
-                            // Terkunci karena ada full-GOR
-                            const bkF = bkFull[0];
-                            return `<div class="flex-1 rounded bg-rose-200 flex items-center justify-center" title="GOR dipakai: ${bkF.LAPANGAN}">
-                                <span class="text-[7px] font-black text-rose-500">PENUH</span>
-                            </div>`;
-                        }
-                        if (bookings.length > 0) {
-                            const bk = bookings[0];
-                            const color = isFullGor ? 'bg-rose-500 hover:bg-rose-600' : 'bg-rose-400 hover:bg-rose-500';
-                            return `<div class="flex-1 rounded ${color} flex items-center justify-center cursor-pointer transition-all group"
-                                onclick="showBookingDetail('${bk.ID}')" title="${bk.NAMA} - ${bk.LAPANGAN}">
-                                <span class="text-[7px] font-black text-white opacity-0 group-hover:opacity-100">${bk.NAMA.substring(0,2)}</span>
-                            </div>`;
-                        } else {
-                            // Kosong - tapi jika ada booking (full-gor atau badminton lap lain pakai full), disable
-                            // Full-GOR slot: tidak bisa booking jika ada badminton aktif
-                            if (isFullGor && (bkBA.length > 0 || bkBB.length > 0)) {
-                                return `<div class="flex-1 rounded bg-amber-200 flex items-center justify-center cursor-pointer" 
-                                    title="Ada Badminton aktif, Full GOR tidak tersedia"
-                                    onclick="alert('Tidak bisa booking Full GOR saat ada Badminton aktif di jam ini')">
-                                    <span class="text-[6px] font-black text-amber-600">BADMINTON</span>
+                    // ── KASUS: ada booking BADMINTON → tampil 2 baris (Lap A & Lap B)
+                    if (adaBadminton || (!adaFull && !adaBadminton)) {
+                        // Tampil 2 baris jika:
+                        //  (a) ada badminton yang sudah booking, ATAU
+                        //  (b) jam masih kosong sepenuhnya (biarkan admin lihat 2 baris kosong utk badminton)
+                        // Jika ada Full GOR tapi TIDAK ada badminton → tampil 1 baris (dihandle di else bawah)
+
+                        const renderBadRow = (bks, lapLabel, jenisLap) => {
+                            if (adaFull) {
+                                // Full GOR aktif → badminton terkunci
+                                const bkF = bkFull[0];
+                                return `<div class="flex-1 w-full rounded bg-rose-200 flex items-center justify-center"
+                                    title="GOR dipakai ${bkF.LAPANGAN}">
+                                    <span class="text-[6px] font-black text-rose-400">${lapLabel}</span>
                                 </div>`;
                             }
-                            const pk = jam >= 16 && jam <= 21;
-                            const color = pk ? 'bg-emerald-300 hover:bg-emerald-400' : 'bg-emerald-400 hover:bg-emerald-500';
-                            if (isFullGor) {
-                                return `<div class="flex-1 rounded ${color} flex items-center justify-center cursor-pointer transition-all group"
-                                    onclick="showAvailableSlotKanor('${tanggalStr}', ${jam}, 'FULLGOR')">
-                                    <span class="text-[7px] font-black text-white opacity-0 group-hover:opacity-100">+</span>
+                            if (bks.length > 0) {
+                                const bk = bks[0];
+                                return `<div class="flex-1 w-full rounded bg-rose-400 hover:bg-rose-500 flex items-center justify-center cursor-pointer transition-all group"
+                                    onclick="showBookingDetail('${bk.ID}')"
+                                    title="${bk.NAMA} – ${lapLabel}">
+                                    <span class="text-[7px] font-black text-white">${lapLabel}</span>
                                 </div>`;
                             }
-                            return `<div class="flex-1 rounded ${color} flex items-center justify-center cursor-pointer transition-all group"
-                                onclick="showAvailableSlotKanor('${tanggalStr}', ${jam}, '${jenisLap}')">
-                                <span class="text-[7px] font-black text-white opacity-0 group-hover:opacity-100">+</span>
+                            // Kosong → bisa booking badminton lapangan ini
+                            return `<div class="flex-1 w-full rounded ${pkColor} flex items-center justify-center cursor-pointer transition-all group"
+                                onclick="showAvailableSlotKanor('${tanggalStr}', ${jam}, '${jenisLap}')"
+                                title="Tersedia – ${lapLabel}">
+                                <span class="text-[7px] font-black text-white opacity-0 group-hover:opacity-100">${lapLabel}</span>
                             </div>`;
-                        }
-                    };
+                        };
 
-                    html += `<td class="border border-gray-100 p-0.5" style="min-width:56px;height:96px">
-                        <div class="flex flex-col gap-0.5 h-full">
-                            <div class="flex items-center gap-0.5 flex-1">
-                                <span class="text-[6px] font-black text-gray-400 writing-mode-vertical" style="writing-mode:vertical-rl;transform:rotate(180deg);min-width:10px">A</span>
-                                <div class="flex-1 h-full">${renderKanorRow(bkBA, 'A', 'LAP.BADMINTON A', false)}</div>
+                        html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:64px">
+                            <div class="flex flex-col gap-0.5 h-full">
+                                ${renderBadRow(bkBA, 'A', 'LAP.BADMINTON A')}
+                                ${renderBadRow(bkBB, 'B', 'LAP.BADMINTON B')}
                             </div>
-                            <div class="flex items-center gap-0.5 flex-1">
-                                <span class="text-[6px] font-black text-gray-400" style="writing-mode:vertical-rl;transform:rotate(180deg);min-width:10px">B</span>
-                                <div class="flex-1 h-full">${renderKanorRow(bkBB, 'B', 'LAP.BADMINTON B', false)}</div>
+                        </td>`;
+
+                    } else {
+                        // ── KASUS: ada booking FULL GOR (Futsal/Volly/Senam) → 1 baris penuh
+                        const bkF = bkFull[0];
+                        html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:38px">
+                            <div class="w-full h-full rounded bg-rose-500 hover:bg-rose-600 flex items-center justify-center cursor-pointer transition-all group"
+                                onclick="showBookingDetail('${bkF.ID}')"
+                                title="${bkF.NAMA} – ${bkF.LAPANGAN}">
+                                <span class="text-[7px] font-black text-white opacity-0 group-hover:opacity-100">${(bkF.LAPANGAN||'').substring(0,3)}</span>
                             </div>
-                            <div class="flex items-center gap-0.5 flex-1">
-                                <span class="text-[6px] font-black text-indigo-400" style="writing-mode:vertical-rl;transform:rotate(180deg);min-width:10px">•</span>
-                                <div class="flex-1 h-full">${renderKanorRow(bkFull, '•', null, true)}</div>
-                            </div>
-                        </div>
-                    </td>`;
+                        </td>`;
+                    }
                 } else if (isTenis) {
                     // TENIS: 2 sub-kolom A dan B dalam 1 sel
                     const bA = getBookings(tgl, jam, 'LAP.TENIS A');
@@ -2716,7 +2716,7 @@ function closeEditModal() {
         const totalSlots = isTenis
             ? daysInMonth * (JAM_SELESAI_OP - JAM_MULAI + 1) * 2
             : isGorKanor
-                ? daysInMonth * (JAM_SELESAI_OP - JAM_MULAI + 1) * 3
+                ? daysInMonth * (JAM_SELESAI_OP - JAM_MULAI + 1) * 2
                 : daysInMonth * (JAM_SELESAI_OP - JAM_MULAI + 1);
         const occ = totalSlots > 0 ? Math.round((totalBookings/totalSlots)*100) : 0;
 
