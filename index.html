@@ -2505,53 +2505,49 @@ function closeEditModal() {
 
             for (let jam = JAM_MULAI; jam <= JAM_SELESAI_OP; jam++) {
                 if (isGorKanor) {
-                    // GOR KANOR: dynamic cell - 1 baris normal ATAU 2 baris jika ada badminton
-                    const allBookings = dataFiltered.filter(x => {
-                        const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
+                    // GOR KANOR: dynamic cell
+                    var allBookingsKanor = dataFiltered.filter(function(x) {
+                        var tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
                         tglDb.setHours(0,0,0,0);
                         if (tglDb.getTime() !== tgl.getTime()) return false;
-                        const jA = parseJamToHour(x.JAM_AWAL);
-                        const jS = parseJamToHour(x.JAM_SELESAI) || jA+1;
+                        var jA = parseJamToHour(x.JAM_AWAL);
+                        var jS = parseJamToHour(x.JAM_SELESAI) || jA+1;
                         return jam >= jA && jam < jS;
                     });
 
-                    const hasBadminton = allBookings.some(x => x.LAPANGAN === 'BADMINTON');
-                    const nonBadminton = allBookings.find(x => x.LAPANGAN !== 'BADMINTON');
+                    var hasBadminton = allBookingsKanor.some(function(x){ return x.LAPANGAN === 'BADMINTON'; });
+                    var nonBadminton = allBookingsKanor.find(function(x){ return x.LAPANGAN !== 'BADMINTON'; });
+                    var cellW = 'min-width:44px';
 
                     if (hasBadminton && !nonBadminton) {
-                        // Mode 2 baris: Lapangan 1 dan Lapangan 2
-                        const bLap1 = allBookings.find(x => x.LAPANGAN === 'BADMINTON' && x.JENIS_LAPANGAN === 'Lapangan 1');
-                        const bLap2 = allBookings.find(x => x.LAPANGAN === 'BADMINTON' && x.JENIS_LAPANGAN === 'Lapangan 2');
-                        if (bLap1) { totalBookings++; dailyBookings++; }
-                        if (bLap2) { totalBookings++; dailyBookings++; }
+                        var bLap1Kanor = allBookingsKanor.find(function(x){ return x.LAPANGAN === 'BADMINTON' && x.JENIS_LAPANGAN === 'Lapangan 1'; });
+                        var bLap2Kanor = allBookingsKanor.find(function(x){ return x.LAPANGAN === 'BADMINTON' && x.JENIS_LAPANGAN === 'Lapangan 2'; });
+                        if (bLap1Kanor) { totalBookings++; dailyBookings++; }
+                        if (bLap2Kanor) { totalBookings++; dailyBookings++; }
 
-                        const renderBadRow = (bk, lapNama) => {
-                            if (bk) {
-                                return '<div class="flex-1 rounded bg-rose-400 hover:bg-rose-500 flex items-center justify-center cursor-pointer group transition-all" onclick="showBookingDetail('' + bk.ID + '')">' +
-                                    '<span class="text-[8px] font-black text-white opacity-80">' + lapNama.replace('Lapangan ','Lap') + '</span></div>';
-                            } else {
-                                return '<div class="flex-1 rounded bg-emerald-400 hover:bg-emerald-500 flex items-center justify-center cursor-pointer group transition-all" onclick="showAvailableSlotKanor('' + tanggalStr + '',' + jam + ','BADMINTON','' + lapNama + '')">' +
-                                    '<span class="text-[8px] font-black text-white opacity-80">' + lapNama.replace('Lapangan ','Lap') + '</span></div>';
-                            }
-                        };
-
-                        html += '<td class="border border-gray-100 p-0.5" style="min-width:44px;height:72px">' +
-                            '<div class="flex flex-col gap-0.5 h-full">' +
-                            renderBadRow(bLap1, 'Lapangan 1') +
-                            renderBadRow(bLap2, 'Lapangan 2') +
-                            '</div></td>';
+                        var subRowA, subRowB;
+                        if (bLap1Kanor) {
+                            subRowA = '<div class="flex-1 rounded bg-rose-400 hover:bg-rose-500 flex items-center justify-center cursor-pointer transition-all" onclick="showBookingDetail(\''+bLap1Kanor.ID+'\')"><span class="text-[8px] font-black text-white">Lap1</span></div>';
+                        } else {
+                            subRowA = '<div class="flex-1 rounded bg-emerald-400 hover:bg-emerald-500 flex items-center justify-center cursor-pointer transition-all" onclick="showAvailableSlotKanor(\''+tanggalStr+'\','+jam+',\'BADMINTON\',\'Lapangan 1\')"><span class="text-[8px] font-black text-white">Lap1</span></div>';
+                        }
+                        if (bLap2Kanor) {
+                            subRowB = '<div class="flex-1 rounded bg-rose-400 hover:bg-rose-500 flex items-center justify-center cursor-pointer transition-all" onclick="showBookingDetail(\''+bLap2Kanor.ID+'\')"><span class="text-[8px] font-black text-white">Lap2</span></div>';
+                        } else {
+                            subRowB = '<div class="flex-1 rounded bg-emerald-400 hover:bg-emerald-500 flex items-center justify-center cursor-pointer transition-all" onclick="showAvailableSlotKanor(\''+tanggalStr+'\','+jam+',\'BADMINTON\',\'Lapangan 2\')"><span class="text-[8px] font-black text-white">Lap2</span></div>';
+                        }
+                        html += '<td class="border border-gray-100 p-0.5" style="'+cellW+';height:72px"><div class="flex flex-col gap-0.5 h-full">'+subRowA+subRowB+'</div></td>';
                     } else if (nonBadminton) {
-                        // Mode 1 baris: olahraga non-badminton sudah blocking
                         totalBookings++; dailyBookings++;
-                        const isFirst2 = jam === parseJamToHour(nonBadminton.JAM_AWAL);
-                        html += '<td class="border border-gray-100 p-0 cursor-pointer ' + (isFirst2?'bg-gradient-to-br from-rose-400 to-rose-500':'bg-rose-300') + ' hover:bg-rose-500 transition-all group" style="min-width:44px;height:38px" onclick="showBookingDetail('' + nonBadminton.ID + '')">' +
-                            '<div class="w-full h-full flex items-center justify-center">' +
-                            '<span class="text-[8px] text-white font-black opacity-80">' + (nonBadminton.LAPANGAN||'').substring(0,5) + '</span></div></td>';
+                        var isFirst2 = jam === parseJamToHour(nonBadminton.JAM_AWAL);
+                        var bgNB = isFirst2 ? 'bg-gradient-to-br from-rose-400 to-rose-500' : 'bg-rose-300';
+                        html += '<td class="border border-gray-100 p-0 cursor-pointer '+bgNB+' hover:bg-rose-500 transition-all group" style="'+cellW+';height:38px" onclick="showBookingDetail(\''+nonBadminton.ID+'\')">' +
+                            '<div class="w-full h-full flex items-center justify-center"><span class="text-[8px] text-white font-black opacity-80">'+(nonBadminton.LAPANGAN||'').substring(0,5)+'</span></div></td>';
                     } else {
-                        // Kosong: 1 baris hijau
-                        html += '<td class="border border-gray-100 bg-gradient-to-br from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 transition-all cursor-pointer group" style="min-width:44px;height:38px" onclick="showAvailableSlot('' + tanggalStr + '',' + jam + ','' + selectedGor + '')">' +
+                        html += '<td class="border border-gray-100 bg-gradient-to-br from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 transition-all cursor-pointer group" style="'+cellW+';height:38px" onclick="showAvailableSlot(\''+tanggalStr+'\','+jam+',\''+selectedGor+'\')">'+
                             '<div class="w-full h-full flex items-center justify-center"><i class="fas fa-plus text-white text-opacity-0 group-hover:text-opacity-50 text-[9px]"></i></div></td>';
                     }
+                } else if (isMultiLapangan) {
                 } else if (isMultiLapangan) {
                     // GOR KOTA: Lapangan A/B/C/D ditampilkan menurun
                     let bookedCount = 0;
