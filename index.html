@@ -2573,17 +2573,18 @@ function closeEditModal() {
                 } else if (isGorKanor) {
                     // ── GOR KANOR ───────────────────────────────────────────────────
                     // Helper: cek booking di tanggal+jam ini
-                    const kanorFilter = (x) => {
-                        const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
-                        tglDb.setHours(0,0,0,0);
-                        if (tglDb.getTime() !== tgl.getTime()) return false;
+                    // Filter semua booking GOR KANOR di tanggal+jam ini
+                    // Gunakan string comparison yg sama persis dgn getBookings() yg sudah terbukti bekerja
+                    const allBkJam = dataFiltered.filter(x => {
+                        // Cek tanggal - pakai string compare agar tidak ada issue timezone
+                        if (String(x.TANGGAL) !== String(d)) return false;
+                        if (x.BULAN !== MONTHS[bulan-1]) return false;
+                        if (String(x.TAHUN) !== String(tahun)) return false;
+                        // Cek jam overlap
                         const jA = parseJamToHour(x.JAM_AWAL);
                         const jS = parseJamToHour(x.JAM_SELESAI) || jA + 1;
                         return (jam >= jA && jam < jS);
-                    };
-
-                    // Semua booking di jam ini di GOR KANOR
-                    const allBkJam = dataFiltered.filter(kanorFilter);
+                    });
 
                     // Pisah: Badminton A, Badminton B, Full GOR (selain Badminton)
                     const bkBA   = allBkJam.filter(x => x.JENIS_LAPANGAN === 'LAP.BADMINTON A');
