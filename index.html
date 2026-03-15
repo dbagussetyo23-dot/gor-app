@@ -534,10 +534,10 @@
 				all:     ['FUTSAL', 'BASKET', 'BOLA TANGAN', 'VOLLY', 'ROAD RACE', 'LAINYA']
 			};
 
-			// SPORT CENTER: hanya TENIS dengan 2 lapangan (A dan B)
+			// SPORT CENTER: hanya TENIS dengan 2 lapangan
 			const SPORT_CENTER_CONFIG = {
-				olahraga: 'TENIS',
-				lapangan: ['LAP.TENIS A', 'LAP.TENIS B']
+				olahraga: "TENIS",
+				lapangan: ["LAP.TENIS A", "LAP.TENIS B"]
 			};
 
 			// GOR yang punya lapangan multi (hanya 1 cabang olahraga tapi banyak lapangan)
@@ -1100,18 +1100,15 @@ function updateLapanganByGor(gorValue, formType) {
         // Trigger untuk tampilkan JENIS_LAPANGAN (INDOOR/OUTDOOR) otomatis
         handleLapanganChangeGorUtama(lapanganSelect.value, formType);
     } else if (gorValue === 'SPORT CENTER') {
-        // SPORT CENTER: hanya TENIS, pilih LAP.TENIS A atau LAP.TENIS B
         lapanganSelect.add(new Option('Pilih Olahraga', ''));
         lapanganSelect.add(new Option(SPORT_CENTER_CONFIG.olahraga, SPORT_CENTER_CONFIG.olahraga));
         if (boxLainya) boxLainya.classList.add('hidden');
-        if (boxJenis && boxJenis) {
+        if (boxJenis) {
             boxJenis.classList.remove('hidden');
-            const jenisSelect = document.getElementById(formType === 'modal' ? 'eJenisLapangan' : 'fJenisLapangan');
-            if (jenisSelect) {
-                jenisSelect.innerHTML = '<option value="">Pilih Lapangan</option>';
-                SPORT_CENTER_CONFIG.lapangan.forEach(lp => {
-                    jenisSelect.innerHTML += `<option value="${lp}">${lp}</option>`;
-                });
+            const jenisSel = document.getElementById(formType === 'modal' ? 'eJenisLapangan' : 'fJenisLapangan');
+            if (jenisSel) {
+                jenisSel.innerHTML = '<option value="">Pilih Lapangan</option>';
+                SPORT_CENTER_CONFIG.lapangan.forEach(lp => { jenisSel.innerHTML += '<option value="' + lp + '">' + lp + '</option>'; });
             }
         }
         lapanganSelect.value = SPORT_CENTER_CONFIG.olahraga;
@@ -1468,13 +1465,12 @@ async function submitForm(e, type) {
             return;
         }
     }
-    // Validasi SPORT CENTER: wajib pilih LAP.TENIS A atau LAP.TENIS B
+    // Validasi SPORT CENTER
     if (gorValue === 'SPORT CENTER') {
         const jenisEl = document.getElementById(prefix + 'JenisLapangan');
         if (!jenisEl || !jenisEl.value) {
             showToast("Pilih lapangan (LAP.TENIS A atau LAP.TENIS B)!", "error");
-            window.isSubmitting = false;
-            return;
+            window.isSubmitting = false; return;
         }
     }
     // Validasi GOR UTAMA: wajib pilih jenis lapangan (INDOOR/OUTDOOR)
@@ -1512,7 +1508,7 @@ async function submitForm(e, type) {
         currentUser: currentUser
     };
     
-    // CEK KETERSEDIAAN KHUSUS UNTUK STADION, GOR MULTI-LAPANGAN, GOR UTAMA, & SPORT CENTER
+    // CEK KETERSEDIAAN KHUSUS (termasuk saat edit)
     if (gorValue === 'STADION' || GOR_MULTI_LAPANGAN[gorValue] || gorValue === 'GOR UTAMA' || gorValue === 'SPORT CENTER') {
         toggleLoader(true, "Memeriksa ketersediaan...");
         
@@ -1857,7 +1853,7 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai
             };
         }
 
-        // ── KASUS SPORT CENTER TENIS (LAP.TENIS A / LAP.TENIS B) ──
+        // SPORT CENTER: LAP.TENIS A / LAP.TENIS B
         if (gorValue === 'SPORT CENTER' && (jenisLapangan === 'LAP.TENIS A' || jenisLapangan === 'LAP.TENIS B')) {
             const lapDipilih = jenisLapangan;
             const lapLain = jenisLapangan === 'LAP.TENIS A' ? 'LAP.TENIS B' : 'LAP.TENIS A';
@@ -1865,16 +1861,9 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai
             const lainPenuh    = adaKonflik(lapLain);
             if (!dipilihPenuh) return { tersedia: true };
             if (!lainPenuh) {
-                return {
-                    tersedia: false,
-                    pesan: `⚠️ ${lapDipilih} sudah terisi di jam tersebut.
-✅ ${lapLain} masih tersedia! Silakan pilih ${lapLain}.`
-                };
+                return { tersedia: false, pesan: lapDipilih + ' sudah terisi.\n' + lapLain + ' masih tersedia! Silakan pilih ' + lapLain + '.' };
             }
-            return {
-                tersedia: false,
-                pesan: `🚫 Semua lapangan TENIS Sport Center sudah penuh di jam ${jamAwal} – ${jamSelesai}.`
-            };
+            return { tersedia: false, pesan: 'Semua lapangan Tenis Sport Center penuh di jam ' + jamAwal + ' - ' + jamSelesai + '.' };
         }
 
         // ── KASUS GOR UTAMA INDOOR (satu lapangan indoor, tidak bisa dipakai olahraga lain) ──
@@ -1980,18 +1969,14 @@ function openEditModal(id) {
     const isLainya = !isStadionSport && !isGeneralSport && !isMultiEdit;
 
     if (d.GOR === 'SPORT CENTER') {
-        // SPORT CENTER: lapangan = TENIS, jenis = LAP.TENIS A / LAP.TENIS B
         document.getElementById('eLapangan').value = SPORT_CENTER_CONFIG.olahraga;
         document.getElementById('eboxLainya').classList.add('hidden');
-        // Populate jenis dropdown
         const eJenisSC = document.getElementById('eJenisLapangan');
         const eBoxSC = document.getElementById('eboxJenisLapangan');
         if (eJenisSC && eBoxSC) {
             eBoxSC.classList.remove('hidden');
             eJenisSC.innerHTML = '<option value="">Pilih Lapangan</option>';
-            SPORT_CENTER_CONFIG.lapangan.forEach(lp => {
-                eJenisSC.innerHTML += `<option value="${lp}">${lp}</option>`;
-            });
+            SPORT_CENTER_CONFIG.lapangan.forEach(lp => { eJenisSC.innerHTML += '<option value="' + lp + '">' + lp + '</option>'; });
             setTimeout(() => { if (d.JENIS_LAPANGAN) eJenisSC.value = d.JENIS_LAPANGAN; }, 150);
         }
     } else if (d.GOR === 'GOR UTAMA') {
@@ -2247,11 +2232,11 @@ function closeEditModal() {
         const JAM_SELESAI_OP = 22;
 
         // Tentukan mode tampilan
-        // isTenis: STADION lapangan tenis, OR SPORT CENTER (selalu tenis A/B)
+        const isSportCenter = selectedGor === 'SPORT CENTER';
         const isTenis = (selectedGor === 'STADION' && selectedJenis === 'LAPANGAN TENIS') || isSportCenter;
         const isStadion = selectedGor === 'STADION';
         const isGorUtama = selectedGor === 'GOR UTAMA';
-        const isSportCenter = selectedGor === 'SPORT CENTER';
+        const isSportCenterJadwal = selectedGor === 'SPORT CENTER';
         const gorMultiCfg = GOR_MULTI_LAPANGAN[selectedGor]; // null jika bukan GOR multi
         const isMultiLapangan = !!gorMultiCfg; // GOR KOTA dll
 
@@ -2277,12 +2262,9 @@ function closeEditModal() {
                 dataFiltered = semuaData.filter(x => x.GOR === 'STADION' && x.JENIS_LAPANGAN === dbJenis);
             }
         } else if (isGorUtama) {
-            // GOR UTAMA: filter by INDOOR atau OUTDOOR
             dataFiltered = semuaData.filter(x => x.GOR === 'GOR UTAMA' && x.JENIS_LAPANGAN === selectedJenis);
         } else if (isSportCenter) {
-            // SPORT CENTER: semua data tenis (LAP.TENIS A + LAP.TENIS B)
-            dataFiltered = semuaData.filter(x => x.GOR === 'SPORT CENTER' &&
-                (x.JENIS_LAPANGAN === 'LAP.TENIS A' || x.JENIS_LAPANGAN === 'LAP.TENIS B'));
+            dataFiltered = semuaData.filter(x => x.GOR === 'SPORT CENTER');
         } else {
             dataFiltered = semuaData.filter(x => x.GOR === selectedGor);
         }
@@ -2559,20 +2541,11 @@ function closeEditModal() {
 		document.getElementById('fGor').value = gor;
 		updateLapanganByGor(gor, 'main');
 		setTimeout(() => {
-			if (gor === 'SPORT CENTER') {
-				// SPORT CENTER: lapangan langsung TENIS, pilih jenis A/B
-				document.getElementById('fLapangan').value = 'TENIS';
-				setTimeout(() => {
-					document.getElementById('fJenisLapangan').value = jenisLap;
-				}, 150);
-			} else {
-				// STADION: lapangan TENIS, trigger handleLapanganChange
-				document.getElementById('fLapangan').value = 'TENIS';
-				handleLapanganChange('TENIS', 'main');
-				setTimeout(() => {
-					document.getElementById('fJenisLapangan').value = jenisLap;
-				}, 150);
-			}
+			document.getElementById('fLapangan').value = 'TENIS';
+			handleLapanganChange('TENIS', 'main');
+			setTimeout(() => {
+				document.getElementById('fJenisLapangan').value = jenisLap;
+			}, 150);
 		}, 150);
 		document.getElementById('page-input').scrollIntoView({ behavior: 'smooth' });
 		showToast(`Slot ${jenisLap} tersedia - silakan lengkapi data`, "info");
@@ -2912,7 +2885,7 @@ function handleGorJadwalChange() {
         jenisSelect.value = '';
         setTampilkanBtn(false);
     } else if (gorVal) {
-        // GOR lain (GOR KOTA, SPORT CENTER, dll): tidak perlu filter jenis lapangan
+        // GOR lain (GOR KOTA, SPORT CENTER dll): tidak perlu filter jenis lapangan
         boxJenis.classList.add('hidden');
         jenisSelect.value = '';
         setTampilkanBtn(true);
