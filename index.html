@@ -2642,11 +2642,11 @@ function closeEditModal() {
                     } else {
                         // ── KASUS: ada booking FULL GOR (Futsal/Volly/Senam) → 1 baris penuh
                         const bkF = bkFull[0];
-                        html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:38px">
+                        html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:64px">
                             <div class="w-full h-full rounded bg-rose-500 hover:bg-rose-600 flex items-center justify-center cursor-pointer transition-all group"
                                 onclick="showBookingDetail('${bkF.ID}')"
                                 title="${bkF.NAMA} – ${bkF.LAPANGAN}">
-                                <span class="text-[7px] font-black text-white opacity-0 group-hover:opacity-100">${(bkF.LAPANGAN||'').substring(0,3)}</span>
+                                <span class="text-[8px] font-black text-white">${(bkF.LAPANGAN||'').substring(0,5)}</span>
                             </div>
                         </td>`;
                     }
