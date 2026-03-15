@@ -400,6 +400,10 @@
                     <div class="w-5 h-5 bg-rose-400 rounded-lg shadow-sm"></div>
                     <span class="text-xs font-bold text-gray-600">TERBOOKING</span>
                 </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 bg-amber-200 rounded-lg shadow-sm"></div>
+                    <span class="text-xs font-bold text-gray-600">TERKUNCI</span>
+                </div>
             </div>
             <div class="flex items-center gap-4">
                 <div class="flex items-center gap-1 text-amber-600">
@@ -409,6 +413,11 @@
                 <div class="flex items-center gap-1 text-indigo-400">
                     <i class="fas fa-info-circle text-xs"></i>
                     <span class="text-[10px] font-bold">Klik sel untuk detail</span>
+                </div>
+                <!-- Info GOR KANOR - hanya tampil saat pilih GOR KANOR -->
+                <div id="infoGorKanor" class="hidden flex items-center gap-1 text-purple-600 bg-purple-50 px-2 py-1 rounded-lg">
+                    <i class="fas fa-info-circle text-xs"></i>
+                    <span class="text-[9px] font-bold">A=Badminton A · B=Badminton B · •=Full GOR</span>
                 </div>
             </div>
         </div>
@@ -538,6 +547,15 @@
 			const SPORT_CENTER_CONFIG = {
 				olahraga: "TENIS",
 				lapangan: ["LAP.TENIS A", "LAP.TENIS B"]
+			};
+
+			// GOR KANOR: Indoor multifungsi
+			// Aturan: Badminton bisa Lap A dan Lap B berbarengan
+			// Olahraga lain (Futsal, Volly, Senam, Lainnya) = full GOR, tidak bisa pakai jika ada booking apapun
+			const GOR_KANOR_CONFIG = {
+				olahraga: ["FUTSAL", "VOLLY", "BADMINTON", "SENAM", "LAINYA"],
+				lapanganBadminton: ["LAP.BADMINTON A", "LAP.BADMINTON B"],
+				olahragaFullGor: ["FUTSAL", "VOLLY", "SENAM"] // olahraga yang memakai seluruh GOR
 			};
 
 			// GOR yang punya lapangan multi (hanya 1 cabang olahraga tapi banyak lapangan)
@@ -1059,6 +1077,39 @@ function handleLapanganChangeGorUtama(lapanganValue, formType) {
     }
 }
 
+// GOR KANOR: Handler perubahan olahraga
+function handleLapanganChangeGorKanor(lapanganValue, formType) {
+    const boxJenis = document.getElementById(formType === 'modal' ? 'eboxJenisLapangan' : 'boxJenisLapangan');
+    const jenisSelect = document.getElementById(formType === 'modal' ? 'eJenisLapangan' : 'fJenisLapangan');
+    const boxLainya = document.getElementById(formType === 'modal' ? 'eboxLainya' : 'boxLainya');
+
+    if (!lapanganValue || lapanganValue === '') {
+        if (boxJenis) boxJenis.classList.add('hidden');
+        if (boxLainya) boxLainya.classList.add('hidden');
+        return;
+    }
+
+    if (lapanganValue === 'BADMINTON') {
+        // BADMINTON: harus pilih lapangan A atau B
+        if (boxLainya) boxLainya.classList.add('hidden');
+        if (boxJenis && jenisSelect) {
+            boxJenis.classList.remove('hidden');
+            jenisSelect.innerHTML = '<option value="">PILIH LAPANGAN BADMINTON</option>' +
+                '<option value="LAP.BADMINTON A">LAP.BADMINTON A</option>' +
+                '<option value="LAP.BADMINTON B">LAP.BADMINTON B</option>';
+            jenisSelect.value = '';
+        }
+    } else if (lapanganValue === 'LAINYA') {
+        // LAINYA: tampilkan input teks
+        if (boxLainya) boxLainya.classList.remove('hidden');
+        if (boxJenis) boxJenis.classList.add('hidden');
+    } else {
+        // Futsal, Volly, Senam: pakai full GOR, tidak ada pilihan lapangan
+        if (boxJenis) boxJenis.classList.add('hidden');
+        if (boxLainya) boxLainya.classList.add('hidden');
+    }
+}
+
 // Update dropdown lapangan berdasarkan GOR yang dipilih
 function updateLapanganByGor(gorValue, formType) {
     const prefix = formType === 'modal' ? 'e' : 'f';
@@ -1112,6 +1163,14 @@ function updateLapanganByGor(gorValue, formType) {
             }
         }
         lapanganSelect.value = SPORT_CENTER_CONFIG.olahraga;
+    } else if (gorValue === 'GOR KANOR') {
+        // GOR KANOR: Indoor multifungsi - Futsal, Volly, Badminton A/B, Senam, Lainnya
+        lapanganSelect.add(new Option('Pilih Olahraga', ''));
+        GOR_KANOR_CONFIG.olahraga.forEach(s => lapanganSelect.add(new Option(s, s)));
+        if (boxLainya) boxLainya.classList.add('hidden');
+        if (boxJenis) boxJenis.classList.add('hidden');
+        // Reset
+        lapanganSelect.value = '';
     } else if (GOR_MULTI_LAPANGAN[gorValue]) {
         // GOR dengan multi-lapangan (misal GOR KOTA: hanya BADMINTON, pilih lapangan A/B/C/D)
         const cfg = GOR_MULTI_LAPANGAN[gorValue];
@@ -1179,6 +1238,10 @@ function setupSelectors() {
     if (!isUserAdmin && currentUser === 'STADION') {
         updateLapanganByGor('STADION', 'main');
     }
+    // Jika user adalah GOR KANOR, langsung filter lapangan
+    if (!isUserAdmin && currentUser === 'GOR KANOR') {
+        updateLapanganByGor('GOR KANOR', 'main');
+    }
     
     fillWithPlaceholder('eTanggal', 'Tanggal', Array.from({length:31}, (_,i)=>i+1));
     fillWithPlaceholder('eBulan', 'Bulan', MONTHS);
@@ -1194,6 +1257,10 @@ function setupSelectors() {
     // Jika user adalah STADION, langsung filter lapangan modal
     if (!isUserAdmin && currentUser === 'STADION') {
         updateLapanganByGor('STADION', 'modal');
+    }
+    // Jika user adalah GOR KANOR, langsung filter lapangan modal
+    if (!isUserAdmin && currentUser === 'GOR KANOR') {
+        updateLapanganByGor('GOR KANOR', 'modal');
     }
     
     const hbs = document.getElementById('histBulan'); 
@@ -1473,6 +1540,24 @@ async function submitForm(e, type) {
             window.isSubmitting = false; return;
         }
     }
+    // Validasi GOR KANOR: Badminton wajib pilih lapangan A/B
+    if (gorValue === 'GOR KANOR') {
+        const lapanganEl = document.getElementById(prefix + 'Lapangan');
+        const jenisEl = document.getElementById(prefix + 'JenisLapangan');
+        if (lapanganEl && lapanganEl.value === 'BADMINTON') {
+            if (!jenisEl || !jenisEl.value) {
+                showToast("Pilih lapangan Badminton (LAP.BADMINTON A atau LAP.BADMINTON B)!", "error");
+                window.isSubmitting = false; return;
+            }
+        }
+        if (lapanganEl && lapanganEl.value === 'LAINYA') {
+            const lainyaEl = document.getElementById(prefix + 'LapanganLainya');
+            if (!lainyaEl || !lainyaEl.value) {
+                showToast("Nama olahraga lainnya harus diisi!", "error");
+                window.isSubmitting = false; return;
+            }
+        }
+    }
     // Validasi GOR UTAMA: wajib pilih jenis lapangan (INDOOR/OUTDOOR)
     if (gorValue === 'GOR UTAMA') {
         const jenisEl = document.getElementById(prefix + 'JenisLapangan');
@@ -1509,7 +1594,7 @@ async function submitForm(e, type) {
     };
     
     // CEK KETERSEDIAAN KHUSUS (termasuk saat edit)
-    if (gorValue === 'STADION' || GOR_MULTI_LAPANGAN[gorValue] || gorValue === 'GOR UTAMA' || gorValue === 'SPORT CENTER') {
+    if (gorValue === 'STADION' || GOR_MULTI_LAPANGAN[gorValue] || gorValue === 'GOR UTAMA' || gorValue === 'SPORT CENTER' || gorValue === 'GOR KANOR') {
         toggleLoader(true, "Memeriksa ketersediaan...");
         
         try {
@@ -1633,6 +1718,12 @@ async function submitForm(e, type) {
     // GOR UTAMA: delegasi ke handler khusus
     if (gorValue === 'GOR UTAMA') {
         handleLapanganChangeGorUtama(lapanganValue, formType);
+        return;
+    }
+    
+    // GOR KANOR: tampilkan pilihan lapangan khusus untuk BADMINTON
+    if (gorValue === 'GOR KANOR') {
+        handleLapanganChangeGorKanor(lapanganValue, formType);
         return;
     }
     
@@ -1887,6 +1978,70 @@ Lapangan indoor hanya bisa dipakai 1 olahraga per waktu.`
             return { tersedia: true };
         }
 
+        // ── KASUS GOR KANOR (INDOOR MULTIFUNGSI) ──────────────────
+        if (gorValue === 'GOR KANOR') {
+            // Helper: cek overlap waktu di GOR KANOR tanggal ini (semua data)
+            function adaKonflikKanor(filterFn) {
+                return dataTanggal.filter(filterFn).some(d => {
+                    const s1 = toMenit(jamAwal), e1 = toMenit(jamSelesai);
+                    const s2 = toMenit(d.JAM_AWAL), e2 = toMenit(d.JAM_SELESAI);
+                    return (s1 >= 0 && e1 >= 0 && s2 >= 0 && e2 >= 0) && (s1 < e2 && s2 < e1);
+                });
+            }
+
+            const isBadminton = jenisLapangan === 'LAP.BADMINTON A' || jenisLapangan === 'LAP.BADMINTON B';
+
+            if (isBadminton) {
+                // BADMINTON: boleh main berbarengan di lapangan A & B
+                // Cek 1: apakah lapangan yang dipilih sudah diisi badminton?
+                const lapLain = jenisLapangan === 'LAP.BADMINTON A' ? 'LAP.BADMINTON B' : 'LAP.BADMINTON A';
+                const lapDipilihPenuh = adaKonflikKanor(d => d.JENIS_LAPANGAN === jenisLapangan);
+                const lapLainPenuh   = adaKonflikKanor(d => d.JENIS_LAPANGAN === lapLain);
+
+                // Cek 2: apakah ada olahraga NON-Badminton yang pakai full GOR di jam itu?
+                const adaFullGor = adaKonflikKanor(d => d.LAPANGAN !== 'BADMINTON');
+
+                if (adaFullGor) {
+                    const existFull = dataTanggal.find(d => d.LAPANGAN !== 'BADMINTON');
+                    return {
+                        tersedia: false,
+                        pesan: `🚫 GOR KANOR sudah dipakai oleh ${existFull ? existFull.LAPANGAN : 'olahraga lain'} pada jam ${jamAwal} – ${jamSelesai}.\nSaat ada pemakaian Futsal/Volly/Senam, seluruh GOR tidak bisa dipakai olahraga lain.`
+                    };
+                }
+
+                if (!lapDipilihPenuh) return { tersedia: true };
+
+                if (!lapLainPenuh) {
+                    return {
+                        tersedia: false,
+                        pesan: `⚠️ ${jenisLapangan} sudah terisi di jam tersebut.\n✅ ${lapLain} masih tersedia! Silakan pilih ${lapLain}.`
+                    };
+                }
+
+                return {
+                    tersedia: false,
+                    pesan: `🚫 Kedua lapangan Badminton (A & B) sudah penuh di jam ${jamAwal} – ${jamSelesai}.`
+                };
+            } else {
+                // FUTSAL / VOLLY / SENAM / LAINYA: pakai seluruh GOR
+                // Tidak boleh ada booking apapun di jam tersebut
+                const adaBookingApapun = adaKonflikKanor(d => true);
+                if (adaBookingApapun) {
+                    const existing = dataTanggal.find(d => {
+                        const s1 = toMenit(jamAwal), e1 = toMenit(jamSelesai);
+                        const s2 = toMenit(d.JAM_AWAL), e2 = toMenit(d.JAM_SELESAI);
+                        return (s1 >= 0 && e1 >= 0 && s2 >= 0 && e2 >= 0) && (s1 < e2 && s2 < e1);
+                    });
+                    const namaExist = existing ? existing.LAPANGAN + (existing.JENIS_LAPANGAN ? ' (' + existing.JENIS_LAPANGAN + ')' : '') : 'olahraga lain';
+                    return {
+                        tersedia: false,
+                        pesan: `🚫 GOR KANOR sudah terisi oleh ${namaExist} pada jam ${jamAwal} – ${jamSelesai}.\nFutsal, Volly, dan Senam membutuhkan seluruh area GOR.`
+                    };
+                }
+                return { tersedia: true };
+            }
+        }
+
         // ── KASUS NON-TENIS ──────────────────────────────────────
         if (adaKonflik(jenisLapangan)) {
             return {
@@ -1979,6 +2134,20 @@ function openEditModal(id) {
             SPORT_CENTER_CONFIG.lapangan.forEach(lp => { eJenisSC.innerHTML += '<option value="' + lp + '">' + lp + '</option>'; });
             setTimeout(() => { if (d.JENIS_LAPANGAN) eJenisSC.value = d.JENIS_LAPANGAN; }, 150);
         }
+    } else if (d.GOR === 'GOR KANOR') {
+        // GOR KANOR: set lapangan dan jenis
+        document.getElementById('eLapangan').value = d.LAPANGAN || '';
+        handleLapanganChangeGorKanor(d.LAPANGAN, 'modal');
+        if (d.LAPANGAN === 'LAINYA') {
+            document.getElementById('eboxLainya').classList.remove('hidden');
+            document.getElementById('eLapanganLainya').value = d.LAPANGAN;
+        } else {
+            document.getElementById('eboxLainya').classList.add('hidden');
+        }
+        setTimeout(() => {
+            const eJenis = document.getElementById('eJenisLapangan');
+            if (eJenis && d.JENIS_LAPANGAN) eJenis.value = d.JENIS_LAPANGAN;
+        }, 150);
     } else if (d.GOR === 'GOR UTAMA') {
         // GOR UTAMA: set lapangan, trigger INDOOR/OUTDOOR auto
         document.getElementById('eLapangan').value = d.LAPANGAN || '';
@@ -2237,6 +2406,7 @@ function closeEditModal() {
         const isStadion = selectedGor === 'STADION';
         const isGorUtama = selectedGor === 'GOR UTAMA';
         const isSportCenterJadwal = selectedGor === 'SPORT CENTER';
+        const isGorKanor = selectedGor === 'GOR KANOR';
         const gorMultiCfg = GOR_MULTI_LAPANGAN[selectedGor]; // null jika bukan GOR multi
         const isMultiLapangan = !!gorMultiCfg; // GOR KOTA dll
 
@@ -2265,12 +2435,15 @@ function closeEditModal() {
             dataFiltered = semuaData.filter(x => x.GOR === 'GOR UTAMA' && x.JENIS_LAPANGAN === selectedJenis);
         } else if (isSportCenter) {
             dataFiltered = semuaData.filter(x => x.GOR === 'SPORT CENTER');
+        } else if (isGorKanor) {
+            dataFiltered = semuaData.filter(x => x.GOR === 'GOR KANOR');
         } else {
             dataFiltered = semuaData.filter(x => x.GOR === selectedGor);
         }
 
         // Label
-        const multiTag = isMultiLapangan ? '<span class="ml-2 bg-amber-200 text-amber-800 px-2 py-0.5 rounded text-[10px]">4 LAPANGAN</span>' : '';
+        const multiTag = isMultiLapangan ? '<span class="ml-2 bg-amber-200 text-amber-800 px-2 py-0.5 rounded text-[10px]">4 LAPANGAN</span>' 
+            : isGorKanor ? '<span class="ml-2 bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-[10px]">INDOOR MULTIFUNGSI</span>' : '';
         const filterInfo = `<div class="mb-4 p-3 bg-indigo-50 rounded-xl flex items-center gap-2">
             <i class="fas fa-filter text-indigo-600"></i>
             <span class="text-xs font-bold text-indigo-700">
@@ -2305,13 +2478,14 @@ function closeEditModal() {
                             </th>`;
 
         // Header jam
-        const colWidth = isTenis ? 40 : (isMultiLapangan ? 44 : 32);
+        const colWidth = isTenis ? 40 : (isMultiLapangan ? 44 : isGorKanor ? 56 : 32);
         const lapSubLabels = isMultiLapangan ? gorMultiCfg.lapangan.map(l => l.replace('Lapangan ','')) : [];
         for (let jam = JAM_MULAI; jam <= JAM_SELESAI_OP; jam++) {
             const pk = jam >= 16 && jam <= 21;
             let subLabel = '';
             if (isTenis) subLabel = '<span class="text-[7px] opacity-60 font-bold">A/B</span>';
             else if (isMultiLapangan) subLabel = '<span class="text-[7px] opacity-60 font-bold">A-D</span>';
+            else if (isGorKanor) subLabel = '<span class="text-[6px] opacity-60 font-bold">A/B/•</span>';
             else subLabel = `<span class="text-[6px] opacity-50">${pk?'PK':''}</span>`;
             html += `<th class="p-1 font-black border-r border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white" style="min-width:${colWidth}px">
                 <div class="flex flex-col items-center">
@@ -2336,7 +2510,8 @@ function closeEditModal() {
 
             // subLaps harus didefinisikan SEBELUM rowH
             const subLaps = isMultiLapangan ? gorMultiCfg.lapangan : [];
-            const rowH = isMultiLapangan ? subLaps.length*32 : (isTenis ? 72 : 38);
+            // GOR KANOR: 3 baris (Lap A, Lap B, Full GOR olahraga)
+            const rowH = isMultiLapangan ? subLaps.length*32 : (isTenis ? 72 : isGorKanor ? 96 : 38);
 
             html += `<tr class="${d%2===0?'bg-white':'bg-gray-50/30'} hover:bg-indigo-50/10">`;
             html += `<td class="p-1 border-t border-gray-100 sticky left-0 ${d%2===0?'bg-white':'bg-gray-50/30'} z-10 ${isToday?'bg-indigo-50':''}" style="min-width:80px;height:${rowH}px">
@@ -2393,6 +2568,86 @@ function closeEditModal() {
                     html += `<td class="border border-gray-100 p-0.5" style="min-width:44px;height:${subLaps.length * 32}px">
                         <div class="flex flex-col gap-0.5 h-full">
                             ${subLaps.map(lp => renderSubLap(lp)).join('')}
+                        </div>
+                    </td>`;
+                } else if (isGorKanor) {
+                    // GOR KANOR: 3 baris — Lap.Badminton A, Lap.Badminton B, Full GOR (Futsal/Volly/Senam/Lainnya)
+                    const getKanorBookings = (jenisFilter) => dataFiltered.filter(x => {
+                        const tglDb = new Date(x.TAHUN, MONTHS.indexOf(x.BULAN), parseInt(x.TANGGAL));
+                        tglDb.setHours(0,0,0,0);
+                        if (tglDb.getTime() !== tgl.getTime()) return false;
+                        const jA = parseJamToHour(x.JAM_AWAL);
+                        const jS = parseJamToHour(x.JAM_SELESAI) || jA+1;
+                        if (!(jam >= jA && jam < jS)) return false;
+                        return jenisFilter ? x.JENIS_LAPANGAN === jenisFilter : (x.LAPANGAN !== 'BADMINTON');
+                    });
+
+                    const bkBA = getKanorBookings('LAP.BADMINTON A');
+                    const bkBB = getKanorBookings('LAP.BADMINTON B');
+                    const bkFull = getKanorBookings(null); // Full GOR (Futsal, Volly, Senam, Lainnya)
+
+                    if (bkBA.length > 0) { totalBookings++; dailyBookings++; }
+                    if (bkBB.length > 0) { totalBookings++; dailyBookings++; }
+                    if (bkFull.length > 0) { totalBookings++; dailyBookings++; }
+
+                    // Apakah ada booking apapun di jam ini (untuk disable slot)
+                    const adaAnyBooking = bkBA.length > 0 || bkBB.length > 0 || bkFull.length > 0;
+
+                    const renderKanorRow = (bookings, rowLabel, jenisLap, isFullGor) => {
+                        // Jika ada booking full-GOR, semua baris terkunci kecuali baris itu
+                        if (bkFull.length > 0 && !isFullGor) {
+                            // Terkunci karena ada full-GOR
+                            const bkF = bkFull[0];
+                            return `<div class="flex-1 rounded bg-rose-200 flex items-center justify-center" title="GOR dipakai: ${bkF.LAPANGAN}">
+                                <span class="text-[7px] font-black text-rose-500">PENUH</span>
+                            </div>`;
+                        }
+                        if (bookings.length > 0) {
+                            const bk = bookings[0];
+                            const color = isFullGor ? 'bg-rose-500 hover:bg-rose-600' : 'bg-rose-400 hover:bg-rose-500';
+                            return `<div class="flex-1 rounded ${color} flex items-center justify-center cursor-pointer transition-all group"
+                                onclick="showBookingDetail('${bk.ID}')" title="${bk.NAMA} - ${bk.LAPANGAN}">
+                                <span class="text-[7px] font-black text-white opacity-0 group-hover:opacity-100">${bk.NAMA.substring(0,2)}</span>
+                            </div>`;
+                        } else {
+                            // Kosong - tapi jika ada booking (full-gor atau badminton lap lain pakai full), disable
+                            // Full-GOR slot: tidak bisa booking jika ada badminton aktif
+                            if (isFullGor && (bkBA.length > 0 || bkBB.length > 0)) {
+                                return `<div class="flex-1 rounded bg-amber-200 flex items-center justify-center cursor-pointer" 
+                                    title="Ada Badminton aktif, Full GOR tidak tersedia"
+                                    onclick="alert('Tidak bisa booking Full GOR saat ada Badminton aktif di jam ini')">
+                                    <span class="text-[6px] font-black text-amber-600">BADMINTON</span>
+                                </div>`;
+                            }
+                            const pk = jam >= 16 && jam <= 21;
+                            const color = pk ? 'bg-emerald-300 hover:bg-emerald-400' : 'bg-emerald-400 hover:bg-emerald-500';
+                            if (isFullGor) {
+                                return `<div class="flex-1 rounded ${color} flex items-center justify-center cursor-pointer transition-all group"
+                                    onclick="showAvailableSlotKanor('${tanggalStr}', ${jam}, 'FULLGOR')">
+                                    <span class="text-[7px] font-black text-white opacity-0 group-hover:opacity-100">+</span>
+                                </div>`;
+                            }
+                            return `<div class="flex-1 rounded ${color} flex items-center justify-center cursor-pointer transition-all group"
+                                onclick="showAvailableSlotKanor('${tanggalStr}', ${jam}, '${jenisLap}')">
+                                <span class="text-[7px] font-black text-white opacity-0 group-hover:opacity-100">+</span>
+                            </div>`;
+                        }
+                    };
+
+                    html += `<td class="border border-gray-100 p-0.5" style="min-width:56px;height:96px">
+                        <div class="flex flex-col gap-0.5 h-full">
+                            <div class="flex items-center gap-0.5 flex-1">
+                                <span class="text-[6px] font-black text-gray-400 writing-mode-vertical" style="writing-mode:vertical-rl;transform:rotate(180deg);min-width:10px">A</span>
+                                <div class="flex-1 h-full">${renderKanorRow(bkBA, 'A', 'LAP.BADMINTON A', false)}</div>
+                            </div>
+                            <div class="flex items-center gap-0.5 flex-1">
+                                <span class="text-[6px] font-black text-gray-400" style="writing-mode:vertical-rl;transform:rotate(180deg);min-width:10px">B</span>
+                                <div class="flex-1 h-full">${renderKanorRow(bkBB, 'B', 'LAP.BADMINTON B', false)}</div>
+                            </div>
+                            <div class="flex items-center gap-0.5 flex-1">
+                                <span class="text-[6px] font-black text-indigo-400" style="writing-mode:vertical-rl;transform:rotate(180deg);min-width:10px">•</span>
+                                <div class="flex-1 h-full">${renderKanorRow(bkFull, '•', null, true)}</div>
+                            </div>
                         </div>
                     </td>`;
                 } else if (isTenis) {
@@ -2460,7 +2715,9 @@ function closeEditModal() {
         // Summary
         const totalSlots = isTenis
             ? daysInMonth * (JAM_SELESAI_OP - JAM_MULAI + 1) * 2
-            : daysInMonth * (JAM_SELESAI_OP - JAM_MULAI + 1);
+            : isGorKanor
+                ? daysInMonth * (JAM_SELESAI_OP - JAM_MULAI + 1) * 3
+                : daysInMonth * (JAM_SELESAI_OP - JAM_MULAI + 1);
         const occ = totalSlots > 0 ? Math.round((totalBookings/totalSlots)*100) : 0;
 
         html += `<div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-2">
@@ -2551,6 +2808,39 @@ function closeEditModal() {
 		showToast(`Slot ${jenisLap} tersedia - silakan lengkapi data`, "info");
 	}
 
+
+	// Slot kosong GOR KANOR
+	function showAvailableSlotKanor(tanggal, jam, jenisSlot) {
+		showPage('input');
+		const parts = tanggal.split('-');
+		document.getElementById('fTanggal').value = parseInt(parts[2]);
+		document.getElementById('fBulan').value = MONTHS[parseInt(parts[1]) - 1];
+		document.getElementById('fTahun').value = parts[0];
+		const jamStr = jam.toString().padStart(2,'0');
+		const jamNextStr = (jam+1).toString().padStart(2,'0');
+		document.getElementById('fJamAwal').value = `${jamStr}:00`;
+		document.getElementById('fJamSelesai').value = `${jamNextStr}:00`;
+		hitungDurasi('main');
+		document.getElementById('fGor').value = 'GOR KANOR';
+		updateLapanganByGor('GOR KANOR', 'main');
+
+		if (jenisSlot === 'LAP.BADMINTON A' || jenisSlot === 'LAP.BADMINTON B') {
+			// Pre-fill BADMINTON + lapangan
+			setTimeout(() => {
+				const fLap = document.getElementById('fLapangan');
+				if (fLap) { fLap.value = 'BADMINTON'; handleLapanganChange('BADMINTON', 'main'); }
+				setTimeout(() => {
+					const fJenis = document.getElementById('fJenisLapangan');
+					if (fJenis) fJenis.value = jenisSlot;
+				}, 150);
+			}, 150);
+			showToast(`${jenisSlot} tersedia - silakan lengkapi data`, 'success');
+		} else {
+			// Full GOR (Futsal/Volly/Senam)
+			showToast('Silakan pilih olahraga (Futsal / Volly / Senam) dan lengkapi data', 'success');
+		}
+		document.getElementById('page-input').scrollIntoView({ behavior: 'smooth' });
+	}
 
 	// Slot kosong GOR multi-lapangan (GOR KOTA: Lapangan A/B/C/D)
 	function showAvailableSlotMulti(tanggal, jam, gor, lapNama) {
@@ -2884,15 +3174,26 @@ function handleGorJadwalChange() {
             '<option value="OUTDOOR">OUTDOOR</option>';
         jenisSelect.value = '';
         setTampilkanBtn(false);
+    } else if (gorVal === 'GOR KANOR') {
+        // GOR KANOR: tidak perlu filter tambahan - tampilkan semua lapangan sekaligus
+        boxJenis.classList.add('hidden');
+        jenisSelect.value = '';
+        setTampilkanBtn(true);
+        const infoKanor = document.getElementById('infoGorKanor');
+        if (infoKanor) infoKanor.classList.remove('hidden');
     } else if (gorVal) {
         // GOR lain (GOR KOTA, SPORT CENTER dll): tidak perlu filter jenis lapangan
         boxJenis.classList.add('hidden');
         jenisSelect.value = '';
         setTampilkanBtn(true);
+        const infoKanor = document.getElementById('infoGorKanor');
+        if (infoKanor) infoKanor.classList.add('hidden');
     } else {
         boxJenis.classList.add('hidden');
         jenisSelect.value = '';
         setTampilkanBtn(false);
+        const infoKanor = document.getElementById('infoGorKanor');
+        if (infoKanor) infoKanor.classList.add('hidden');
     }
 }
 
