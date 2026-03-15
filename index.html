@@ -1972,8 +1972,7 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai
                     // User mau booking non-Badminton -> TOLAK
                     return {
                         tersedia: false,
-                        pesan: 'GOR Kanor jam ' + jamAwal + ' sudah ada booking BADMINTON.
-Hanya bisa menambah booking BADMINTON (Lapangan 1 atau 2).'
+                        pesan: 'GOR Kanor jam ' + jamAwal + ' sudah ada booking BADMINTON. Hanya bisa menambah booking BADMINTON (Lapangan 1 atau 2).'
                     };
                 }
                 // User mau booking BADMINTON -> cek Lapangan 1 / 2
@@ -2020,8 +2019,7 @@ Hanya bisa menambah booking BADMINTON (Lapangan 1 atau 2).'
                 const namaExist = existing ? existing.LAPANGAN : 'olahraga lain';
                 return {
                     tersedia: false,
-                    pesan: `🚫 Lapangan INDOOR sudah dipakai ${namaExist} pada jam ${jamAwal} – ${jamSelesai}.
-Lapangan indoor hanya bisa dipakai 1 olahraga per waktu.`
+                    pesan: `🚫 Lapangan INDOOR sudah dipakai ${namaExist} pada jam ${jamAwal} – ${jamSelesai}. Lapangan indoor hanya bisa dipakai 1 olahraga per waktu.`
                 };
             }
             return { tersedia: true };
