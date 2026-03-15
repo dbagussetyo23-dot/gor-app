@@ -1962,8 +1962,7 @@ async function cekKetersediaanStadion(tanggal, bulan, tahun, jamAwal, jamSelesai
                 const ex = konflikData.find(d2 => d2.LAPANGAN !== 'BADMINTON');
                 return {
                     tersedia: false,
-                    pesan: 'GOR Kanor sudah dipesan untuk ' + (ex ? ex.LAPANGAN : 'olahraga lain') + ' pada jam ' + jamAwal + ' - ' + jamSelesai + '.
-Tidak bisa booking olahraga apapun di jam tersebut.'
+                    pesan: 'GOR Kanor sudah dipesan untuk ' + (ex ? ex.LAPANGAN : 'olahraga lain') + ' pada jam ' + jamAwal + ' - ' + jamSelesai + '. Tidak bisa booking olahraga apapun di jam tersebut.',
                 };
             }
 
